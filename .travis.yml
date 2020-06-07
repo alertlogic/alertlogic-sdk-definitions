@@ -1,7 +1,7 @@
 language: python
 python:
-  - 3.8
-  - 3.7
+- 3.8
+- 3.7
 install: pip install -U tox-travis
 script: tox
 deploy:
@@ -9,7 +9,7 @@ deploy:
   distributions: sdist bdist_wheel
   user: alertlogic
   password:
-    secure: Y4wOV54F50M1X/6HQnSKf6sAVptK0vurXF2psQh/PwyqQy97jyVJmZvrEPeRJwjTx2zKO7+rvyKC8l/dJkI58l6XYlz/aFZwL4RXICNdcLQiEKcxd6rXfhB9wZZ+kr1CsX/cJYRgTJMGnVIx3wDo3FV3zHykDUS4WZTcbw1VlDT5ji4fcjbKtlKhyd3eRp3CnGdiDJ8d40Qw14gb8ys++PDJR+DPPNlTS3EFM2y9x/+UTCBg1GzckK+9NZXfLxkYJkSv514lFxjEzGbPY2V02z69yyH2zz/lOYh7hCRWSC2PrhIu/Q6K5w+7u8GZTR+ZBpjQuMhrtGmtFYHIkKNMvEIgRmnDVlR4SaThXpCBfbLBeceC2wT1RFegmUj8g4Wrq/kINBvY18sKtd/93Bgl6kdUxJiSHBMLtYifGeEn8eogkyys90E5a3U8FWHVhq4+6Q5IE9+idjzVS28sv+16V8M1XMmxvDhxBFbOP+XBKYJQyX9MEM2hnWlN7Q7QyFGdBpXdwkDl/DBTzN5JBRsyEivSWA485VCXoIhOlQ4ogpamekEDSw4SyOaAmsSb8o+i0ooc6TU8hmHb/kxX3uhovHJZnKUdG/cd1eecy3MTYVpvRCnaIRlcPIEKfc5TI/RBg7lNO9H4G5hmjJhYFBTEYOKLmlQoJSpUv3xHF0xRTwo=
+    secure: y5JZKoc9eQhfiolxul42kAoKuJ/aEspomyjf4ooir8+IqkwF5ENvPFybxjffkRB1Kwo5SMAD0kGtWtbckumVjXnrVcdYLxl6Rf6WGUyg0YyQkoMwqdjqDWEEL8QiA7KHR4BoVxSRscnVtfxA9wT0oH0jomGek2y8fKgTq3DTID2yVWSYVW8++tZaQWe8aaXSUOTASGZtHvbxxDqcE1ssLwFRMvEPnHfR7euWqydMLlitdqQGnZXfZDzvnRVVcXzo+/z8UUID+ZciQef5BU/RpexKsXRkbjf6EvkvVgEEKjAQwL9xHDrKcBFs4/hFArlA8ECkdAsCkg6ZI38sKmtGV5NHcK18qTXY7/5cy55V3GTmFexCT9SX9HNPKHlOM6QR4NixbjFmPxVlvzNJMfbbPPzVnKbRppf34Eafud4Mzx9KQAPw8AqIK0uKP3nsmRrf3J3lgP6vaXvdtsyGXy7dOFJzBNLSBBAlPMuYFLEJzMymLh5HbLPdPL3gb2WSeexiqxm+XAIlbdTmVk1oVPgiz0tvmzpUSRpqoxDAuUiz9I21Znw8kiEpG5l9i74/lW1yv7DfXyj3/hiMme8LHxIDvZoMsH4qVPzVifUbmls8OmNgkq5pGyMfdawOdqwmwAGKv15/Z1QQHV4CRRDvjihtbdmshkjD23dTWeU/Qn1xAUM=
   on:
     tags: true
     repo: anton-b/alertlogic-sdk-definitions
