@@ -252,7 +252,9 @@ paths:
     get:
       summary: Your GET endpoint
       tags: []
-      responses: {}
+      responses:
+        '200':
+          'description': 'OK'
       operationId: find_asset
       parameters:
         - schema:
