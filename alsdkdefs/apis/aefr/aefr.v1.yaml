@@ -155,7 +155,9 @@ paths:
     get:
       summary: Get Trigger for a specific customer
       tags: []
-      responses: {}
+      responses:
+        '200':
+          description: OK
       operationId: get_trigger_by_path
       description: Returns trigger definition for specific customer
       security:

@@ -25,12 +25,8 @@ setup(
     description='The Alert Logic API definitions.',
     long_description=readme,
     long_description_content_type='text/markdown',
-    entry_points = {
-        'console_scripts': [
-            'alcli = alcli.alertlogic_cli:main'
-        ]
-    },
     scripts=[],
+    tests_require=['jsonschema', 'PyYaml', 'requests'],
     packages=find_packages(exclude=['contrib', 'docs', 'tests*', 'troubleshooting']),
     include_package_data=True,
     zip_safe=False,
