@@ -1,0 +1,15 @@
+@startuml
+(*)  --> "service API defintion update detected"
+--> "Automated PR is created"
+If "PR change test passed" then
+--> [Yes] "PR automatically merged"
+--> "master branch is tagged with new version \nif commit is detected to be made by automation"
+--> "package is deployed to PyPi"
+--> "github release is created"
+-> (*)
+else
+--> "repo maintainer notified"
+--> "probem resolved"
+->(*)
+Endif
+@enduml
