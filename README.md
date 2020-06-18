@@ -2,6 +2,7 @@
 Alert Logic APIs definitions
 
 [![Build Status](https://travis-ci.com/alertlogic/alertlogic-sdk-definitions.svg?branch=master)](https://travis-ci.com/alertlogic/alertlogic-sdk-definitions)
+[![PyPI version](https://badge.fury.io/py/alertlogic-sdk-definitions.svg)](https://badge.fury.io/py/alertlogic-sdk-definitions)
 
 Repository contains static definitions of Alert Logic APIs, used for documentation generation, 
 [SDK](https://github.com/alertlogic/alertlogic-sdk-python) and [CLI](https://github.com/alertlogic/alcli).
