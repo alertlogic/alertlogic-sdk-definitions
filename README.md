@@ -35,6 +35,21 @@ Get path to a service definitions paths:
 ['/usr/local/lib/python3.8/site-packages/alsdkdefs/apis/aerta/aerta.v1.yaml']
 ```
 
+#### Quick validation of a definition
+
+While YAML definition is developed apart from the current package and current repo,
+it is required to validate it prior to push, please add this to your `Makefile` 
+in order to achieve quick validation:
+
+`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash -s <path/to/definition/yaml>`
+
+It is recommended to invoke it via curl, since validation of the definitions might be extended with time.
+Script requires `python3` to be available in the system.
+
+Validation checks:
+* YAML of a definition is valid
+* Definition passes OpenAPI 3 schema validation
+
 ### Development
 
 Please submit a PR. Please note that API definitions are updated automatically and any changes to it will be overwritten, see:
