@@ -1,6 +1,4 @@
 env:
-  matrix:
-  - GITHUB_REPO=alertlogic/alertlogic-sdk-definitions
   global:
   - secure: BXki2OvWA47YSLeKnAyNENgMNz148IFl+8ohpV7liXHORW/rkbUE3MYCqNJgT+zNqOJDhGSO/fiAb8mOxjBNjeWgqhxu8H+KqOBKU9B0XpagqM1fqpAn2duKxb51ULNKQvjRcsn/tEXqyIe2ipO0G7P8VJQzuHvrVEqVWDXMbbJAj2s1ZAfgzzFRiI7dDweWrPwLNwK9kMxjauTEpaAVuhFCGl2ga6nG8a26ORxecxvELXwEcKBGW7gJWZhpk+Y1Fhd6YeJKNmvok0XthqLJNaRV2JRErzyYpaLnnw+FgTpfSF2taREge4wlDzYbKRP4yVlC3IFn2QLq77kff/NsPck5n6M7B+PIzKrsu5bwCU3Apx1y78pstLTVVNb0xCLh61JGn8Va/vfExX1lpDMd42+9a2RTALEXHcgvdF+gx/KL8Hwa4HsmOaAJqWmfivdQilLzvdbxmnu0f+lsDnwsJy5FciBLjdZ/VTmphWOTMzopMHJdl7dNzFafwDTTAVaS0FA7EoHdZAm1m/4C5iZ+B+85SFCQxt1/Ot3/8ntTub0OPep98S1RNEqGqjeIXosh3KKdT8gp27kIcuqj3iQvsqFGMVeDqQqij/RUkizX1z0CoX8M4Pbi9BQpM7g8aNGqTJtLPaYbccURy56UarkbK7mG63tWTW4pba0vyfSwTg0=
 language: python
@@ -18,13 +16,13 @@ jobs:
     name: "(Pipeline Stage 1)Merge pull request produced by automation"
     if: "(fork = false) AND (head_branch =~ /^auto-update-\\d*/) AND (type = pull_request)"
     python: 3.8
-    script: BRANCHES_TO_MERGE_REGEX='^auto-update-' BRANCH_TO_MERGE_INTO=master scripts/travis-automerge.sh
+    script: GITHUB_REPO=$TRAVIS_REPO_SLUG BRANCHES_TO_MERGE_REGEX='^auto-update-' BRANCH_TO_MERGE_INTO=master scripts/travis-automerge.sh
   - stage: auto_release
     name: "(Pipeline Stage 2)Automatically release definitions update"
     if: branch = master AND type = push
     python: 3.8
     install: pip install -U packaging requests
-    script: scripts/create_release.py --repo $GITHUB_REPO -re "^Definitions Update.*"  --create_release
+    script: scripts/create_release.py --repo $TRAVIS_REPO_SLUG -re "^Definitions Update.*"  --create_release
   - stage: github_release
     if: type = push AND tag =~ /^v\d*\.\d*\.\d*$/
     name: "(Pipeline Stage 3)Create release containing just definitions"
@@ -51,5 +49,5 @@ jobs:
         secure: eJMWcJY8inSzxPccLTlEN5nWzeDa2zzovgYX7HB+oeoNGEMSu+XS6HV1ILARHyDJovhPlkgZplFcJxjRZITBsjFAatpFeBSTqeV1/qkXs4rSY4wYF71x7dkBRQxEuAjsH9v1qzHvE9JXdzdvy/z/U36Dh1HXLhW9uYQ+Rfo0k/+VR6sAByMHAEFWCibt3UbrMm3l1j8X/95Z0h5+xJODnTc4QCiNK/HYhdzq5MU415CLHo1BLFlP6GyWK+Mi+bQu2cZnU+qnKlSYjmfKJYtL3tJ97TtXNRgvhiS2pgi+qldfNv8kaj9trkUJgsn6QaTGl93CEMthMCcVyYPd7qDjpN2If5NrWBqiTVid/g2HO33WleFRQjp9UF6eRsDozecSSVGefVZc6Aorl8usL9Kf0nKFHGm9P2lbjHofiJ23la8W43CT1gOSxUFs4u8v9AFh4aCI1v6TwdlVX7/1EbcsFsOFVXBEuE6RB0ZGbSQcafcObdxbg8wNJsDBpz/JVFicWdfTZ1C4LEZkAsuwwHvLlfwYX51984fr5493h7CNmWfHziMXTp68YvZsoQ8OCVDEAerYMf6eeWBXhZWDJLUUBPl89u7pVnQrKq9YyZCsUJSfrq6pQ4+3bsiLgwp4Zyho4XS8w8Y1bXbjX/6jFAK5tXMexKkg19jLd/V0ef6eEsY=
       on:
         tags: true
-        repo: "$GITHUB_REPO"
+        repo: "$TRAVIS_REPO_SLUG"
         python: 3.8
