@@ -6,17 +6,14 @@ from yaml import YAMLError
 from jsonschema.exceptions import ValidationError
 import requests
 from argparse import ArgumentParser
+import glob
 
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
 
-if __name__ == "__main__":
-    parser = ArgumentParser(description="Validates OpenAPI YAML developed for Alert Logic SDK")
-    parser.add_argument("-f", "--definition_file", dest="definition", required=True,
-                        help="Filename of a definition to test")
-    options = parser.parse_args()
-    r = requests.get(OPENAPI_SCHEMA_URL)
-    schema = r.json()
-    with open(options.definition, "r") as f:
+
+def validate_definition(definition_file):
+    print(f"Validating {definition_file}")
+    with open(definition_file, "r") as f:
         spec = f.read()
     if spec:
         try:
@@ -32,3 +29,15 @@ if __name__ == "__main__":
     else:
         print("Input is empty")
         exit(1)
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser(description="Validates OpenAPI YAML developed for Alert Logic SDK")
+    parser.add_argument("-d", "--definitions_directory", dest="dir", default="doc/openapi/",
+                        help="Directory with definitions to test")
+    options = parser.parse_args()
+    r = requests.get(OPENAPI_SCHEMA_URL)
+    schema = r.json()
+    files = glob.glob(f"{options.dir}/*.yaml")
+    for file in files:
+        validate_definition(file)
