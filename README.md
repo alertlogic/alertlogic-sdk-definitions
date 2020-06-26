@@ -41,7 +41,11 @@ While YAML definition is developed apart from the current package and current re
 it is required to validate it prior to push, please add this to your `Makefile` 
 in order to achieve quick validation:
 
-`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash -s <path/to/definition/yaml>`
+`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash -s <path/to/definitions/directory>`
+
+If no directory is specified, by default `doc/openapi/` directory will be used, if such behaviour is desired, use following line instead:
+
+`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash`
 
 It is recommended to invoke it via curl, since validation of the definitions might be extended with time.
 Script requires `python3` to be available in the system.
