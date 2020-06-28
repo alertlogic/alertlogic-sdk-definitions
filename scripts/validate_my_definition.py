@@ -39,5 +39,8 @@ if __name__ == "__main__":
     r = requests.get(OPENAPI_SCHEMA_URL)
     schema = r.json()
     files = glob.glob(f"{options.dir}/*.yaml")
-    for file in files:
-        validate_definition(file)
+    if files:
+        for file in files:
+            validate_definition(file)
+    else:
+        print(f"No definitions found at {options.dir} skip validation")
