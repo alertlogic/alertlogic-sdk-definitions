@@ -369,4 +369,3 @@ components:
       type: apiKey
       in: header
       description: AIMS Authentication Token
-
