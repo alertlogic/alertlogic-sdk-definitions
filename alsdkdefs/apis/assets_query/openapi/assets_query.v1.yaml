@@ -1,0 +1,2383 @@
+openapi: 3.0.2
+info:
+  title: assets_query
+  version: "1.0"
+  contact:
+    email: support@alertlogic.com
+    name: Alert Logic Support
+    url: https://support.alertlogic.com
+  x-alertlogic-iws-service:
+    type: public
+  description: |-
+    ## Introduction
+    The Assets service manages customer asset models. More specifically, Assets stores a customer's
+    assets (hosts, subnets, vpcs, load balancers, IAM users, etc.) and the relationships between
+    them. Assets provides a general query mechanism to retrieve the stored data: assets query
+    service.
+
+    All of the examples in this document use curl and jq. curl can be installed via
+    [Cygwin](https://www.cygwin.com/) on Windows, or via [Homebrew](http://brew.sh/) or
+    [MacPorts](https://www.macports.org/) on OS X. curl should already be installed on any Linux or
+    Unix system. jq can be downloaded from
+    [https://stedolan.github.io/jq/](https://stedolan.github.io/jq/).
+
+    ### Principles
+    Assets works in objects and relationships. With a few restrictions, assets will store what you
+    ask it to store. It will not modify object values or relationships unless requested. It does
+    add some fields to objects and relationships.
+
+    Properties of objects are stored as `scope_$SCOPE_$PROPERTYNAME`. If you declared property `bar`
+    with scope `foo`, then the property would be named `scope_foo_bar`. Some scope and property name
+    combinations are automatically "promoted" so that both `scope_foo_bar` and `bar` are declared as
+    properties with the same value. Modifying one, though, will not modify the other.
+
+    The relationships between objects have many different uses. Some relationships are topological
+    and represent the relationships between regions, VPCs, subnets, hosts, etc. Some relationships
+    are declarative and represent information such as the AMI a hosts was started from, or which
+    Auto Scaling Groups are associated with an Elastic Load Balancer. If a relationship is declared
+    to an asset that doesn't exist, this asset will not be returned by assets_query until it is
+    declared.
+
+    All URLs for the assets query service are under `/assets_query/v1/$ACCOUNT_ID`. Most are under
+    `/assets_query/v1/$ACCOUNT_ID/deployments/$DEPLOYMENT_ID`.
+
+    All assets read requests are in the form of `GET` requests.
+
+    *Note*: some assets use a `threatiness` property which is an internal measurement used for
+    relative comparison and is not considered useful to customers.
+
+    ### Data Types
+    Asset properties may be boolean, numeric (integer or float), string, or one dimensional arrays
+    of those types.
+
+    ## Usage
+    This section contains advice and tips of how to interact with the assets query service.
+
+    All calls to assets query service must be authenticated. Authentication is done via a token
+    obtained from the AIMS service. The following will get a token and store it in `$AL_TOKEN`
+    given a valid email address and password:
+
+    ```
+    export AL_TOKEN=`curl -X POST -H "Accept: application/json" --user "$EMAIL_ADDRESS:$PASSWORD"
+    https://api.cloudinsight.alertlogic.com/aims/v1/authenticate | jq -r .authentication.token`
+    ```
+    *Note: you must use https://api.cloudinsight.alertlogic.co.uk if your console is at
+    https://console.cloudinsight.alertlogic.co.uk.*
+
+    This token will be passed as the value of the `x-aims-auth-token` header.
+
+    ### Querying Assets
+
+    #### Simple query
+    The most basic request for assets is to get all assets, and this may be a lot of data.
+    [Here is an example returning relatively small number of assets](#operation/query_assets). A
+    realistic response would have many more assets.
+
+    ### Deployment-specific query
+    You can reduce results of your request by providing particular deployment ID as part of the
+    request. [Here is an example for a deployment](#operation/query_deployment_assets).
+
+    #### Typed queries
+
+    If you want to get only a certain type of asset, you can limit the asset types using
+    `?asset_types=region` or `?asset_types=name:region`. However, although `?asset_types=region`
+    is equivalent to `?asset_types=region:region`, the latter is preferred since it allows more
+    flexibility when querying relationships. An example can be found under
+    [get just region assets](#operation/query_assets).
+
+    Once you've declared an asset type in your query, you can refer to it in subsequent query
+    parameters using its name: `?asset_types=r:region&r.created_on=1447260845785`.
+
+    The `asset_types` parameter can be used to query for long chains of related assets.
+
+    #### Filtering assets
+
+    Assets that are requested via the `asset_types` parameter can be filtered by the URL query
+    string. If `assets?asset_types=r:region,v:vpc,s:subnet` is requested, any of `r`, `v`, or `s`
+    could be filtered by their property values.
+
+    If you want to find only VPCs and subnets within the us-east-1 region, you can limit the query
+    by specifying `r.name=us-east-1`:
+
+    Like in the [VPCs and Subnets in us-east-1 General Query example](#operation/query_assets).
+
+    Assets supports queries with filters more complex than equality. The operator (special
+    character(s)) is placed immediately after the equals sign in the query string parameter.
+
+    | Operation       | Character(s) | Format               | Example                      |
+    |-----------------|--------------|----------------------|------------------------------|
+    | Greater than    | `>`          | String or number     | `x.y=>5`, `x.y=>Gryffindor`  |
+    | Less than       | `<`          | String or number     | `x.y=<5`, `x.y=<Slytherin`   |
+    | Not equal       | `!`          | Scalar               | `x.name=!Draco`              |
+    | Is not          | `!!`         | Scalar               | `x.name=!!Draco`             |
+    | Is null         | `$null`      | None                 | `x.name=$null`               |
+    | Is one of       | `@` or `<<`  | Comma separated list | `x.name=@Harry,Ron,Hermione` |
+    | List contains   | `>>`         | Scalar               | `x.parents=>>Lilly`          |
+    | String contains | `%`          | String               | `x.name=%Percival`           |
+    | Regex Match     | `~`          | String               | `x.name=~neighbou?r`         |
+
+    There is no way to escape these special characters.
+
+    Using "not equal" vs. "is not": the "not equal" operator `!` will never match an asset on which
+    the property being queried is not defined; the "is not" operator `!!` will always match assets
+    on which the property being queried is not defined. Use "is not" to mean "anything other than,
+    including null/undefined" and use "not equal" to mean "is defined but not equal to".
+
+    The value to filter is automatically cast to boolean, integer, or string. To override the type
+    cast and perform a string comparison, the filter value can be prefixed with `:$str:`, such as
+    `tag.tag_value=:$str:1234`. Floats are treated as strings. Arrays are treated as strings. The
+    following table describes the query string value and the value used in the query (as the
+    JSON-equivalent value) (unless override is specified).
+
+    | Query string value | Type   | JSON-equivalent value |
+    |--------------------|--------|-----------------------|
+    | `true`             | bool   | `true`                |
+    | `false`            | bool   | `false`               |
+    | `:$str:true`       | string | `"true"`              |
+    | `:$str:false`      | string | `"false"`             |
+    | `1234`             | int    | `1234`                |
+    | `-1234`            | int    | `-1234`               |
+    | `:$str:1234`       | string | `"1234"`              |
+    | `1.234`            | string | `"1.234"`             |
+    | `[1,2,3]`          | string | `"[1,2,3]"`           |
+    | `abc`              | string | `"abc"`               |
+
+    #### Filtering assets by relationship
+
+    Assets that are requested via the `asset_types` parameter can be filtered by relationships to
+    assets not requested by using the relationship operator, `..` to express relationship queries
+    to other asset types. Look at [the General Query examples](#operation/query_assets) that find
+    subnets tagged Foo, as well as without the tag Foo and without any tags.
+
+    #### Using the `any` asset type
+    There is a fake asset type called `any`. The `any` asset type can be used in the `asset_types`
+    parameter to allow any type. When combined with filters, a relationship to a set of asset types
+    can be matched. Check out the [General Query examples](#operation/query_assets) for a demo.
+
+    ## Remediations and Exposures
+    The Remediations service provides a set of endpoints for handling remediations in Cloud Insight.
+    A remediation is a conceptual set of work to do to fix a vulnerability. Many asset types may be
+    vulnerable, such as `host`, `vpc`, `db-instance`, `user`, etc.
+
+    When an asset is vulnerable, it has a `vulnerability` asset related to it. The vulnerability is
+    related to a `remediation` asset.
+
+    *Note*: remediations uses a `threatiness` property which is an internal measurement used for
+    relative comparison and is not considered useful to customers.
+
+    A `remediation-item` is an indication of intent to do (or not do) work for a subset of
+    vulnerabilities on vulnerable assets. A `remediation-item` may have a set of filters which limit
+    which vulnerable assets the `remediation-item` applies to.
+
+    A `remediation-item` may be in one of the following states:
+
+    ### "planned"
+    This is the initial state. A user has committed to performing the work necessary to fix a
+    vulnerability. The `remediation-item` has a `user_id` and `filters` fields. The `user_id` is the
+    user who added the remediations to their plan. The `filters` field is a list of
+    [filter](#section/Remediation-filters) strings.
+
+    ### "disposed"
+    A remediation-item may be "disposed," indicating that the vulnerabilities identified by the
+    `remediation-item` are not important enough to work on. A remediation may be disposed for one
+    of three different reasons: `"acceptable_risk"`, `"compensating_control"`, `"false_positive"`.
+    A comment and expiration date are also required to dispose a remediation-item.
+
+    ### "complete"
+    A `remediation-item` may be moved to the `complete` state. This is used to indicate that the
+    user that owns the `remediation-item` has completed the work and believes the vulnerabilities
+    attached to the `remediation-item` have been resolved.
+
+    If the vulnerable assets are scanned again and found to have the vulnerabilities, the
+    `remediation-item` state will revert to `planned`.
+
+    ## Remediation filters
+    When talking about remediations and `remediation-items`, it's important to consider any filters
+    that limit the scope of a set of vulnerabilities or a `remediation-item`. Remediation items also
+    have a (possibly empty) list of `filters`. The filter limits the scope of the remediations
+    requested (for GET requests) or limits the scope of a `remediation-item`.
+
+    The filter is composed of two parts: the filter type and the limiting property of the filter.
+    The limiting property is a field that must match vulnerable assets. E.g. the filter
+    `"image:/aws/us-east-1/image/ami-12345678"` means that a `remediation-item` only applies to
+    vulnerabilities declared on the image with key `"/aws/us-east-1/image/ami-12345678"`. Different
+    filters use a different limiting property: most use the `key` property of an asset, but not all.
+
+    ### Identity and relational filters
+    There are a number of classes of filters. The two main classes are relational filters and
+    identity filters. Relational filters yield assets (and their vulnerabilities) that have
+    relationships to the filtered asset. A filter type can be both a relational filter and an
+    identity filter. For example, `"sg:/aws/us-east-1/sg/sg-12345678"` will filter relationships
+    on the security group with that key and assets within that security group. These classes are
+    identified with `I` and `R` in the table below.
+
+    ### The `any` limiting property value
+    Some filters allow the limiting property value to be `any`, indicating that only
+    `remediation-items` that apply to the specific filter type will be returned. These are part of
+    the `any` class of filters. E.g. the filter `"s3-bucket:any"` yields only vulnerabilities on
+    s3-buckets. This is identified with `A` in the table below.
+
+    ### The `none` limiting property value
+    Some filters allow the limiting property value to be `none`, indicating that only
+    `remediation-items` that do not apply to the specific filter type will be returned. These are
+    part of the `none` class of filters. E.g. the filter `"cve:none"` yields only exposures whose
+    vulnerabilities `cve` field isn't set. This is identified with `N` in the table below.
+
+    ### Allowable Filters
+
+    The following table is a list of supported asset filters:
+
+    | Type                | Limiting Property | Class<sup>1</sup> | Example | Notes |
+    |---------------------|-------------------|-------------------|----------|------|
+    | `acl`               | `key`             | I       | `"acl:/aws/us-east-1/acl/acl-7ada4a1c"` | |
+    | `application`       | `type`            | A, R    | `"application:any"`, `"application:Apache"` | |
+    | `cloud-trail`       | `key`             | I       | `"cloud-trail:/aws/us-west-2/cloud-trail/trail/Rackspace"` | |
+    | `cve`               | `key`             | A, N, R | `"cve:any"`, `"cve:none"`, `"cve:CVE-2013-1937"` | |
+    | `cwe`               | `key`             | A, N, R | `"cwe:any"`, `"cwe:none"`, `"cwe:CWE-121"` | |
+    | `db-instance`       | `key`             | I       | `"db-instance:/aws/us-east-1/db-instance/db-12345678"` | |
+    | `dns-zone`          | `key`             | A, I    | `"dns-zone:/a/dns-zone/key"` | |
+    | `deployment`        | `key`             | A, I    | `"deployment:/al/12345678/deployment/aws/00001111-2222-3333-4444-555566667777"` | |
+    | `host`              | `key`             | I       | `"host:/aws/us-east-1/host/i-1234567890abcdef0"` | |
+    | `image`             | `key`             | I, R    | `"image:/aws/us-east-1/ami/ami-12345678"` | |
+    | `instance-profile`  | `key`             | A, I    | `"instance-profile:/an/instance-profile/key"` | |
+    | `kms-key`           | `key`             | I       | `"kms-key:/aws/us-east-1/kms-key/1"` | |
+    | `load-balancer`     | `key`             | I, R    | `"load-balancer:/aws/us-east-1/load-balancer/s-12345678"` ||
+    | `redshift-cluster`  | `key`             | I       | `"redshift-cluster:/aws/us-east-1/redshift-cluster/rc-12345678"` | |
+    | `remediation`       | `remediation_id`  | R       | `"remediation:00001111-2222-3333-4444-555566667777"` | |
+    | `region`            | `key`             | I       | `"region:/aws/us-east-1"` | <sup>2</sup> |
+    | `role`              | `key`             | A, I    | `"role:/a/role/key"` | |
+    | `route`             | `key`             | I       | `"route:/aws/eu-west-2/route/rtb-0e738966"` | |
+    | `s3-bucket`         | `key`             | A, I    | `"s3-bucket:any"`, `"s3-bucket:/an/s3-bucket/key"` | |
+    | `sg`                | `key`             | I, R    | `"sg:/aws/us-east-1/sg/s-12345678"` ||
+    | `user`              | `key`             | A, I    | `"user:any"`, `"user:/aws/123456789012/user/jdoe"` | |
+    | `volume`            | `key`             | I       | `"volume:/aws/us-east-1/volume/vol-12345678"` | |
+    | `vulnerability`     | `vulnerability_id`| R       | `"vulnerability:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:id`  | `vulnerability_id`| R       | `"vulnerability:id:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:key` | `key`             | R       | `"vulnerability:/aws/us-east-1/host/i-1234567890abcdef0/vulnerability/09876543210fedcba0987654321fedcba/tcp/22"` | <sup>3</sup> |
+    | `vpc`               | `key`             | R       | `"vpc:/aws/us-east-1/vpc/vpc-12345678"` | |
+
+    Notes:
+    1. A = `any` allowed, I = identity, R = relational, N = none.
+    2. The region filter will also be relational in the near future.
+    3. This selects only assets that have the vulnerability specified by the vulnerability key.
+       This will only ever return a single remediation on a single asset.
+
+    ### Additional remediations query filters
+
+    | Type                | Example | Notes |
+    |---------------------|---------|-------|
+    |`deployment_id`      | `deployment_id:825283AC-8244-412C-8674-4DBF931E6C16` | |
+    |`category`           | `category:security`, `category:configuration,security`, `category:!security` | |
+    |`severity`           | `severity:high` | |
+    |`asset_type`         | `asset_type:host` | Only one asset_type filter of a single asset type is supported in a request. This filter must be present in the exposures query request to be included in the response. |
+paths:
+  /assets_query/v1/{account_id}/assets:
+    parameters:
+      - $ref: '#/components/parameters/UrlParamAccountId'
+      - $ref: '#/components/parameters/ParamAssetTypes'
+      - $ref: '#/components/parameters/ParamReturnTypes'
+      - $ref: '#/components/parameters/ParamQueryFormat'
+      - $ref: '#/components/parameters/ParamReturnCount'
+      - $ref: '#/components/parameters/ParamReduce'
+      - $ref: '#/components/parameters/ParamQFields'
+      - $ref: '#/components/parameters/ParamAnything'
+      - $ref: '#/components/parameters/ParamRelationship'
+    get:
+      operationId: query_assets
+      summary: Query Assets for Account
+      description: Return a list of related assets.
+      tags:
+        - Queries
+      x-codeSamples:
+        - lang: Shell
+          label: Get all assets for an account ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get just region assets
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?asset_types=r:region" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get all regions with the same created_on property
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?asset_types=r:region&r.created_on=1447260845785" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Use the any type to get regions with related vpcs, hosts, etc.
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?asset_types=r:region,x:any" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Use the relationship operator to get regions with no relationship to a vpc
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?asset_types=r:region&r..vpc=false" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryAssetsResponse'
+              examples:
+                asset_types=any:
+                  $ref: '#/components/examples/QueryAssetsAssetTypesAnyExample'
+                asset_types=region:
+                  $ref: '#/components/examples/QueryAssetsAssetTypesRegionExample'
+                asset_types=region,any:
+                  $ref: '#/components/examples/QueryAssetsAssetTypesRegionAnyExample'
+        "400":
+          $ref: '#/components/responses/QueryAssetsBadRequestError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+  /assets_query/v1/{account_id}/deployments/{deployment_id}/assets:
+    parameters:
+      - $ref: '#/components/parameters/UrlParamAccountId'
+      - $ref: '#/components/parameters/UrlParamDeploymentId'
+      - $ref: '#/components/parameters/ParamAssetTypes'
+      - $ref: '#/components/parameters/ParamReturnTypes'
+      - $ref: '#/components/parameters/ParamQueryFormat'
+      - $ref: '#/components/parameters/ParamReturnCount'
+      - $ref: '#/components/parameters/ParamReduce'
+      - $ref: '#/components/parameters/ParamQFields'
+      - $ref: '#/components/parameters/ParamAnything'
+      - $ref: '#/components/parameters/ParamRelationship'
+    get:
+      operationId: query_deployment_assets
+      summary: Query Assets in Deployment
+      description: Return a list of related assets in a single deployment.
+      tags:
+        - Queries
+      x-codeSamples:
+        - lang: Shell
+          label: Get all assets in deployment
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5/assets" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Find regions related to a specific subnet
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327/assets?asset_types=r:region,s:subnet&s.key=/aws/us-west-2/subnet/subnet-11223344" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: VPCs and Subnets in us-east-1
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327/assets?asset_types=r:region,v:vpc,s:subnet&r.name=us-east-1" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get every host in every subnet (No subnets without hosts)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/844581E6-4018-4DA8-8CF9-0D7C49EF171B/assets?asset_types=s:subnet,h:host" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Host, subnet, vpc, and region
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/844581E6-4018-4DA8-8CF9-0D7C49EF171B/assets?asset_types=h:host,s:subnet,v:vpc,r:region" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Host, subnet, vpc, in region us-west-1
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/844581E6-4018-4DA8-8CF9-0D7C49EF171B/assets?asset_types=h:host,s:subnet,v:vpc,r:region&r.key=/aws/us-west-1" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Use the relationship operator to get regions with no relationship to a vpc
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/844581E6-4018-4DA8-8CF9-0D7C49EF171B/assets?asset_types=r:region&r..vpc=false" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryAssetsResponse'
+              examples:
+                asset_types=any:
+                  $ref: '#/components/examples/QueryAssetsAssetTypesAnyExample'
+                asset_types=region:
+                  $ref: '#/components/examples/QueryAssetsAssetTypesRegionExample'
+                asset_types=region,any:
+                  $ref: '#/components/examples/QueryAssetsAssetTypesRegionAnyExample'
+        "400":
+          $ref: '#/components/responses/QueryAssetsBadRequestError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+  /assets_query/v1/{account_id}/find:
+    get:
+      operationId: find_asset
+      summary: Find Asset
+      description: |-
+        Finds an asset quickly using known identifiers. The query string parameters for different
+        find operations are grouped together:
+
+        To find a collector by type and UUID, specify the following query parameters:
+
+        * `collector_type` (default: `any`)
+        * `return_type` (default: `collector`)
+        * `uuid`
+
+        To find a host by its associated appliance UUID and host parameters, specify the following
+        query parameters:
+
+        * `collector_type` (must be set to `appliance`)
+        * `ip_address`
+        * `uuid`
+
+        To get the metadata for a host, specify the following query parameters:
+
+        * `collector_type` (default: `any`)
+        * `return_type` (must be set to `host_metadata`)
+        * `uuid`
+
+        To find a host by network UUID and host parameters, specify the following query parameters:
+
+        * `ip_address`
+        * `network_uuid`
+        * `return_type` (must be set to `host`)
+      tags:
+        - Queries
+      x-codeSamples:
+        - lang: Shell
+          label: Find agent by UUID (collector_type=agent)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/find?collector_type=agent&uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Find collector by UUID (collector_type=collector)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/find?collector_type=collector&uuid=BE2910F7-66DF-4FAD-8B61-6E046594E06E" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Find agent by UUID (collector_type=any)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/find?collector_type=any&uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Find host by appliance UUID and host parameters
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/find?collector_type=appliance&uuid=17A7CDD7-9A98-4538-A81C-48FA588715F5&ip_address=10.0.44.188&return_type=host"
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Find host by network UUID and host parameters
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/find?network_uuid=15C0CCBD-7E16-44B0-8406-B4C75BFE2374&ip_address=10.0.44.188&return_type=host"
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Find host metadata by agent UUID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/find?collector_type=agent&uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327&return_type=host_metadata"
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - schema:
+            type: string
+          in: query
+          name: collector_type
+          description: |-
+            Type of collector to find by UUID. A comma-separated list of values can be provided and
+            each type will be checked. `any` will only be expanded if it is the only type provided.
+            Allowed values:
+
+            * any
+            * agent
+            * appliance
+            * collector
+            * remote-source
+        - schema:
+            type: string
+          in: query
+          name: uuid
+          description: The UUID of the collector asset
+        - schema:
+            type: string
+            enum:
+              - collector
+              - host_metadata
+              - host
+          in: query
+          name: return_type
+          description: |-
+            The return for this find operation. The default is `collector`, and note that
+            `host` and `host_metadata` are not compatible with the `collector_type=collector`,
+            because it has no associated host.
+        - schema:
+            type: string
+          in: query
+          name: ip_address
+          description: |-
+            The IP address of the host to find, in text representation. Must be used in
+            conjunction with the `collector_type=appliance` parameter.
+        - schema:
+            type: string
+          in: query
+          name: network_uuid
+          description: |-
+            The value of the `network_uuid` property on the network/vpc/vnet asset that contains
+            the host to find.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindAssetResponse'
+              examples:
+                Find agent by UUID:
+                  $ref: '#/components/examples/FindAssetAgentByUuidExample'
+                Find collector by UUID:
+                  $ref: '#/components/examples/FindAssetCollectorByUuidExample'
+                Find host by appliance UUID and host parameters:
+                  $ref: '#/components/examples/FindAssetHostByApplianceParamsExample'
+                Find host by network UUID and host parameters:
+                  $ref: '#/components/examples/FindAssetHostByNetworkParamsExample'
+                Find host metadata by agent/appliance UUID:
+                  $ref: '#/components/examples/FindAssetHostMetadataExample'
+        "400":
+          $ref: '#/components/responses/FindAssetBadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "409":
+          $ref: '#/components/responses/FindAssetConflict'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+    post:
+      operationId: find_assets
+      summary: Find Assets
+      description: |-
+        Finds a list of assets quickly using known identifiers. This endpoint is limited to specific
+        asset types, currently: agents, appliances, hosts and remote sources.  If the asset is
+        found, the response will contain the asset details, keyed by the identifiers in the request
+        parameters. If the asset is not found, the response will contain a `null` value, keyed by
+        the identifiers in the request parameters.
+
+        Collector results are keyed by the `uuid` property in the request parameters.
+
+        When a host is found by appliance, results are keyed by the `uuid` and `ip_address` request
+        parameters, separated by `,`.
+
+        When a host is found by network, results are keyed by the `network_uuid` and `ip_address`
+        request parameters, separated by `,`.
+      tags:
+        - Queries
+      x-codeSamples:
+        - lang: Shell
+          label: Sample request
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/find"
+                 -XPOST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "parameters": [
+                {
+                  "uuid": "CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327"
+                },
+                {
+                  "uuid": "85ED437D-6489-43EB-821E-E880B47223D6",
+                  "collector_type": "appliance"
+                },
+                {
+                  "uuid": "85ED437D-6489-43EB-821E-E880B47223D6",
+                  "collector_type": "appliance",
+                  "ip_address": "10.0.0.123",
+                  "return_type": "host"
+                },
+                {
+                  "uuid": "C9E21E91-0487-4D2E-A5F0-DF318FF21E87",
+                  "collector_type": ["agent", "appliance"]
+                },
+                {
+                  "network_uuid": "15C0CCBD-7E16-44B0-8406-B4C75BFE2374",
+                  "ip_address": "10.0.0.124",
+                  "return_type": "host"
+                }
+              ]
+            }
+            EOF
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parameters:
+                  type: array
+                  description: |-
+                    The list of request objects, each containing parameters of a
+                    [find asset](#operation/find_asset) operation (see description for full
+                    details).
+                  items:
+                    type: object
+                    description: |-
+                      A complete set of [find asset](#operation/find_asset) parameters (see
+                      description for full details).
+                    properties:
+                      collector_type:
+                        type: string
+                        description: |-
+                          Type of collector to find by UUID. A comma-separated list of values can
+                          be provided and each type will be checked. `any` will only be expanded
+                          if it is the only type provided. Allowed values:
+
+                          * any
+                          * agent
+                          * appliance
+                          * collector
+                          * remote-source
+                      uuid:
+                        type: string
+                        description: The UUID of the collector asset
+                      return_type:
+                        type: string
+                        enum:
+                          - collector
+                          - host_metadata
+                          - host
+                        description: |-
+                          The return for this find operation. The default is `collector`, and note
+                          that `host` and `host_metadata` are not compatible with the
+                          `collector_type=collector`, because it has no associated host.
+                      ip_address:
+                        type: string
+                        description: |-
+                          The IP address of the host to find, in text representation. Must be used
+                          in conjunction with the `collector_type=appliance` parameter.
+                      network_uuid:
+                        type: string
+                        description: |-
+                          The value of the `network_uuid` property on the network/vpc/vnet asset
+                          that contains the host to find.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindAssetsResponse'
+              examples:
+                Successful response:
+                  $ref: '#/components/examples/FindAssetsExample'
+        "400":
+          $ref: '#/components/responses/FindAssetBadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+  /assets_query/v1/{account_id}/details:
+    get:
+      operationId: get_asset_details
+      summary: Get Asset Details
+      description: |-
+        Fetches details and elaborations about individual assets and their surroundings, such as
+        complete asset details or an asset's network neighborhood or connectivity. The query string
+        parameters for different details operations are grouped together:
+
+        To get details of an asset by `type`, `key`, `deployment`, and `region`, specify the
+        following query parameters:
+
+        * `type` (must be `host`)
+        * `key`
+        * `deployment`
+        * `region`
+
+        To get details of an asset by `type` and `deployment`, specify the following query
+        parameters:
+
+        * `type` (must be `deployment`)
+        * `deployment`
+
+        To get details of an asset by `appliance_uuid` and `ip_address`, specify the following
+        query parameters:
+
+        * `appliance_uuid`
+        * `ip_address`
+        * `port` (optional, always provide if available)
+
+        To get details of an asset by `type` and `uuid`, specify the following query parameters:
+
+        * `type` (default: `any`)
+        * `uuid`
+
+        To get details of an asset by `deployment`, `ip addresses` and `network`, specify the following query parameters:
+
+        * `deployment`
+        * `ip_address`
+        * `network`
+
+        Note that when calling this endpoint with query options `deployment`, `network` and `ip_address` set, if a host is found,
+        any subnet that the host isn't related to but it could be (the IP address matches the subnet mask) the additional unrelated
+        subnet(s) will be returned under the `subnet` key in the response.
+      tags:
+        - Queries
+      x-codeSamples:
+        - lang: Shell
+          label: Type, Key, Deployment, Region
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?type=host&key=id:i-0fa67ce21528409bc&deployment=aws:1234567890&region=id:us-east-2" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Type, Deployment
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?type=deployment&deployment=aws:1234567890" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Collector UUID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?type=collector&uuid=35DCF858-A0EE-4C95-B992-E268DB22FDE8" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Host UUID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?type=host&uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Appliance UUID, IP address
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?appliance_uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327&ip_address=10.2.3.17" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Appliance UUID, IP address, Port
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?appliance_uuid=CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327&ip_address=10.2.3.17&port=80" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Deployment, IP addresses, Network
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?deployment=aws:1234567890&ip_address=10.2.3.17&network=/aws/us-east-1/vpc/vpc-12345678" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: |-
+            The asset type(s) to look up, separated by commas. Note that multiple values are only
+            supported by some flavors (see description) — sometimes only `host` or `deployment` are
+            acceptable.
+
+            When passing the `uuid` parameter, the order provided is the order that the types will
+            be looked up; if you set `agent`/`appliance` prior to `host`, the host will be detailed
+            as a `related` asset to the associated `agent`/`appliance` asset.
+
+            Allowed values:
+
+            * any
+            * deployment
+            * agent
+            * appliance
+            * collector
+            * host
+            * remote-source
+        - schema:
+            type: string
+          in: query
+          name: key
+          description: |-
+            The native AWS ID (prefixed by kind) or the full asset key of the target asset. Key is
+            either a full asset key, or must be prefixed by `id:`, followed by the asset's native
+            ID (e.g. instance ID of a host in AWS). Initially, the expected value is
+            `id:AWSInstanceId`, e.g. `id:i-0fa67ce21528409bc`. *Note: If you use `id:AWSInstanceId`
+            then `region` must be defined as region ID `id:AWSRegionId`*
+        - schema:
+            type: string
+          in: query
+          name: deployment
+          description: |-
+            The native AWS account ID or Azure subscription ID (prefixed by kind), or the internal
+            deployment UUID. Deployment is either the deployment's Alert Logic UUID,
+            or the native deployment ID prefixed by kind (either `aws:` or `azure:`). The expected
+            value is either `aws:{AWSAccountId}` or `azure:{AzureSubscriptionId}` (e.g.,
+            `aws:1234567890` or `azure:713CEFBB-E37E-4119-A1AA-458840BFD878`).
+        - schema:
+            type: string
+          in: query
+          name: region
+          description: |-
+            The AWS region ID (prefixed by kind) or the full asset key. Region is either a full
+            asset key, or must be prefixed by `id:`, followed by the asset's native `ID` (e.g.,
+            region ID in AWS). Initially, the expected value is id:AWSRegionId, e.g.,
+            `id:us-east-2`.
+        - schema:
+            type: string
+          in: query
+          name: appliance_uuid
+          description: |-
+            The UUID of the appliance protecting the host to elaborate, which will be the source
+            of any IDS events generated for the host. The appliance UUID is the UUID issued to the
+            appliance agent and contained in its agent certificate.
+        - schema:
+            type: string
+          in: query
+          name: ip_address
+          description: |-
+            A CSV of the IP address(es) of the target protected host. The IP address is the target
+            IP, i.e. the IP of a protected asset (being defined as any IP address in the set of
+            protected subnets, itself known as "home net"). If more than one IP address is given,
+            all of them must be target IPs of the protected asset.
+        - schema:
+            type: string
+          in: query
+          name: ip_address
+          description: The TCP or UDP port on the target protected host
+        - schema:
+            type: string
+          in: query
+          name: network
+          description: |-
+            The network asset key, e.g. a vpc key: `/aws/us-east-1/vpc/vpc-12345678`.
+        - schema:
+            type: string
+          in: query
+          name: uuid
+          description: |-
+            The UUID of the asset `type` being elaborated. The host UUID for a `host` is the UUID
+            issued to its associated agent or appliance, and contained in its agent certificate.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDetailsResponse'
+              examples:
+                Collector UUID Success Response:
+                  $ref: '#/components/examples/AssetDetailsCollectorExample'
+                Host UUID Success Response:
+                  $ref: '#/components/examples/AssetDetailsHostExample'
+                Deployment Success Response:
+                  $ref: '#/components/examples/AssetDetailsDeploymentExample'
+                Host by Deployment, IP, Network Success Response:
+                  $ref: '#/components/examples/AssetDetailsHostByDeploymentIPNetworkExample'
+        "400":
+          $ref: '#/components/responses/AssetDetailsBadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "409":
+          $ref: '#/components/responses/AssetDetailsConflict'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+  /remediations/v1/{account_id}/health/{asset_type}:
+    get:
+      operationId: get_collection_health
+      summary: Get Collection Health
+      description: |-
+        This endpoint will return collection health information for the given asset type (agent, appliance,
+        collector, network, or vpc). By default, the endpoint summarizes the health of assets of
+        the given asset type across all deployments, but supports filtration by deployment ID, deployment type,
+        protection level (`protection_policy_id`), and vulnerability category, as well as evaluating assets in scope (default) or not.
+
+        Note that the protection level filter, `protection_policy_id`, requires a policy ID from the
+        policies service. If given, only assets in the protection scope of that policy will be used to
+        generate the collection health information. The protection scope is not taken into account for
+        all asset types, notably, the `collector` type.
+
+        Note that specifying `disposed` or `concluded` query parameters as `true` will hide undisposed
+        or unconcluded remediations on affected assets. The unhealthiness calculation will reflect
+        these remediation options and may make a healthy asset appear unhealthy or vice-versa. These
+        options should be used with care when determining the health of an asset.
+      tags:
+        - Collection Health
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamAssetType'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: object
+                  filters:
+                    type: object
+                  list:
+                    type: array
+                    items:
+                      type: object
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+  /remediations/v1/{account_id}/health/summary:
+    get:
+      operationId: get_collection_health_summary
+      summary: Get Collection Health Summary
+      description: |-
+        This endpoint will return a summary of collection health by asset type (agent, appliance, network).
+        The summary is a count of total/protected (as applicable) assets of the given type, as well as a
+        breakdown of the counts of each by `health_level`. By default, the endpoint summarizes the health
+        of all deployments, but supports filtration by deployment ID, deployment type, and protection
+        level (`protection_policy_id`), as well as evaluating assets in scope (default) or not.
+
+        Note that the protection level filter, `protection_policy_id`, requires a policy ID from the
+        policies service. If given, only assets in the protection scope of that policy will be used to
+        generate the summary.
+
+        Note that specifying `disposed` or `concluded` query parameters as `true` will hide undisposed
+        or unconcluded remediations on affected assets. The unhealthiness calculation will reflect
+        these remediation options and may make a healthy asset appear unhealthy or vice-versa. These
+        options should be used with care when determining the health of an asset.
+      tags:
+        - Collection Health
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - schema:
+            type: string
+          in: query
+          name: filter
+          description: TODO
+        - $ref: '#/components/parameters/ParamScope'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: object
+                    description: Top-level object containing agent health summary
+                  appliances:
+                    type: object
+                    description: Top-level object containing appliance health summary
+                  networks:
+                    type: object
+                    description: Top-level object containing network health summary
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+  /assets_query/v1/{account_id}/deployments/{deployment_id}/tags/summary:
+    get:
+      operationId: get_tags_summary
+      summary: Get Tags Summary
+      description: |-
+        Get a summary of all tags in a deployment. Returns a list of (minimal) assets with their
+        tags.
+      tags:
+        - Summaries
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+      security:
+        - x-aims-auth-token: []
+  /assets_query/v2/{account_id}/exposures/{asset_type}/summary:
+    get:
+      operationId: get_exposures_summary
+      summary: Get Exposures Summary
+      description: Get a summary of exposures by asset type for the given account, across all deployments.
+      tags:
+        - Summaries
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamAssetType'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+  /assets_query/v2/{account_id}/deployments/{deployment_id}/exposures/{asset_type}/summary:
+    get:
+      operationId: get_deployment_exposures_summary
+      summary: Get Exposures Summary for Deployment
+      description: Get a summary of exposures by asset type for the given account and deployment ID.
+      tags:
+        - Summaries
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
+        - $ref: '#/components/parameters/UrlParamAssetType'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+      security:
+        - x-aims-auth-token: []
+  /remediations/v1/{account_id}/deployments/{deployment_id}/remediation-items-list:
+    get:
+      operationId: list_remediation_items
+      summary: List Remediation Items
+      description: |-
+        Returns all the active remediation items, with their vulnerabilities, in a given deployment.
+        Each of the rows in the returned value is a remediation-item and vulnerability pair. The
+        remediation item (the first element in the list) may be repeated in other rows when a single
+        remediation applies to multiple vulnerabilities.
+      tags:
+        - Remediations (Deprecated)
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+      security:
+        - x-aims-auth-token: []
+  /remediations/v1/{account_id}/deployments/{deployment_id}/assessment-specs:
+    get:
+      operationId: get_assessment_specs
+      summary: Get Assessment Specs
+      description: |-
+        This endpoint will return all assessment-spec assets, the assets that were evaluated as
+        part of that assessment spec, and the vulnerabilities found.
+      tags:
+        - Exposures and Remediations
+      parameters:
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  type:
+                    type: string
+                  threat_level:
+                    type: string
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "503":
+          $ref: '#/components/responses/UnavailableError'
+      security:
+        - x-aims-auth-token: []
+components:
+  parameters:
+    UrlParamAccountId:
+      schema:
+        type: string
+      name: account_id
+      in: path
+      required: true
+      description: |-
+        The AIMS account ID whose assets are being accessed. Only valid account IDs are acceptable.
+        Invalid account IDs result in an `HTTP 404 Not Found` or `HTTP 403 Forbidden`, depending on
+        the client's access level.
+    UrlParamDeploymentId:
+      schema:
+        type: string
+      name: deployment_id
+      in: path
+      required: true
+      description: The ID of the deployment source as represented in the deployments service (uppercase UUID).
+    UrlParamAssetType:
+      schema:
+        type: string
+      name: asset_type
+      in: path
+      required: true
+      description: A valid asset type, e.g. `deployment`, `vpc`, `host`.
+    UrlParamScoreType:
+      schema:
+        type: string
+      name: score_type
+      in: path
+      required: true
+      description: A valid score type. Currently the only supported type is `tri`.
+    ParamAssetTypes:
+      schema:
+        type: string
+      in: query
+      name: asset_types
+      description: |-
+        A query string parameter representing the types of assets to retrieve, as described in
+        [Typed queries](#typed-queries). `tag` asset type is handled specially and, if used,
+        may only be the last asset type.
+    ParamQueryFormat:
+      schema:
+        type: string
+        enum:
+          - v1
+          - v2
+      in: query
+      name: query_format
+      description: 'A query string parameter that defines what query syntax is used. (default: `v1`)'
+    ParamReturnCount:
+      schema:
+        type: boolean
+      in: query
+      name: return_count
+      description: 'Execute the query and return a single matching row count instead of the assets data itself. (default: `false`)'
+    ParamReduce:
+      schema:
+        type: boolean
+      in: query
+      name: reduce
+      description: |-
+        Callers should pass `reduce=true` to reduce repeated assets in the return data when
+        possible. (default: `false`)
+    ParamQFields:
+      schema:
+        type: string
+      in: query
+      name: qfields
+      description: |-
+        Optional comma-separated list of fields to be returned as part of the objects. `key`, `type`
+        and `deployment_id` are always returned. Both `&qfields=object.field` and `&qfields=field`
+        are acceptable; in the latter case all objects will be filtered.
+    ParamAnything:
+      schema:
+        type: string
+      in: query
+      name: '{anything}'
+      description: Filters and variables, as described in [Filtering assets](#filtering-assets).
+    ParamRelationship:
+      schema:
+        type: boolean
+      in: query
+      name: '{asset_type}..{related_asset_type}'
+      description: |-
+        A constraint on the existence of a relationship between the given asset types. The lefthand
+        asset_type must be present in the `asset_types` parameter. If set to `true`, only rows
+        with an asset of the given `asset_type` that is related to one or more assets of the
+        `related_asset_type` will be returned. If set to `false`, only rows with an asset of the
+        given `asset_type` that is **not** related to one or more assets of the `related_asset_type`
+        will be returned.
+    ParamDisposed:
+      schema:
+        type: string
+        enum:
+          - "true"
+          - "false"
+          - all
+      in: query
+      name: disposed
+      description: |-
+        Filters remediations included in the summary based on the state of vulnerabilities.
+        Possible values are:
+
+        * `true` - only disposed
+        * `false` - only not disposed
+        * `all` - both
+
+        Default: `false`
+    ParamConcluded:
+      schema:
+        type: string
+        enum:
+          - "true"
+          - "false"
+          - all
+      in: query
+      name: concluded
+      description: |-
+        Filters remediations included in the summary based on the state of vulnerabilities.
+        Possible values are:
+
+        * `true` - only concluded
+        * `false` - only not concluded
+        * `all` - both
+
+        Default: `false`
+    ParamReturnTypes:
+      schema:
+        type: string
+      in: query
+      name: return_types
+      description: |-
+        A query string parameter representing the names of assets in `asset_types` to retrieve.
+        The types are a comma-separated list of asset names that must be a subset of the names in
+        `asset_types`. When `return_types` is provided, only the specified subset of `asset_types`
+        is returned in each row. For example, if `asset_types` is `h:host,s:subnet,v:vpc` and
+        `return_types` is `h,s`, assets will query for rows matching `host,subnet,vpc` but will only
+        return the first two columns of each row in the result. This can be used to require
+        relationships and provide filters around them without actually requiring that the data be
+        returned.
+    ParamScope:
+      schema:
+        type: boolean
+      in: query
+      name: scope
+      description: |-
+        Whether to apply scope when gathering assets with exposures to summarize.
+
+        Default: `false`
+  responses:
+    NoContent:
+      description: '`No Content`.'
+    Unauthorized:
+      description: '`Unauthorized`. The provided `x-aims-auth-token` header could not be authenticated.'
+    Forbidden:
+      description: '`Forbidden`. Insufficient permissions.'
+    NotFound:
+      description: '`Not Found`. The requested object was not found.'
+    RequestEntityTooLarge:
+      description: |-
+        `Request Entity Too Large`. The request body size exceeds the configured body size
+        limit, which is 1MB.
+    UnavailableError:
+      description: '`Unavailable`. The specified account is unavailable at the moment.'
+    QueryAssetsBadRequestError:
+      description: '`400 Bad Request`: There was a problem with one or more of the request parameters'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error_type:
+                type: string
+                enum:
+                  - invalid_asset_type
+                  - invalid_parameter
+                  - invalid_query_item
+                  - query_item_redefinition
+                  - tag_type_must_be_last_asset_type
+                required: true
+              message:
+                type: string
+                required: true
+          examples:
+            Not a valid asset type:
+              value:
+                error_type: invalid_asset_type
+                message: '''foo'' is not a valid asset type'
+            Invalid parameter:
+              value:
+                error_type: invalid_parameter
+                message: x is not defined in the 'asset_types' parameter
+            Invalid query item:
+              value:
+                error_type: invalid_query_item
+                message: :host is not a valid query item
+            Query item redefinition:
+              value:
+                error_type: query_item_redefinition
+                message: x has been defined more than once in the 'asset_types' parameter
+            The tag asset type must be the last:
+              value:
+                error_type: tag_type_must_be_last_asset_type
+                message: The tag asset type must be the last in asset_types if it is requested.
+    FindAssetBadRequest:
+      description: '`Bad Request` Find endpoint parameters incorrect or missing.'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error_type:
+                type: string
+                required: true
+              message:
+                type: string
+                required: true
+          examples:
+            example:
+              value:
+                error_type: missing_parameters
+                message: Find endpoint parameters incorrect or missing
+    FindAssetConflict:
+      description: '`Conflict` Multiple assets match.'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error_type:
+                type: string
+                enum:
+                  - conflict
+                required: true
+              message:
+                type: string
+                required: true
+          examples:
+            example:
+              value:
+                error_type: conflict
+                message: Multiple assets match
+    AssetDetailsBadRequest:
+      description: '`Bad Request` Details endpoint parameters incorrect or missing.'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error_type:
+                type: string
+                required: true
+              message:
+                type: string
+                required: true
+          examples:
+            example:
+              value:
+                error_type: missing_parameters
+                message: details endpoint parameters incorrect or missing
+    AssetDetailsConflict:
+      description: '`Conflict` Multiple assets match.'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error_type:
+                type: string
+                enum:
+                  - conflict
+                required: true
+              message:
+                type: string
+                required: true
+          examples:
+            example:
+              value:
+                error_type: conflict
+                message: Multiple assets match
+  schemas:
+    AccountId:
+      type: string
+      description: AIMS account ID
+    DeploymentId:
+      type: string
+      description: Deployment ID
+    AssetKey:
+      type: string
+      description: Asset Key
+    AssetType:
+      type: string
+      description: Asset Type
+    AssetName:
+      type: string
+      description: Asset Name
+    TimestampMS:
+      type: number
+      description: Milliseconds since Unix Epoch
+    Version:
+      title: Version
+      type: number
+      description: Object Version
+    Asset:
+      title: Asset
+      type: object
+      x-examples:
+        VPC Asset:
+          account_id: "12345678"
+          deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          key: /aws/us-east-1/vpc/i-1234abcd1234abcd
+          name: My VPC
+          created_on: 1486669539672
+          modified_on: 1487192879798
+          version: 12
+      properties:
+        account_id:
+          $ref: '#/components/schemas/AccountId'
+        deployment_id:
+          $ref: '#/components/schemas/DeploymentId'
+        type:
+          $ref: '#/components/schemas/AssetType'
+        key:
+          $ref: '#/components/schemas/AssetKey'
+        name:
+          $ref: '#/components/schemas/AssetName'
+        created_on:
+          $ref: '#/components/schemas/TimestampMS'
+        modified_on:
+          $ref: '#/components/schemas/TimestampMS'
+        version:
+          $ref: '#/components/schemas/Version'
+      required:
+        - account_id
+        - deployment_id
+        - type
+        - key
+    QueryAssetsResponse:
+      title: General assets query result
+      type: object
+      properties:
+        assets:
+          type: array
+          title: row
+          items:
+            type: array
+            title: column
+            items:
+              $ref: '#/components/schemas/Asset'
+        rows:
+          type: integer
+          title: the number of rows in the query result
+      required:
+        - assets
+        - rows
+      x-examples:
+        basic example:
+          assets:
+            - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+                type: host
+                key: /aws/us-east-1/host/i-1234abcd1234abcd
+                account_id: "12345678"
+            - - deployment_id: 9E4B8AAB-5E07-4B46-8E07-AA16D3CA1D03
+                type: subnet
+                key: /aws/us-east-1/subnet/subnet-abcd1234
+                account_id: "12345678"
+          rows: 2
+    FindAssetResponse:
+      title: Find asset result
+      type: object
+      properties:
+        type:
+          type: string
+          title: The asset type of the returned asset
+        key:
+          type: string
+          title: The asset key of the returned asset
+        deployment_id:
+          $ref: '#/components/schemas/DeploymentId'
+        host_key:
+          type: string
+          title: The asset key of the host associated to the returned asset
+    FindAssetsResponse:
+      title: Find assets result
+      type: object
+      properties:
+        assets:
+          type: object
+          title: |-
+            The top-level object containing results keyed by the `uuid` field of each parameter
+            object the request list.
+          properties:
+            '{key}':
+              title: |-
+                The result of the lookup for the asset, keyed by parameters used to find the asset.
+                The structure of the key is described above.
+              type: object
+              properties:
+                type:
+                  type: string
+                  title: The asset type of the returned asset
+                key:
+                  type: string
+                  title: The asset key of the returned asset
+                deployment_id:
+                  $ref: '#/components/schemas/DeploymentId'
+                host_key:
+                  type: string
+                  title: The asset key of the host associated to the returned asset
+    AssetDetailsResponse:
+      title: Get asset details result
+      type: object
+      properties:
+        type:
+          type: string
+          title: The asset type of the asset being elaborated.
+        key:
+          type: string
+          title: the asset key of the asset being elaborated.
+        deployment:
+          type: object
+          title: The deployment asset associated to the asset being elaborated.
+        '{type}':
+          type: object
+          title: |-
+            The key of this property will match the value of `type` in the response, and the value
+            is an object containing the asset and its related assets.
+          properties:
+            '{key}':
+              type: object
+              title: The asset key of the asset being elaborated.
+              properties:
+                asset:
+                  type: object
+                  title: The asset properties of the asset identified by the enclosing `type` and `key`.
+                related:
+                  type: object
+                  title: |-
+                    A map of objects related to the asset, keyed by `{type}` and `{key}`. This is a
+                    recursive structure (see examples).
+  examples:
+    QueryAssetsAssetTypesAnyExample:
+      value:
+        assets:
+          - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+              type: host
+              key: /aws/us-east-1/host/i-1234abcd1234abcd
+              account_id: "12345678"
+          - - deployment_id: 9E4B8AAB-5E07-4B46-8E07-AA16D3CA1D03
+              type: subnet
+              key: /aws/us-east-1/subnet/subnet-abcd1234
+              account_id: "12345678"
+          - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+              type: sg
+              key: /aws/us-east-1/sg/sg-1234abcd
+              account_id: "12345678"
+          - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+              type: image
+              key: /aws/us-east-1/image/ami-abcdef01
+              account_id: "12345678"
+          - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+              type: subnet
+              key: /aws/us-east-1/subnet/subnet-01020304
+              account_id: "12345678"
+        rows: 5
+    QueryAssetsAssetTypesRegionExample:
+      value:
+        assets:
+          - - key: /aws/eu-west-1
+              type: region
+              account_id: "12345678"
+              deployment_id: 4E97D3F2-5C08-4611-ADD4-A6F0B52AA73F
+              name: eu-west-1
+              native_type: region
+              declared: true
+              created_on: 1486669539672
+              modified_on: 1487192879798
+              deleted_on: 0
+              region_name: eu-west-1
+              scope_aws_region_endpoint: ec2.eu-west-1.amazonaws.com
+              scope_aws_region_name: eu-west-1
+          - - key: /aws/us-west-2
+              type: region
+              account_id: "12345678"
+              deployment_id: 4E97D3F2-5C08-4611-ADD4-A6F0B52AA73F
+              name: us-west-2
+              native_type: region
+              declared: true
+              created_on: 1486669540790
+              modified_on: 1487193811308
+              deleted_on: 0
+              region_name: us-west-2
+              scope_aws_region_endpoint: ec2.us-west-2.amazonaws.com
+              scope_aws_region_name: us-west-2
+              in_scope: true
+        rows: 2
+    QueryAssetsAssetTypesRegionAnyExample:
+      value:
+        assets:
+          - - key: /aws/eu-west-1
+              type: region
+              account_id: "12345678"
+              deployment_id: 4E97D3F2-5C08-4611-ADD4-A6F0B52AA73F
+              name: eu-west-1
+              native_type: region
+              declared: true
+              created_on: 1486669539672
+              modified_on: 1487192879798
+              deleted_on: 0
+              scope_aws_etag: 2833EABDCC1BAD3E71CB8F4569FBA304
+              region_name: eu-west-1
+              scope_aws_region_endpoint: ec2.eu-west-1.amazonaws.com
+              scope_aws_region_name: eu-west-1
+            - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+              type: vpc
+              key: /aws/us-east-1/vpc/i-1234abcd1234abcd
+              account_id: "12345678"
+              declared: true
+          - - key: /aws/eu-west-1
+              type: region
+              account_id: "12345678"
+              deployment_id: 4E97D3F2-5C08-4611-ADD4-A6F0B52AA73F
+              name: eu-west-1
+              native_type: region
+              declared: true
+              created_on: 1486669539672
+              modified_on: 1487192879798
+              deleted_on: 0
+              scope_aws_etag: 2833EABDCC1BAD3E71CB8F4569FBA304
+              region_name: eu-west-1
+              scope_aws_region_endpoint: ec2.eu-west-1.amazonaws.com
+              scope_aws_region_name: eu-west-1
+            - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+              type: host
+              key: /aws/us-east-1/host/i-1234abcd1234abcd
+              account_id: "12345678"
+              declared: true
+        rows: 2
+    FindAssetAgentByUuidExample:
+      value:
+        type: agent
+        key: /agent/CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+        deployment_id: D155C4AA-3292-4C6A-8958-DE5CF318BEC9
+        host_key: /aws/us-east-1/i-c764bf1fc87783f33
+    FindAssetCollectorByUuidExample:
+      value:
+        type: collector
+        key: /collector/BE2910F7-66DF-4FAD-8B61-6E046594E06E
+        deployment_id: D155C4AA-3292-4C6A-8958-DE5CF318BEC9
+    FindAssetHostByApplianceParamsExample:
+      value:
+        type: host
+        key: /aws/us-east-1/host/i-128fb892ea99ad80d
+        deployment_id: D155C4AA-3292-4C6A-8958-DE5CF318BEC9
+    FindAssetHostByNetworkParamsExample:
+      value:
+        type: host
+        key: /aws/us-east-1/host/i-28b6f45d7a4544c56
+        deployment_id: D155C4AA-3292-4C6A-8958-DE5CF318BEC9
+    FindAssetHostMetadataExample:
+      value:
+        version: 2
+        metadata_types:
+          - asset
+        asset:
+          version: 1
+          asset_id: D69141A9-C77B-9B85-8505-5262E1939D6C
+          asset_id_type: al:host_uuid
+          asset_type: host
+          deployment:
+            id: 3EC73C2F-B65D-497A-BB3F-F5FF8120961A
+            name: Dev
+          region:
+            name: us-east-1
+            region_name: us-east-1
+          zone:
+            name: 1a
+            zone_name: 1a
+            zone_state: available
+          host:
+            name: ExampleServer
+            instance_name: ExampleServer
+            instance_id: i-f5e5f192f2c08876a
+            host_uuid: D69141A9-C77B-9B85-8505-5262E1939D6C
+            dns_name: ''
+            private_dns_name: ip-192-168-113-24.us-east-1.compute.internal
+            public_dns_name: ''
+            ip_address: ''
+            private_ip_address: 192.168.113.24
+            private_ip_addresses:
+              - 192.168.113.24
+            private_ipv4_addresses:
+              - 192.168.113.24
+            private_ipv6_addresses:
+              - f093:735b:2ef8:8c48:ef0e:9f44:34c4:4102
+            public_ip_address: ''
+            public_ip_addresses: []
+            public_ipv4_addresses: []
+            public_ipv6_addresses: []
+            last_scan_time: "1562124857"
+            alertlogic_appliance: false
+            ip_addresses:
+              - 192.168.113.24
+              - f093:735b:2ef8:8c48:ef0e:9f44:34c4:4102
+            tags:
+              Name: ExampleServer
+              aws:autoscaling:groupName": integration-cfnStackExampleServer-338755F6FDC5-asgExampleServer-F87E03E8D0F8
+          containers:
+            - name: ddb-local
+              container_id: 98bcbddca2d211e9acf4536829d32e83aafbafbca2d211e996a953beb77b56aa
+              container_name: ddb-local
+              container_labels:
+                - aws.java.sdk.version=1.11.477
+                - com.docker.compose.version=1.21.2
+              local_ipv4: 172.18.0.2
+              local_hostname: 98bcbddca2d2
+              tags: {}
+          vpcs:
+            - name: integration
+              network_uuid: 0D77573E-FFCE-450F-86A1-C640B85C8F54
+              vpc_id: vpc-fa0f4faa
+              vpc_name: integration
+              tags:
+                Name: integration
+                aws:cloudformation:logical-id: vpc
+          image:
+            name: do-not-delete
+            image_id: ami-5d3f255c
+            tags: {}
+          security-groups:
+            - name: ssh-access
+              group_name: ssh-access
+              group_id: sg-95ae0f88c8299ac6
+              tags:
+                aws:cloudformation:logical-id: ssh-access
+                aws:cloudformation:stack-name: integration-cfnStackNetwork-55875D022CE6
+          auto-scaling-groups:
+            - name: integration-cfnStackExampleServer-338755F6FDC5-asgExampleServer-1DABAE56105D
+              tags:
+                Name: Example
+                base-stack-name: integration
+          load-balancers:
+            - name: internet-ELB
+              scheme: internet-facing
+              dns_name: internet-ELB-51226843.us-east-1.elb.amazonaws.com
+              tags:
+                aws:cloudformation:logical-id: elbExampleServer
+                aws:cloudformation:stack-name: integration-cfnStackExampleServer-338755F6FDC5
+          instance-profiles:
+            - id: AIPAA545AAA1C35C904F
+              name: backend-server
+              instance_profile_name: backend-server
+              instance_profile_id: AIPAA545AAA1C35C904F
+              arn: arn:aws:iam::000000000000:instance-profile/backend-server
+              roles:
+                - name: ddb-read-access
+                  role_fqdn: arn:aws:iam::000000000000:role/ddb-read-access
+                  role_id: AROA748B57630E6B72FC
+                  role_name: ddb-read-access
+                  policies:
+                    - name: ddb-list-tables
+                      policy_name: ddb-list-tables
+                      policy_type: inline
+                      tags: {}
+                    - name: AmazonEC2RoleforSSM
+                      policy_name: AmazonEC2RoleforSSM
+                      policy_arn: arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+                      policy_type: managed
+                      tags: {}
+                  tags: {}
+    FindAssetsExample:
+      value:
+        assets:
+          CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327:
+            type: agent
+            key: /agent/CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+            deployment_id: D155C4AA-3292-4C6A-8958-DE5CF318BEC9
+            host_key: /aws/us-east-1/i-c764bf1fc87783f33
+          85ED437D-6489-43EB-821E-E880B47223D6:
+            type: appliance
+            key: /appliance/85ED437D-6489-43EB-821E-E880B47223D6
+            deployment_id: 4C7BB1E8-742C-4163-98A1-66FB9ABADAD9
+          85ED437D-6489-43EB-821E-E880B47223D6,10.0.0.123:
+            type: host
+            key: /aws/host/i-1234567891011
+            deployment_id: 4C7BB1E8-742C-4163-98A1-66FB9ABADAD9
+          15C0CCBD-7E16-44B0-8406-B4C75BFE2374,10.0.0.124:
+            type: host
+            key: /aws/host/i-456789012345
+            deployment_id: 4C7BB1E8-742C-4163-98A1-66FB9ABADAD9
+          C9E21E91-0487-4D2E-A5F0-DF318FF21E87: null
+    AssetDetailsCollectorExample:
+      value:
+        collector:
+          /collector/35DCF858-A0EE-4C95-B992-E268DB22FDE8:
+            asset:
+              account_id: "12345678"
+              created_on: 1579885319456
+              declared: true
+              deleted_on: 0
+              deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+              in_scope: false
+              key: /collector/35DCF858-A0EE-4C95-B992-E268DB22FDE8
+              modified_on: 1579885319987
+              native_type: collector
+              path:
+                - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                - region:/aws/us-east-1
+              tag_keys: {}
+              tags: {}
+              threat_level: 0
+              threatiness: 0.0
+              type: collector
+              version: 3
+            related:
+              region:
+                /aws/us-east-1:
+                  account_id: "12345678"
+                  created_on: 1525784980705
+                  declared: true
+                  deleted_on: 0
+                  deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                  in_scope: false
+                  key: /aws/us-east-1
+                  modified_on: 1525784980705
+                  name: us-east-1
+                  native_type: region
+                  path:
+                    - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                    - region:/aws/us-east-1
+                  region_name: us-east-1
+                  scope_aws_region_name: us-east-1
+                  tag_keys: {}
+                  tags: {}
+                  threat_level: 0
+                  threatiness: 0.0
+                  type: region
+                  version: 1
+              vpc:
+                /aws/us-east-1/vpc/vpc-bf73a2db:
+                  asset:
+                    account_id: "12345678"
+                    cidr_ranges: []
+                    created_on: 1525784980656
+                    declared: true
+                    deleted_on: 0
+                    deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                    in_scope: false
+                    key: /aws/us-east-1/vpc/vpc-12345678
+                    modified_on: 1525784980656
+                    native_type: vpc
+                    path:
+                      - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                      - region:/aws/us-east-1
+                      - vpc:/aws/us-east-1/vpc/vpc-12345678
+                    scope_aws_foo: bar
+                    tag_keys: {}
+                    tags: {}
+                    threat_level: 0
+                    threatiness: 0.0
+                    type: vpc
+                    version: 1
+                  related:
+                    region:
+                      /aws/us-east-1:
+                        asset:
+                          account_id: "12345678"
+                          created_on: 1525784980705
+                          declared: true
+                          deleted_on: 0
+                          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                          in_scope: false
+                          key: /aws/us-east-1
+                          modified_on: 1525784980705
+                          name: us-east-1
+                          native_type: region
+                          path:
+                            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                            - region:/aws/us-east-1
+                          region_name: us-east-1
+                          scope_aws_region_name: us-east-1
+                          tag_keys: {}
+                          tags: {}
+                          threat_level: 0
+                          threatiness: 0.0
+                          type: region
+                          version: 1
+                        related: {}
+        deployment:
+          account_id: "12345678"
+          created_on: 1525784980749
+          declared: true
+          deleted_on: 0
+          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          in_scope: false
+          key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          modified_on: 1525784980749
+          native_account_id: "01000002"
+          native_type: deployment
+          path:
+            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          scope_aws_native_account_id: "01000002"
+          tag_keys: {}
+          tags: {}
+          threat_level: 0
+          threatiness: 0.0
+          type: deployment
+          version: 1
+        key: /collector/35DCF858-A0EE-4C95-B992-E268DB22FDE8
+        type: collector
+    AssetDetailsHostExample:
+      value:
+        deployment:
+          account_id: "12345678"
+          created_on: 1525784980749
+          declared: true
+          deleted_on: 0
+          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          in_scope: false
+          key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          modified_on: 1525784980749
+          native_account_id: "01000002"
+          native_type: deployment
+          path:
+            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          scope_aws_native_account_id: "01000002"
+          tag_keys: {}
+          tags: {}
+          threat_level: 0
+          threatiness: 0.0
+          type: deployment
+          version: 1
+        host:
+          /aws/us-east-1/host/i-1234567890abcdef0:
+            asset:
+              account_id: "12345678"
+              architecture: x86_64
+              created_on: 1525784980370
+              declared: true
+              deleted_on: 0
+              deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+              host_uuid: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+              in_scope: false
+              ip_address: 000.00.00.000
+              key: /aws/us-east-1/host/i-1234567890abcdef0
+              modified_on: 1525784980545
+              native_type: host
+              private_ip_address: 000.00.00.000
+              scope_aws_architecture: x86_64
+              scope_aws_ip_address: 000.00.00.000
+              scope_aws_private_ip_address: 000.00.00.000
+              scope_identity_host_uuid: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+              tag_keys: {}
+              tags: {}
+              threat_level: 0
+              threatiness: 0.0
+              type: host
+              version: 2
+            related:
+              subnet:
+                subnet1:
+                  asset:
+                    account_id: "12345678"
+                    created_on: 1525784980602
+                    declared: true
+                    deleted_on: 0
+                    deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                    in_scope: false
+                    key: subnet1
+                    modified_on: 1525784980602
+                    native_type: subnet
+                    scope_aws_foo: bar
+                    tag_keys: {}
+                    tags: {}
+                    threat_level: 0
+                    threatiness: 0.0
+                    type: subnet
+                    version: 1
+                  related:
+                    vpc:
+                      /aws/us-east-1/vpc/vpc-12345678:
+                        asset:
+                          account_id: "12345678"
+                          cidr_ranges: []
+                          created_on: 1525784980656
+                          declared: true
+                          deleted_on: 0
+                          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                          in_scope: false
+                          key: /aws/us-east-1/vpc/vpc-12345678
+                          modified_on: 1525784980656
+                          native_type: vpc
+                          path:
+                            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                            - region:/aws/us-east-1
+                            - vpc:/aws/us-east-1/vpc/vpc-12345678
+                          scope_aws_foo: bar
+                          tag_keys: {}
+                          tags: {}
+                          threat_level: 0
+                          threatiness: 0.0
+                          type: vpc
+                          version: 1
+                        related:
+                          region:
+                            /aws/us-east-1:
+                              asset:
+                                account_id: "12345678"
+                                created_on: 1525784980705
+                                declared: true
+                                deleted_on: 0
+                                deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                in_scope: false
+                                key: /aws/us-east-1
+                                modified_on: 1525784980705
+                                name: foo
+                                native_type: region
+                                path:
+                                  - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                  - region:/aws/us-east-1
+                                region_name: foo
+                                scope_aws_region_name: foo
+                                tag_keys: {}
+                                tags: {}
+                                threat_level: 0
+                                threatiness: 0.0
+                                type: region
+                                version: 1
+                              related:
+                                deployment:
+                                  33CB4E47-8FBA-4502-A8F2-F9EE1B566454:
+                                    asset:
+                                      account_id: "12345678"
+                                      created_on: 1525784980749
+                                      declared: true
+                                      deleted_on: 0
+                                      deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                      in_scope: false
+                                      key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                      modified_on: 1525784980749
+                                      native_account_id: "01000002"
+                                      native_type: deployment
+                                      path:
+                                        - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                      scope_aws_native_account_id: "01000002"
+                                      tag_keys: {}
+                                      tags: {}
+                                      threat_level: 0
+                                      threatiness: 0.0
+                                      type: deployment
+                                      version: 1
+                                    related: {}
+        key: /aws/us-east-1/host/i-1234567890abcdef0
+        type: host
+    AssetDetailsDeploymentExample:
+      value:
+        deployment:
+          account_id: "12345678"
+          created_on: 1525784980749
+          declared: true
+          deleted_on: 0
+          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          in_scope: false
+          key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          modified_on: 1525784980749
+          native_account_id: "01000002"
+          native_type: deployment
+          path:
+            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          scope_aws_native_account_id: "01000002"
+          tag_keys: {}
+          tags: {}
+          threat_level: 0
+          threatiness: 0.0
+          type: deployment
+          version: 1
+        key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+        type: deployment
+    AssetDetailsHostByDeploymentIPNetworkExample:
+      value:
+        deployment:
+          account_id: "12345678"
+          created_on: 1525784980749
+          declared: true
+          deleted_on: 0
+          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          in_scope: false
+          key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          modified_on: 1525784980749
+          native_account_id: "01000002"
+          native_type: deployment
+          path:
+            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          scope_aws_native_account_id: "01000002"
+          tag_keys: {}
+          tags: {}
+          threat_level: 0
+          threatiness: 0.0
+          type: deployment
+          version: 1
+        host:
+          /aws/us-east-1/host/i-1234567890abcdef0:
+            asset:
+              account_id: "12345678"
+              architecture: x86_64
+              created_on: 1525784980370
+              declared: true
+              deleted_on: 0
+              deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+              host_uuid: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+              in_scope: false
+              ip_address: 000.00.00.000
+              key: /aws/us-east-1/host/i-1234567890abcdef0
+              modified_on: 1525784980545
+              native_type: host
+              private_ip_address: 000.00.00.000
+              scope_aws_architecture: x86_64
+              scope_aws_ip_address: 000.00.00.000
+              scope_aws_private_ip_address: 000.00.00.000
+              scope_identity_host_uuid: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+              tag_keys: {}
+              tags: {}
+              threat_level: 0
+              threatiness: 0.0
+              type: host
+              version: 2
+            related:
+              subnet:
+                subnet1:
+                  asset:
+                    account_id: "12345678"
+                    created_on: 1525784980602
+                    declared: true
+                    deleted_on: 0
+                    deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                    in_scope: false
+                    key: subnet1
+                    modified_on: 1525784980602
+                    native_type: subnet
+                    scope_aws_foo: bar
+                    tag_keys: {}
+                    tags: {}
+                    threat_level: 0
+                    threatiness: 0.0
+                    type: subnet
+                    version: 1
+                  related:
+                    vpc:
+                      /aws/us-east-1/vpc/vpc-12345678:
+                        asset:
+                          account_id: "12345678"
+                          cidr_ranges: []
+                          created_on: 1525784980656
+                          declared: true
+                          deleted_on: 0
+                          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                          in_scope: false
+                          key: /aws/us-east-1/vpc/vpc-12345678
+                          modified_on: 1525784980656
+                          native_type: vpc
+                          path:
+                            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                            - region:/aws/us-east-1
+                            - vpc:/aws/us-east-1/vpc/vpc-12345678
+                          scope_aws_foo: bar
+                          tag_keys: {}
+                          tags: {}
+                          threat_level: 0
+                          threatiness: 0.0
+                          type: vpc
+                          version: 1
+                        related:
+                          region:
+                            /aws/us-east-1:
+                              asset:
+                                account_id: "12345678"
+                                created_on: 1525784980705
+                                declared: true
+                                deleted_on: 0
+                                deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                in_scope: false
+                                key: /aws/us-east-1
+                                modified_on: 1525784980705
+                                name: foo
+                                native_type: region
+                                path:
+                                  - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                  - region:/aws/us-east-1
+                                region_name: foo
+                                scope_aws_region_name: foo
+                                tag_keys: {}
+                                tags: {}
+                                threat_level: 0
+                                threatiness: 0.0
+                                type: region
+                                version: 1
+                              related:
+                                deployment:
+                                  33CB4E47-8FBA-4502-A8F2-F9EE1B566454:
+                                    asset:
+                                      account_id: "12345678"
+                                      created_on: 1525784980749
+                                      declared: true
+                                      deleted_on: 0
+                                      deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                      in_scope: false
+                                      key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                      modified_on: 1525784980749
+                                      native_account_id: "01000002"
+                                      native_type: deployment
+                                      path:
+                                        - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                      scope_aws_native_account_id: "01000002"
+                                      tag_keys: {}
+                                      tags: {}
+                                      threat_level: 0
+                                      threatiness: 0.0
+                                      type: deployment
+                                      version: 1
+                                    related: {}
+        subnet:
+          subnet2:
+            asset:
+              account_id: "12345678"
+              created_on: 1525784980602
+              declared: true
+              deleted_on: 0
+              deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+              in_scope: false
+              key: subnet2
+              modified_on: 1525784980602
+              native_type: subnet
+              scope_aws_foo: bar2
+              tag_keys: {}
+              tags: {}
+              threat_level: 0
+              threatiness: 0.0
+              type: subnet
+              version: 1
+            related:
+              vpc:
+                /aws/us-east-1/vpc/vpc-12345678:
+                  asset:
+                    account_id: "12345678"
+                    cidr_ranges: []
+                    created_on: 1525784980656
+                    declared: true
+                    deleted_on: 0
+                    deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                    in_scope: false
+                    key: /aws/us-east-1/vpc/vpc-12345678
+                    modified_on: 1525784980656
+                    native_type: vpc
+                    path:
+                      - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                      - region:/aws/us-east-1
+                      - vpc:/aws/us-east-1/vpc/vpc-12345678
+                    scope_aws_foo: bar
+                    tag_keys: {}
+                    tags: {}
+                    threat_level: 0
+                    threatiness: 0.0
+                    type: vpc
+                    version: 1
+                  related:
+                    region:
+                      /aws/us-east-1:
+                        asset:
+                          account_id: "12345678"
+                          created_on: 1525784980705
+                          declared: true
+                          deleted_on: 0
+                          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                          in_scope: false
+                          key: /aws/us-east-1
+                          modified_on: 1525784980705
+                          name: foo
+                          native_type: region
+                          path:
+                            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                            - region:/aws/us-east-1
+                          region_name: foo
+                          scope_aws_region_name: foo
+                          tag_keys: {}
+                          tags: {}
+                          threat_level: 0
+                          threatiness: 0.0
+                          type: region
+                          version: 1
+                        related:
+                          deployment:
+                            33CB4E47-8FBA-4502-A8F2-F9EE1B566454:
+                              asset:
+                                account_id: "12345678"
+                                created_on: 1525784980749
+                                declared: true
+                                deleted_on: 0
+                                deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                in_scope: false
+                                key: /al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                modified_on: 1525784980749
+                                native_account_id: "01000002"
+                                native_type: deployment
+                                path:
+                                  - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                scope_aws_native_account_id: "01000002"
+                                tag_keys: {}
+                                tags: {}
+                                threat_level: 0
+                                threatiness: 0.0
+                                type: deployment
+                                version: 1
+                              related: {}
+        key: /aws/us-east-1/host/i-1234567890abcdef0
+        type: host
+  securitySchemes:
+    x-aims-auth-token:
+      name: x-aims-auth-token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+servers:
+  - url: https://api.cloudinsight.alertlogic.com
+    x-alertlogic-session-endpoint: true
+    description: production (US)
+  - url: https://api.cloudinsight.alertlogic.co.uk
+    description: production (UK)
+    x-alertlogic-session-endpoint: true
+  - url: https://api.product.dev.alertlogic.com
+    description: integration
+tags:
+  - name: Queries
+    description: General assets query endpoints
+  - name: Summaries
+    description: Summary endpoints
+  - name: Collection Health
+    description: Collection Health endpoints
+  - name: Exposures and Remediations
+    description: Exposures and Remediations endpoints
+  - name: Remediations (Deprecated)
+    description: Remediations (Deprecated)
