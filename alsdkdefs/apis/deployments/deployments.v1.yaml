@@ -16,7 +16,7 @@ servers:
 paths:
   '/deployments/v1/{account_id}/deployments':
     get:
-      summary: Your GET endpoint
+      summary: List Deployments
       tags: []
       responses:
         '200':
@@ -91,7 +91,7 @@ paths:
       security:
         - X-AIMS-Auth-Token: []
     put:
-      summary: ''
+      summary: Update Deployment
       operationId: update_deployment
       responses:
         '200':
@@ -102,6 +102,11 @@ paths:
                 $ref: '#/components/schemas/Deployment'
       security:
         - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentInfo'
 components:
   schemas:
     DeploymentInfo:
@@ -159,8 +164,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DeploymentCredentialInfo'
-      required:
-        - name
+        version:
+          type: number
     AWSMonitorInfo:
       title: MonitorInfo
       type: object
