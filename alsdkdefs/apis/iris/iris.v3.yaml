@@ -89,7 +89,16 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: account_id incident_id combination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Http 404 example:
+                  value:
+                    error: "Not found"
+                    code: 404
       operationId: get_incident
       description: Get incident
       security:
@@ -106,16 +115,15 @@ paths:
           required: true
           description: AIMS Account ID
         - schema:
-            type: string
+            $ref: '#/components/schemas/IncidentId'
           name: incident_id
           in: path
           required: true
-          description: Incident ID
         - schema:
             type: string
           name: return_value
           in: query
-          description: Comma delimted list of dot-notation string names of desired properties in the result set. Use if you want a subset of attributes from the incident
+          description: Comma delimited list of dot-notation string names of desired properties in the result set. Use if you want a subset of attributes from the incident
   '/iris/v3/{account_id}/friendly/{friendly_id}':
     get:
       summary: Get incident ID by friendly ID
@@ -139,7 +147,16 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: account_id friendly_id combination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Http 404 example:
+                  value:
+                    error: "Id not found"
+                    code: 404
       operationId: get_incident_id_by_friendly
       description: Get incident ID by friendly ID
       security:
@@ -160,7 +177,7 @@ paths:
           name: friendly_id
           in: path
           required: true
-          description: Human friendly ID
+          description: Human friendly ID. A length 6 alpha-numeric ID shorter than IncidentID
   '/iris/v3/{account_id}/{incident_id}/elaborations/associated':
     get:
       summary: Get associated logs/events for incident
@@ -174,7 +191,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AssociatedElaborations'
               examples:
-                Get asspcoated logs/events response example:
+                Get associated logs/events response example:
                   value:
                     filter:
                       eq:
@@ -224,7 +241,16 @@ paths:
         '401':
           description: Unauthorized
         '404':
-          description: Not found
+          description: account_id incident_id combination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Http 404 example:
+                  value:
+                    error: "Not found"
+                    code: 404
       operationId: get_associated_elaborations
       description: Get associated logs/events for incident
       security:
@@ -241,11 +267,10 @@ paths:
           required: true
           description: AIMS Account ID
         - schema:
-            type: string
+            $ref: '#/components/schemas/IncidentId'
           name: incident_id
           in: path
           required: true
-          description: Incident ID
         - schema:
             type: string
           name: returnSource
@@ -255,7 +280,7 @@ paths:
             type: string
           name: return_value
           in: query
-          description: "Comma delimted list of 'dot-notation' string names of desired properties in the result set. Use if you want only a subset of attributes from results"
+          description: "Comma delimited list of 'dot-notation' string names of desired properties in the result set. Use if you want only a subset of attributes from results"
   '/iris/v3/{account_id}/incidents_by_time':
     get:
       summary: Get incidents in a timespan for account
@@ -328,6 +353,19 @@ paths:
                         - object
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Missing start/end time:
+                  value:
+                    code: 400
+                    error: start_time and end_time query strings must be provided
+                Invalid arguments:
+                  value:
+                    code: 400
+                    error: Invalid arguments
         '401':
           description: Not authorized
         '403':
@@ -379,7 +417,7 @@ paths:
               examples:
                 Complete incident response example:
                   value:
-                    new:
+                    new: 
                       notes: This incident is closed because of x
                       reason_code: further_action
                       status: completed
@@ -389,12 +427,42 @@ paths:
                       status_change_time: 2020-05-22T07:54:33.555371+00:00
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Invalid account/incident id:
+                  value:
+                    error: Invalid AccountId or IncidentId supplied
+                    code: 400
+                Invalid body:
+                  value:
+                    error: Request body should be valid JSON
+                    code: 400
+                Invalid arguments:
+                  value:
+                    error: Invalid arguments
+                    code: 400
+                Incident already closed:
+                  value:
+                    error: Incident 12341ab29e36-394e-11e9-a004-720004270420 status is currently the same closed
+                    code: 400
         '401':
           description: Not authorized
         '404':
-          description: Not found
+          description: account_id incident_id combination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Http 404 example:
+                  value:
+                    error: "Not found"
+                    code: 404
         '500':
-          description: Internal Server Error
+          description: Internal Server Error 
       operationId: complete_incident
       description: Complete/Close an incident
       security:
@@ -440,11 +508,10 @@ paths:
           required: true
           description: AIMS Account ID
         - schema:
-            type: string
+            $ref: '#/components/schemas/IncidentId'
           name: incident_id
           in: path
           required: true
-          description: Incident ID
   '/iris/v3/{account_id}/{incident_id}/feedback':
     post:
       summary: Add feedback to an incident
@@ -467,10 +534,36 @@ paths:
                     feedback_user: 'User Name <user@email.org>'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Invalid account/incident id:
+                  value:
+                    error: Invalid AccountId or IncidentId supplied
+                    code: 400
+                Invalid body:
+                  value:
+                    error: Request body should be valid JSON
+                    code: 400
+                Invalid arguments:
+                  value:
+                    error: Invalid arguments
+                    code: 400
         '401':
           description: Unauthorized
         '404':
-          description: Not Found
+          description: account_id incident_id combination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Http 404 example:
+                  value:
+                    error: "Not found"
+                    code: 404
         '500':
           description: Internal Server Error
       operationId: add_feedback
@@ -518,13 +611,15 @@ paths:
           required: true
           description: AIMS Account ID
         - schema:
-            type: string
+            $ref: '#/components/schemas/IncidentId'
           name: incident_id
           in: path
           required: true
-          description: Incident ID
 components:
   schemas:
+    IncidentId:
+      type: string
+      description: IRIS incident ID can either be a length 16 alpha-numeric string e.g. e11111ee11111111 or a UUID e.g. XXXX0000-0000-0000-0000-0XXX00000000
     Incident:
       title: Incident
       type: object
@@ -613,6 +708,17 @@ components:
         - updateTime
         - updatetime_str
         - customer
+    ErrorResponse:
+      title: Error response
+      type: object
+      description: Error response object
+      properties:
+        error:
+          type: string
+          description: error message
+        code:
+          type: number
+          description: http error code
     IncidentKey:
       title: IncidentKey
       type: object
