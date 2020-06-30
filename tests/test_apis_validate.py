@@ -7,7 +7,7 @@ import jsonschema
 import yaml
 import unittest
 import alsdkdefs
-
+from almdrlib.client import _YamlOrderedLoader
 
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
 
@@ -30,5 +30,5 @@ class TestServiceDefs(unittest.TestCase):
                 print("Validating def", definition)
                 with open(definition, 'r') as f:
                     spec = f.read()
-                    obj = yaml.load(spec, Loader=yaml.FullLoader)
+                    obj = yaml.load(spec, Loader=_YamlOrderedLoader)
                     jsonschema.validate(obj, self.schema)

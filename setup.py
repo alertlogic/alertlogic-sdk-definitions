@@ -26,7 +26,9 @@ setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     scripts=[],
-    tests_require=['jsonschema', 'PyYaml', 'requests'],
+    # yeah yeah i know, circular dependency, but we need it for test now, later i'll think how to decouple
+    # definitions parsing/loading and client
+    tests_require=['jsonschema', 'PyYaml', 'requests', 'alertlogic-sdk-python'],
     packages=find_packages(exclude=['contrib', 'docs', 'tests*', 'troubleshooting']),
     include_package_data=True,
     zip_safe=False,

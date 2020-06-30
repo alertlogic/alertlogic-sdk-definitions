@@ -7,6 +7,7 @@ from jsonschema.exceptions import ValidationError
 import requests
 from argparse import ArgumentParser
 import glob
+from almdrlib.client import _YamlOrderedLoader
 
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
 
@@ -17,7 +18,7 @@ def validate_definition(definition_file):
         spec = f.read()
     if spec:
         try:
-            obj = yaml.load(spec, Loader=yaml.SafeLoader)
+            obj = yaml.load(spec, Loader=_YamlOrderedLoader)
             jsonschema.validate(obj, schema)
         except YAMLError as e:
             print(f"Validation has failed - failed to load YAML {e}")
