@@ -1,0 +1,1092 @@
+openapi: 3.0.2
+info:
+  title: Herald v2 Service
+  version: 2.0.0
+  description: subscription-based notifications service
+  contact:
+    name: Alert Logic Support
+    email: support@alertlogic.com
+  x-alertlogic-iws-service:
+    type: public
+servers:
+  - url: 'https://api.global-integration.product.dev.alertlogic.com'
+    description: Integration
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.global-services.global.alertlogic.com'
+    description: Production
+    x-alertlogic-session-endpoint: true
+paths:
+  '/herald/v2/{account_id}/integrations/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Entity ID
+    get:
+      summary: Get account integrations for the specified account
+      tags:
+        - Integrations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Integration-Webhook'
+                  - $ref: '#/components/schemas/Integration-Email'
+              examples:
+                Webhook Response Example:
+                  value:
+                    id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
+                    account_id: '12345678'
+                    target_url: 'https://www.example.com'
+                    name: My Webhook
+                    type: webhook
+                    headers:
+                      X-Header: HeaderValue
+                    created:
+                      at: 1517452871
+                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+                    modified:
+                      at: 1517452871
+                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+                Email Response Example:
+                  value:
+                    id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
+                    account_id: '12345678'
+                    email: user@example.com
+                    name: My Email Integration
+                    type: email
+                    created:
+                      at: 1517452871
+                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+                    modified:
+                      at: 1517452871
+                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get-subscriptions-v1-account_id-entitlements
+      description: Get the specified account integration
+      security:
+        - X-AIMS-Auth-Token: []
+  '/herald/v2/{account_id}/integrations':
+    get:
+      summary: List account integrations for the specified account
+      tags:
+        - Integrations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  integrations:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Integration-Webhook'
+                        - $ref: '#/components/schemas/Integration-Email'
+              examples:
+                List account Integrations for the Specified Account Response Example:
+                  value:
+                    integrations:
+                      - id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
+                        account_id: '12345678'
+                        target_url: 'https://www.example.com'
+                        name: My Webhook
+                        type: webhook
+                        headers:
+                          X-Header: HeaderValue
+                        created:
+                          at: 1517452871
+                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+                        modified:
+                          at: 1517452871
+                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+                      - id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
+                        account_id: '12345678'
+                        email: user@example.com
+                        name: My Email Integration
+                        type: email
+                        created:
+                          at: 1517452871
+                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+                        modified:
+                          at: 1517452871
+                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+        '403':
+          description: Forbidden
+      operationId: 'get-herald-v2-:account_id-integrations'
+      security:
+        - X-AIMS-Auth-Token: []
+      description: List the specified account integration
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+  /herald/v2/integration_types:
+    get:
+      summary: List available integration types
+      tags:
+        - Integrations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  integration_types:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Integration-Type'
+              examples:
+                List Available Integration Types Response:
+                  value:
+                    integration_types:
+                      - name: webhook
+                      - name: email
+        '403':
+          description: Forbidden
+      operationId: get-herald-v2-integration_types
+      description: Get the list of available integration types
+      security:
+        - X-AIMS-Auth-Token: []
+  '/herald/v2/notifications/{notification_id}':
+    get:
+      summary: Get a notification
+      tags:
+        - Notifications
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: 'get-herald-v2-notifications-:notification_id'
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Get a notification by ID
+    parameters:
+      - schema:
+          type: string
+        name: notification_id
+        in: path
+        required: true
+        description: Notification id
+  '/herald/v2/{account_id}/notifications/{notification_id}':
+    get:
+      summary: Get a notification by account id and notification id
+      tags:
+        - Notifications
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+              examples: {}
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: 'get-herald-v2-:account_id-notifications-:notification_id'
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Get a notification by account id and notification id
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: notification_id
+        in: path
+        required: true
+        description: Notification id
+  '/herald/v2/notifications/type/incidents/alerts/{long_incident_id}':
+    get:
+      summary: Get list of sent incident notifications for given incident id
+      tags:
+        - Notifications
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident-Notification'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: 'get-herald-v2-notifications-type-incidents-alerts-:long_incident_id'
+      description: Get a notification by ID
+      security:
+        - X-AIMS-Auth-Token: []
+    parameters:
+      - schema:
+          type: string
+        name: long_incident_id
+        in: path
+        required: true
+        description: Notification id
+  '/herald/v2/{account_id}/notifications':
+    post:
+      summary: Send a notification
+      operationId: 'post-herald-v2-:account_id-notifications'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Invalid Json Schema Response:
+                  value:
+                    error: invalid_json_schema
+                Account Not Active Response:
+                  value:
+                    error: account_not_active
+        '403':
+          description: Forbidden
+        '413':
+          description: Request Entity Too Large
+      description: Sends a notification
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                notification_data:
+                  type: object
+                  properties:
+                    class:
+                      type: string
+                    threat_level:
+                      type: string
+                    attackers:
+                      type: array
+                      items:
+                        type: string
+                    targets:
+                      type: array
+                      items:
+                        type: string
+                    status:
+                      type: string
+                    appliance:
+                      type: string
+                    detection_source:
+                      type: string
+                asset_data:
+                  type: object
+                  properties:
+                    deployment_id:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties:
+                          type: string
+                    tag_keys:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties:
+                          type: string
+                payload:
+                  type: object
+                  properties:
+                    analyst_notes:
+                      type: string
+                    attack_summary:
+                      type: string
+                    cid:
+                      type: number
+                    class:
+                      type: string
+                    create_date:
+                      type: string
+                    customer_name:
+                      type: string
+                    deployment_name:
+                      type: string
+                    incident_id:
+                      type: string
+                    investigation_report:
+                      type: string
+                    location_ip:
+                      type: string
+                    long_incident_id:
+                      type: string
+                    start_date:
+                      type: string
+                    status:
+                      type: string
+                    threat:
+                      type: string
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      description:
+                        type: string
+                      url:
+                        type: string
+              required:
+                - type
+                - notification_data
+                - asset_data
+                - payload
+            examples:
+              Send Notificatiion Request Example:
+                value:
+                  type: incidents/notification
+                  notification_data:
+                    class: web_attack_recon
+                    threat_level: high
+                    attackers:
+                      - 78.0.0.0
+                    targets:
+                      - 192.0.0.0
+                      - 192.0.0.1
+                      - 192.0.0.02
+                    status: open
+                    appliance: Appliance Name or Id
+                    detection_source: network_ids
+                  asset_data:
+                    deployment_id: 1E20CE42-0BED-44A1-943F-EAE900C01741
+                    tags:
+                      - key: value
+                    tag_keys:
+                      - key: value
+                  payload:
+                    analyst_notes: '[]'
+                    attack_summary: |
+                      Web server recon attack from 13.13.13.13
+                    cid: 68450188
+                    class: web_attack_recon
+                    create_date: '31th Dec 1999 23:23:59 GMT'
+                    customer_name: Albert Conglomerate
+                    deployment_name: Manual deployment
+                    incident_id: eyeisid
+                    investigation_report: |-
+                      <p><strong>Attack Detail</strong>:  </p>
+                      <p><strong>Attacker Location:</strong> 13.13.13.13, United Kingdom<br />
+                      <strong>Targeted Website</strong>: www.respectmyconglomerate.com</p>
+                      <p><strong>Attack Type</strong>  </p>
+                      <p>Why does this have markdown, it make this field useless in webhooks.</p>
+                      <p><strong>Attack Methods</strong>  </p>
+                      <p><strong>XPath Injection</strong><br />Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br />
+                      <strong>Reference</strong>: <a href="http://http://jermey.broked.it">Not XPath Injection - WebAppSec Page</a>  </p>
+                    location_ip: 42.42.42.42
+                    long_incident_id: longeyeisid
+                    start_date: '31th Dec 1999 23:23:59 GMT'
+                    status: closed
+                    threat: Medium
+                  attachments:
+                    - name: filename.png
+                      description: This is an optional description for the attachment
+                      url: 'https://example.com/callback/url/info.png'
+      tags:
+        - Notifications
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+  '/herald/v2/{account_id}/subscriptions/{subscription_id}/subscribers':
+    get:
+      summary: List subscribers
+      tags:
+        - Subscribers
+      operationId: 'get-herald-v2-:account_id-subscriptions-:subscription_id-subscribers'
+      security:
+        - X-AIMS-Auth-Token: []
+      description: List all subscribers subscribed to that subscription
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscribers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscriber'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: subscription_id
+        in: path
+        required: true
+  /herald/v2/notification_types:
+    get:
+      summary: Get notification types
+      tags:
+        - Notification Types
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notification_types:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification-Type'
+        '403':
+          description: Forbidden
+      operationId: get-herald-v2-notification_types
+      description: Get available notification types
+      security:
+        - X-AIMS-Auth-Token: []
+  '/herald/v2/{account_id}/subscriptions':
+    get:
+      summary: List subscriptions for an account
+      tags:
+        - Subscriptions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    default: invalid_search_parameters
+              examples:
+                Invalid Search Parameters Response:
+                  value:
+                    error: invalid_search_parameters
+        '403':
+          description: Forbidden
+      operationId: 'get-herald-v2-:account_id-subscriptions'
+      security:
+        - X-AIMS-Auth-Token: []
+      description: List subscriptions for an account
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: class
+          description: Class name
+        - schema:
+            type: string
+          in: query
+          name: external_id
+          description: 'external_id of subscriptions. When present, class=schedule is assumed'
+        - schema:
+            type: string
+          in: query
+          name: notification_type
+          description: Notification type
+        - schema:
+            type: boolean
+            default: 'false'
+          in: query
+          name: include_subscribers
+          description: Includes subscribers per corresponding Subscription ID
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+  '/herald/v2/{account_id}/subscriptions/{subscription_id}':
+    get:
+      summary: List subscriptions for an account by subscription id
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: 'get-herald-v2-:account_id-subscriptions-:subscription_id'
+      description: List a subscription for an account by subscription id
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+            default: 'false'
+          in: query
+          name: include_subscribers
+          description: Includes subscribers per corresponding Subscription ID
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: subscription_id
+        in: path
+        required: true
+components:
+  schemas:
+    Integration-Webhook:
+      title: Integration-Webhook
+      type: object
+      properties:
+        id:
+          type: string
+        account_id:
+          type: string
+        target_url:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        header:
+          type: object
+          properties:
+            X-Header:
+              type: string
+        created:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+        modified:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+      x-examples:
+        Integration Webhook Example:
+          id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
+          account_id: '12345678'
+          target_url: 'https://www.example.com'
+          name: My Webhook
+          type: webhook
+          headers:
+            X-Header: HeaderValue
+          created:
+            at: 1517452871
+            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+          modified:
+            at: 1517452871
+            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+      description: ''
+    Integration-Email:
+      title: Integration-Email
+      type: object
+      properties:
+        id:
+          type: string
+        account_id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        created:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+        modified:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+      x-examples:
+        Integration Emial Example:
+          id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
+          account_id: '12345678'
+          email: user@example.com
+          name: My Email Integration
+          type: email
+          created:
+            at: 1517452871
+            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+          modified:
+            at: 1517452871
+            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+    Notification:
+      title: Notification
+      type: object
+      description: ''
+      properties:
+        id:
+          type: string
+        account_id:
+          type: string
+        type:
+          type: string
+        notification_data:
+          type: object
+          properties:
+            class:
+              type: string
+            threat_level:
+              type: string
+            attackers:
+              type: array
+              items:
+                type: string
+            targets:
+              type: array
+              items:
+                type: string
+            status:
+              type: string
+            appliance:
+              type: string
+            detection_source:
+              type: string
+        asset_data:
+          type: object
+          properties:
+            deployment_id:
+              type: string
+            tags:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
+            tag_keys:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: string
+        payload:
+          type: object
+          properties:
+            analyst_notes:
+              type: string
+            attack_summary:
+              type: string
+            cid:
+              type: number
+            class:
+              type: string
+            create_date:
+              type: string
+            customer_name:
+              type: string
+            deployment_name:
+              type: string
+            incident_id:
+              type: string
+            investigation_report:
+              type: string
+            location_ip:
+              type: string
+            long_incident_id:
+              type: string
+            start_date:
+              type: string
+            status:
+              type: string
+            threat:
+              type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              url:
+                type: string
+        status:
+          type: string
+        created:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+        modified:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+      x-examples:
+        Notification Example:
+          id: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
+          account_id: '12345678'
+          type: incidents/notification
+          notification_data:
+            class: web_attack_recon
+            threat_level: high
+            attackers:
+              - 78.0.0.0
+            targets:
+              - 192.0.0.0
+              - 192.0.0.1
+              - 192.0.0.02
+            status: open
+            appliance: Appliance Name or Id
+            detection_source: network_ids
+          asset_data:
+            deployment_id: 1E20CE42-0BED-44A1-943F-EAE900C01741
+            tags:
+              - key: value
+            tag_keys:
+              - key: value
+          payload:
+            analyst_notes: '[]'
+            attack_summary: |
+              Web server recon attack from 13.13.13.13
+            cid: 68450188
+            class: web_attack_recon
+            create_date: '31th Dec 1999 23:23:59 GMT'
+            customer_name: Albert Conglomerate
+            deployment_name: Manual deployment
+            incident_id: eyeisid
+            investigation_report: |-
+              <p><strong>Attack Detail</strong>:  </p>
+              <p><strong>Attacker Location:</strong> 13.13.13.13, United Kingdom<br />
+              <strong>Targeted Website</strong>: www.respectmyconglomerate.com</p>
+              <p><strong>Attack Type</strong>  </p>
+              <p>Why does this have markdown, it make this field useless in webhooks.</p>
+              <p><strong>Attack Methods</strong>  </p>
+              <p><strong>XPath Injection</strong><br />Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br />
+              <strong>Reference</strong>: <a href="http://http://jermey.broked.it">Not XPath Injection - WebAppSec Page</a>  </p>
+            location_ip: 42.42.42.42
+            long_incident_id: longeyeisid
+            start_date: '31th Dec 1999 23:23:59 GMT'
+            status: closed
+            threat: Medium
+          attachments:
+            - name: filename.png
+              description: This is an optional description for the attachment
+              url: 'https://example.com/callback/url/info.png'
+          status: created
+          created:
+            at: 1517314312
+            by: 28122406-177B-4C5C-B6E6-4A947EA324EF
+          modified:
+            at: 1517314312
+            by: 28122406-177B-4C5C-B6E6-4A947EA324EF
+    Incident-Notification:
+      title: Incident-Notification
+      type: object
+      x-examples:
+        Incident Notificatin Example:
+          notifications:
+            - id: 78431C7C-F2AC-4748-B70F-BA2332E54811
+              type: incidents/alerts
+              subkey: incidents/medium
+              subject: 'medium Threat Incident : SSH_LOG brute force attack from 61.184.247.10'
+              statuses:
+                - destination: andres.artunduaga@alertlogic.com
+                  status: SENT
+                  sent_at: 1536094181
+                - destination: cisom@alertlogic.com
+                  status: SENT
+                  sent_at: 1536094181
+                - destination: druiz-ui@alertlogic.com
+                  status: SENT
+                  sent_at: 1536094181
+                - destination: oliver.zuluaga@alertlogic.com
+                  status: SENT
+                  sent_at: 1536094181
+              integration_statuses:
+                - type: webhook
+                  status: QUEUED
+                  integration_id: 857625F7-BAC7-4A90-9FAD-CB829D2ADC83
+                  queue_data:
+                    id: E53E01A6-43D3-41EE-8E53-81BAE6025B47
+                    config:
+                      type: webhook
+                      target_url: 'https://example.com'
+                - type: webhook
+                  status: SENT
+                  integration_id: 713CB1FD-D010-4A98-8D53-BF5B3F1F882C
+                  queue_data:
+                    id: BA46561C-5ECE-4423-9C6C-D550E24966B1
+                    config:
+                      type: webhook
+                      target_url: 'https://example.com/webhook/endpoint'
+                  integration_response:
+                    code: 200
+                    body: null
+            - id: 53EA67BA-16DF-4E25-A590-A26FC74272DA
+              feature: incidents
+              subkey: escalated/primary
+              subject: 'escalated Threat Incident : SSH_LOG brute force attack from 61.184.247.10'
+              statuses:
+                - destination: druiz-ui@alertlogic.com
+                  status: SENT
+                  sent_at: 1536094181
+                - destination: oliver.zuluaga@alertlogic.com
+                  status: SENT
+                  sent_at: 1536094181
+      properties:
+        notifications:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              subkey:
+                type: string
+              subject:
+                type: string
+              statuses:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    destination:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - '"PENDING"'
+                        - '"SENT"'
+                        - '"DELIVRD"'
+                        - '"READ"'
+                        - '"FAILED"'
+                    sent_at:
+                      type: number
+              integration_statuses:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    integration_id:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - '"QUEUED"'
+                        - '"SENT"'
+                    queue_data:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        config:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            target_url:
+                              type: string
+                    integration_response:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        body:
+                          type: string
+    Subscriber:
+      title: Subscriber
+      type: object
+      properties:
+        id:
+          type: string
+          description: Available in List subscriptions for an account by subscription id
+        subscriber:
+          type: string
+        subscriber_type:
+          type: string
+        subscription_id:
+          type: string
+          description: Available in List subscriptions for an account by subscription id
+      x-examples:
+        Subscriber Example:
+          subscriber: 973A254F-DC21-4859-94CC-B6A689277858
+          subscriber_type: user
+    Notification-Type:
+      title: Notification-Type
+      type: object
+      properties:
+        notification_type:
+          type: string
+        name:
+          type: string
+        default_template:
+          type: string
+        templates:
+          type: array
+          items:
+            type: string
+        default_email_subject:
+          type: string
+      x-examples:
+        Notification Type Example:
+          notification_type: incidents/alerts
+          name: Incidents
+          default_template: Incidents Template
+          templates:
+            - Incidents Template
+            - Log Review Escalated
+          default_email_subject: Incidents Template Email Subject
+      description: ''
+    Integration-Type:
+      title: Integration-Type
+      type: object
+      properties:
+        name:
+          type: string
+      x-examples:
+        Integration Type Example:
+          name: webhook
+    Subscription:
+      title: Subscription
+      type: object
+      x-examples:
+        Subscription Example:
+          notification_type: incidents/errors
+          name: Incidents
+          id: 95470F2D-59AA-485F-AE4B-A844D81A53C6
+          created:
+            by: 70A833AD-184F-4A45-A82B-46F5BA329D4B
+            at: 1579788887
+          class: event
+          active: true
+          account_id: '12345678'
+      properties:
+        notification_type:
+          type: string
+        name:
+          type: string
+        id:
+          type: string
+        created:
+          type: object
+          properties:
+            by:
+              type: string
+            at:
+              type: number
+        class:
+          type: string
+        active:
+          type: string
+        account_id:
+          type: string
+        subscribers:
+          type: array
+          description: Available in List subscriptions for an account by subscription id
+          items:
+            $ref: '#/components/schemas/Subscriber'
+        subscriber_count:
+          type: number
+          description: Available in List subscriptions for an account by subscription id
+  securitySchemes:
+    X-AIMS-Auth-Token:
+      name: ' X-AIMS-Auth-Token'
+      type: apiKey
+      in: header
+tags:
+  - name: Integrations
+    description: Integrations
+  - name: Notification Types
+    description: Notification Types
+  - name: Notifications
+    description: Notifications
+  - name: Subscribers
+    description: Subscribers
+  - name: Subscriptions
+    description: Subscriptions
