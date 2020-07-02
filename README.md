@@ -25,7 +25,7 @@ List available service definitions:
 ```
 >>> import alsdkdefs
 >>> alsdkdefs.list_services()
-['aefr', 'aerta', 'aetag', 'aetuner', 'aims', 'assets_query', 'credentials', 'deployments', 'ingest', 'iris', 'policies', 'search', 'themis']
+['aefr', 'aerta', 'aetag', 'aetuner', 'aims', 'assets_query', 'kelt', 'credentials', 'deployments', 'ingest', 'iris', 'policies', 'search', 'themis']
 ```
 
 Get path to a service definitions paths:
