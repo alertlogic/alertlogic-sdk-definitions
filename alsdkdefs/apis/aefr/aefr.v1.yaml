@@ -13,9 +13,315 @@ servers:
     description: integration
     x-alertlogic-session-endpoint: true
 paths:
+  /aefr/v1/triggers:
+    get:
+      summary: List Global Triggers
+      tags:
+        - Trigger Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: list_global_triggers
+      description: 'Return a map of trigger rules defined at the global level. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    post:
+      summary: Store Global Trigger
+      operationId: store_global_trigger
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trigger_id:
+                    type: string
+      tags:
+        - Trigger Resources
+      description: Stores Trigger (update or create)
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          description: the urlencoded content path of this item
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                observation:
+                  $ref: '#/components/schemas/Observation'
+  '/aefr/v1/triggers/datatypes/{data_type}':
+    get:
+      summary: List Global Triggers by Data Type
+      tags:
+        - Trigger Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: list_global_triggers_by_data_type
+      security:
+        - X-AIMS-Auth-Token: []
+      description: 'Return a map of trigger rules defined at the global level by data type. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - logmsgs
+            - observations
+            - telemetry
+        name: data_type
+        in: path
+        required: true
+        description: 'One of the data types supported by ingestion (for example logmsgs, telemetry, etc)'
+  '/aefr/v1/triggers/paths/{path}':
+    get:
+      summary: Get Global Trigger by Path
+      tags:
+        - Trigger Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_global_trigger_by_path
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Returns trigger global definition by path
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Trigger Path
+    delete:
+      summary: Delete Global Trigger
+      operationId: delete_global_trigger
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Trigger Resources
+      description: Delete a global trigger rule.
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aefr/v1/triggers/ids/{trigger_id}':
+    get:
+      summary: Get Trigger by ID
+      tags:
+        - Trigger Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+      operationId: get_trigger_by_id
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Get the trigger identified by `trigger_id`
+    parameters:
+      - schema:
+          type: string
+        name: trigger_id
+        in: path
+        required: true
+        description: Trigger ID
+  '/aefr/v1/triggers/ids/{trigger_id}/expiration':
+    parameters:
+      - schema:
+          type: string
+        name: trigger_id
+        in: path
+        required: true
+        description: Trigger ID
+    get:
+      summary: Get Trigger Expiration
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_trigger_expiration
+      description: "Return a trigger's expiration timestamp"
+      security:
+        - X-AIMS-Auth-Token: []
+      tags:
+        - Expiration
+    post:
+      summary: Expire Trigger
+      operationId: expire_trigger
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: string
+      tags:
+        - Trigger Resources
+      description: |-
+        Set a trigger's expiration timestamp.
+
+        Note that setting expiration is effective immediately, just like if it was set up at the trigger's creation time. This means that queries for the trigger having an associated timestamp posterior to the expiration time will suddenly not receive the trigger. This is by design and is intended as a way to prevent bad triggers from being used by the ae system as soon as possible.
+
+        If the content_id being expired is not the first version of the trigger that was posted, the trigger will NOT revert to its previous content_id; it will simply disappear (it IS expired) until the next version of the trigger is posted. If you find yourself in need of expiring a bad content_id and have a good copy of the trigger on hand, you can post it as early as possible: expiring an earlier content_id does not affect newer ones. As to what happen to data that would have been processed by an expired trigger, depending if they are processed before or after the expiration is propagated through the AE system, they will see the expired trigger or not.
+
+        Note that because expiration done after the fact is done outside of regular content updates and because of caching, it may take a few minutes for the expiration to propagate throughout the AE system.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+  '/aefr/v1/{account_id}/triggers':
+    get:
+      summary: List Triggers
+      tags:
+        - Trigger Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: list_triggers
+      description: 'Return a map of trigger rules. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_parents
+          description: Include triggers applied from parent account rules
+        - schema:
+            type: number
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: number
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Store Trigger
+      operationId: store_trigger
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stored:
+                    type: string
+      tags:
+        - Trigger Resources
+      description: Stores Trigger (update or create) for specific customer
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          required: true
+          description: the urlencoded content path of this item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                experssion:
+                  type: string
+                observation:
+                  $ref: '#/components/schemas/Observation'
   '/aefr/v1/{account_id}/triggers/datatypes/{data_type}':
     get:
-      summary: Get Triggers by Data Type
+      summary: List Triggers by Data Type
       responses:
         '200':
           description: OK
@@ -25,7 +331,7 @@ paths:
                 type: object
                 properties: {}
       operationId: list_triggers_by_datatype
-      description: 'Return a map of trigger rules. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
+      description: 'Return a map of trigger rules by data type. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
       security:
         - X-AIMS-Auth-Token: []
       parameters:
@@ -63,69 +369,11 @@ paths:
         in: path
         required: true
         description: 'One of the data types supported by ingestion (for example logmsgs, telemetry, etc)'
-  '/aefr/v1/triggers/datatypes/{data_type}':
-    get:
-      summary: List Global Triggers
-      tags:
-        - Trigger Resources
-      responses:
-        '200':
-          description: OK
-      operationId: list_global_triggers
-      security:
-        - X-AIMS-Auth-Token: []
-      description: Returns a list of triggers defined at the global level
-    parameters:
-      - schema:
-          type: string
-          enum:
-            - logmsgs
-            - observations
-        name: data_type
-        in: path
-        required: true
-  '/aefr/v1//triggers/paths/{path}':
+  '/aefr/v1/{account_id}/triggers/paths/{path}':
     get:
       summary: Get Trigger by Path
       tags:
         - Trigger Resources
-      responses:
-        '200':
-          description: OK
-      operationId: get_global_trigger_by_path
-      security:
-        - X-AIMS-Auth-Token: []
-    parameters:
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
-  '/aefr/v1/triggers/ids/{trigger_id}':
-    get:
-      summary: Get Trigger by ID
-      tags: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Trigger'
-      operationId: get_trigger_by_id
-      security:
-        - X-AIMS-Auth-Token: []
-      description: ''
-    parameters:
-      - schema:
-          type: string
-        name: trigger_id
-        in: path
-        required: true
-  '/aefr/v1/{account_id}/triggers':
-    get:
-      summary: Get triggers
-      tags: []
       responses:
         '200':
           description: OK
@@ -134,32 +382,8 @@ paths:
               schema:
                 type: object
                 properties: {}
-      operationId: list_triggers
-      description: 'Return a map of trigger rules. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
-      security:
-        - X-AIMS-Auth-Token: []
-      parameters:
-        - schema:
-            type: boolean
-          in: query
-          name: include_parents
-          description: Include triggers applied from parent account rules
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-  '/aefr/v1/{account_id}/triggers/paths/{path}':
-    get:
-      summary: Get Trigger for a specific customer
-      tags: []
-      responses:
-        '200':
-          description: OK
       operationId: get_trigger_by_path
-      description: Returns trigger definition for specific customer
+      description: Returns trigger definition for specific customer by path
       security:
         - X-AIMS-Auth-Token: []
       parameters:
@@ -172,6 +396,16 @@ paths:
           in: query
           name: include_parents
           description: Return triggers applied to this customer from the parent level
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
     parameters:
       - schema:
           type: string
@@ -185,6 +419,736 @@ paths:
         in: path
         required: true
         description: Trigger Path
+    delete:
+      summary: Delete Trigger
+      operationId: delete_trigger
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Trigger Resources
+      description: Delete a trigger rule.
+      security:
+        - X-AIMS-Auth-Token: []
+  /aefr/v1/filters:
+    get:
+      summary: List Global Filters
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: list_global_filters
+      description: 'Return the list of filters defined at the global level. Important: instead of a 404, this endpoint will return an empty JSON document (i.e., {})'
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+      tags:
+        - Filter Resources
+    post:
+      summary: Store Global Filter
+      operationId: store_global_filter
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  filter_id:
+                    type: string
+      tags:
+        - Filter Resources
+      description: Creates or updates (overwrites) a filter route rule. Generally filters should be defined in Cloud Formation since they require one (or more) kinesis streams to write output on. See cfn-ae-stack repo for examples.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          description: Filter logical path
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                output:
+                  type: array
+                  items:
+                    type: string
+                format:
+                  type: string
+                  enum:
+                    - plain
+                    - csv
+                    - firehose
+                  description: 'Output Format. plain by default. Can be plain(nested JSON), firehose(NLD JSON), csv. Note about CSV: it will rely only on the projections names natural order (not select order), does not support nested jsons and can work with up to 32 projections. Use aliases to control order.'
+        description: ''
+  '/aefr/v1/filters/datatypes/{data_type}':
+    get:
+      summary: List Global Filters by Data Type
+      tags:
+        - Filter Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: list_global_filters_by_data_type
+      security:
+        - X-AIMS-Auth-Token: []
+      description: 'Return the list of filters defined at the global level by data type. Important: instead of a 404, this endpoint will return an empty JSON document (i.e., {})'
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - logmsgs
+            - observations
+            - telemetry
+        name: data_type
+        in: path
+        required: true
+        description: 'One of the data types supported by ingestion (for example logmsgs, telemetry, etc)'
+  '/aefr/v1/filters/paths/{path}':
+    get:
+      summary: Get Global Filter by Path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_global_filter_by_path
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Returns filter global definition by path
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+      tags:
+        - Filter Resources
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Trigger Path
+    delete:
+      summary: Delete Global Filter
+      operationId: delete_global_filter
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Filter Resources
+      description: Delete a global filter rule.
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aefr/v1/filters/ids/{filter_id}':
+    get:
+      summary: Get Filter by ID
+      tags:
+        - Filter Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filter'
+      operationId: get_filter_by_id
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Get the filter identified by `filter_id`
+    parameters:
+      - schema:
+          type: string
+        name: filter_id
+        in: path
+        required: true
+        description: FR ID
+  '/aefr/v1/filters/ids/{filter_id}/expiration':
+    parameters:
+      - schema:
+          type: string
+        name: filter_id
+        in: path
+        required: true
+        description: FR ID
+    get:
+      summary: Get Filter Expiration
+      responses:
+        '200':
+          description: OK
+      operationId: get_filter_expiration
+      description: "Return a filter's expiration timestamp"
+      security:
+        - X-AIMS-Auth-Token: []
+      tags:
+        - Expiration
+    post:
+      summary: Expire Filter
+      operationId: expire_filter
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: string
+          description: Created
+      tags:
+        - Filter Resources
+      description: |-
+        Set a filter's expiration timestamp.
+
+        Note that setting expiration is effective immediately, just like if it was set up at the filter's creation time. This means that queries for the filter having an associated timestamp posterior to the expiration time will suddenly not receive the filter. This is by design and is intended as a way to prevent bad filters from being used by the ae system as soon as possible.
+
+        If the content_id being expired is not the first version of the filter that was posted, the filter will NOT revert to its previous content_id; it will simply disappear (it IS expired) until the next version of the filter is posted. If you find yourself in need of expiring a bad content_id and have a good copy of the filter on hand, you can post it as early as possible: expiring an earlier content_id does not affect newer ones. As to what happen to data that would have been processed by an expired filter, depending if they are processed before or after the expiration is propagated through the AE system, they will see the expired filter or not.
+
+        Note that because expiration done after the fact is done outside of regular content updates and because of caching, it may take a few minutes for the expiration to propagate throughout the AE system.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+  '/aefr/v1/{account_id}/filters':
+    get:
+      summary: List Filters
+      tags:
+        - Filter Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: list_filters
+      description: 'Return a map of filters rules. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_parents
+          description: Include triggers applied from parent account rules
+        - schema:
+            type: number
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: number
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Store Filter
+      operationId: store_filter
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  filter_id:
+                    type: string
+      tags:
+        - Filter Resources
+      description: Creates or updates (overwrites) a filter route rule for specific customer. Generally filters should be defined in Cloud Formation since they require one (or more) kinesis streams to write output on. See cfn-ae-stack repo for examples.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                output:
+                  type: array
+                  items:
+                    type: string
+                format:
+                  type: string
+                  enum:
+                    - plain
+                    - csv
+                    - firehose
+                  description: 'Output Format. plain by default. Can be plain(nested JSON), firehose(NLD JSON), csv. Note about CSV: it will rely only on the projections names natural order (not select order), does not support nested jsons and can work with up to 32 projections. Use aliases to control order.'
+        description: ''
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          description: Filter logical path
+          required: true
+  '/aefr/v1/{account_id}/filters/datatypes/{data_type}':
+    get:
+      summary: List Filters by Data Type
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: list_filters_by_datatype
+      description: 'Return a map of filter rules by data type. Important: Instead of a 404, this endpoint return an empty JSON document (i.e., {})'
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: boolean
+          in: query
+          name: include_parents
+          description: Include parent account analytics applied to this account as well
+      tags:
+        - Filter Resources
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+          enum:
+            - logmsgs
+            - observation
+            - telemetry
+        name: data_type
+        in: path
+        required: true
+        description: 'One of the data types supported by ingestion (for example logmsgs, telemetry, etc)'
+  '/aefr/v1/{account_id}/filters/paths/{path}':
+    get:
+      summary: Get Filter by Path
+      tags:
+        - Filter Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_filter_by_path
+      description: Returns filter definition for specific customer by path
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+            default: 'true'
+            enum:
+              - 'true'
+              - 'false'
+          in: query
+          name: include_parents
+          description: Return triggers applied to this customer from the parent level
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Trigger Path
+    delete:
+      summary: Delete Filter
+      operationId: delete_filter
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Filter Resources
+      description: Delete a filter rule.
+      security:
+        - X-AIMS-Auth-Token: []
+  /aefr/v1/dlq_replay:
+    get:
+      summary: DLQ - Status of current request
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  started:
+                    type: integer
+                  limit:
+                    type: integer
+                  in_progress:
+                    type: boolean
+                  finished:
+                    type: integer
+                  count:
+                    type: integer
+      operationId: get_dlq_replay_status
+      description: |-
+        Status for the current running request
+
+        Returns the status for the current running request.
+
+        Supported engines See create a replay request
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - aefr_eng_logmsgs
+              - aefr_eng_idsmsgs
+              - aefr_eng_auditmsgs
+              - aefr_eng_observation
+              - aefr_eng_telemetry
+              - aetrigger_eng
+          in: query
+          name: engine
+          required: true
+      tags:
+        - DLQ
+    post:
+      summary: DLQ - Create a replay request
+      operationId: create_dlq_replay_request
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                enum:
+                  - IN PROGRESS
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: string
+                enum:
+                  - STARTED
+      description: |-
+        Starts Replay of DLQ data for the specified engine
+
+        Submits a request to replay limit number of DLQ records for the engine. The API makes a best effort attept to ensure accidentally replay of the same data twice.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - aefr_eng_logmsgs
+              - aefr_eng_idsmsgs
+              - aefr_eng_auditmsgs
+              - aefr_eng_observation
+              - aefr_eng_telemetry
+              - aetrigger_eng
+          in: query
+          name: engine
+          required: true
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+          in: query
+          name: limit
+        - schema:
+            type: string
+          in: query
+          name: filter
+      tags:
+        - DLQ
+  /aefr/v1/validations/triggers:
+    post:
+      summary: Validate Trigger
+      operationId: validate_trigger
+      responses:
+        '200':
+          description: OK
+      description: Validate a trigger
+      security:
+        - X-AIMS-Auth-Token: []
+      tags:
+        - Trigger Resources
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                observation:
+                  $ref: '#/components/schemas/Observation'
+              required:
+                - expression
+                - observation
+  /aefr/v1/validations/filters:
+    post:
+      summary: Validate Filter
+      operationId: validate_filter
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Filter Resources
+      description: Validate a filter
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                output:
+                  type: array
+                  items:
+                    type: string
+                format:
+                  type: string
+                path:
+                  type: string
+  /aefr/v1/replay:
+    post:
+      summary: Request Replay
+      operationId: request_replay
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  replay_ts:
+                    type: string
+      description: TODO
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data_type:
+                  type: string
+                  enum:
+                    - logmsgs
+                  description: TODO - support other types too
+                accounts:
+                  type: array
+                  description: 'in body: List of accounts ids to replay (as integers), or the string "all" for all active accounts'
+                  items:
+                    type: string
+                start_ts:
+                  type: integer
+                end_ts:
+                  type: integer
+                replay_ts:
+                  type: integer
+              required:
+                - data_type
+                - accounts
+                - start_ts
+                - end_ts
+                - replay_ts
+        description: ''
+  '/aefr/v1/rtas/firehose/{data_type}/replay':
+    parameters:
+      - schema:
+          type: string
+        name: data_type
+        in: path
+        required: true
+        description: 'One of the data types supported by ingestion (for example logmsgs, telemetry, etc)'
+    post:
+      summary: Regenerate firehose files data
+      operationId: regenerate_firehose_data
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success_count:
+                    type: integer
+                  error_count:
+                    type: integer
+                  actual_paths:
+                    type: array
+                    items:
+                      type: string
+                  actual_intervals:
+                    type: array
+                    items:
+                      type: integer
+                  actual_cids:
+                    type: array
+                    items:
+                      type: integer
+      tags:
+        - Firehose
+      description: 'Reprocess rta data to regenerate one or many firehose files. Requires Returns the number of successful and erroneous kinesis posts, and the actual paths, cids, and intervals for which replay requests were submitted to kinesis (successfully or not).'
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: start_ts
+          description: A unix epoch timestamp
+          required: true
+        - schema:
+            type: integer
+          in: query
+          name: end_ts
+          description: A unix epoch timestamp
+          required: true
+        - schema:
+            type: boolean
+          in: query
+          name: dryrun
+          description: if actual action is simulated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cids:
+                  type: array
+                  description: 'in body: List of cids to replay (as integers), or the string "all" for all active cids'
+                  items:
+                    type: string
+                stream:
+                  type: string
+                  description: 'in body: Name of the kinesis stream associated with the firehose.'
+                path:
+                  type: string
+                  description: 'in body: List of paths, or string containing a regex expression filtering paths'
+              required:
+                - cids
+                - stream
+                - path
 components:
   schemas:
     Trigger:
@@ -215,6 +1179,18 @@ components:
               type: string
         generate:
           type: string
+    Filter:
+      title: Filter
+      type: object
+      properties:
+        sql:
+          type: string
+        output:
+          type: array
+          items:
+            type: string
+        expression:
+          type: object
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
@@ -224,4 +1200,11 @@ components:
 tags:
   - name: Trigger Resources
     description: Analytics Engine Trigger Resources Manupulation
-
+  - name: Expiration
+    description: Analytics Engine Trigger and Filter Expiration
+  - name: Filter Resources
+    description: Analytics Engine Filter Resources Manupulation
+  - name: DLQ
+    description: DLQ
+  - name: Firehose
+    description: Firehose

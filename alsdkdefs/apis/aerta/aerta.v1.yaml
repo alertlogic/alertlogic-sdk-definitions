@@ -2,6 +2,8 @@ openapi: 3.0.2
 info:
   title: aerta
   version: '1.0'
+  contact:
+    email: support@alertlogic.com
   description: A service to manage RTA content and models
 servers:
   - url: 'https://api.global-services.global.alertlogic.com'
@@ -13,11 +15,16 @@ servers:
 paths:
   '/aerta/v1/{account_id}/fetch/{data_type}/paths/{path}':
     get:
-      summary: Get RTA data by RTA path
+      summary: Fetch RTA data by RTA path
       responses:
         '200':
           description: OK
-      operationId: get_data_by_path
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: fetch_rta_by_path
       description: 'Fetch RTA model values using its path. Values are returned for an entire interval, even if boundaries (:start_ts and :end_ts) include part of them. In the case where multiple revisions of the RTA exists during the specified interval, separate entries are returned for each of them.'
       security:
         - X-AIMS-Auth-Token: []
@@ -57,27 +64,28 @@ paths:
           in: query
           name: reaggregation
           description: 'Special purpose re-aggregations. Currently only support time: re-aggregate all results in a single time interval interval'
+        - schema:
+            type: string
+          in: query
+          name: out_format
+          description: Specify output format. Plain Json by default
+        - schema:
+            type: string
+          in: query
+          name: exclusive_field
+          description: Opaque; provided in telemetry/observations
+        - schema:
+            type: string
+          in: query
+          description: Opaque; provided in telemetry/observations
+          name: group_by
+        - schema:
+            type: string
+          in: query
+          description: Opaque; provided in telemetry/observations
+          name: group_by_md5
       tags:
         - RTA Get Data
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                expression:
-                  type: string
-                  description: |-
-                    Fetch RTA model values and re-aggregate them according to the provided expression.
-                    Values are returned for an entire interval expression, even if boundaries (:start_ts and :end_ts) include part of them. In the case where multiple revisions of the RTA exists during the specified interval, separate entries are returned for each of them.
-
-                    What does re-aggregation allow?
-
-                    Time intervals can be enlarged to an integer multiple of the original expression time interval (SELECT INTERVAL(ts, 300) as i ... GROUP BY i -> SELECT INTERVAL(ts, 900) as i ... GROUP BY i)
-                    GROUP BY dimensions can be reduced (... GROUP BY a, b -> ... GROUP BY a)
-                    Projections can be omitted (SELECT a, b, c ... -> SELECT a, c)
-                    Aggregations can be altered (SELECT AVG(a) ... -> SELECT MAX(a))
-                    Note: alterations can only reduce an aggregation complexity: a larger [l]set is more complex than a smaller [l]sets, a larger [l]ucounts is more complex than smaller [l]ucounts, an [l]set is more complex than an [l]ucount, and an [l]ucount is more complex than a min, a max, a sum, an avg, or a count.
     parameters:
       - schema:
           type: string
@@ -96,6 +104,63 @@ paths:
         name: path
         in: path
         required: true
+        description: url-encoded path (must be unique for a given account ID)
+    post:
+      summary: Fetch re-aggregated RTA data by path
+      operationId: fetch_reaggregated_rta_by_path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      tags:
+        - RTA Get Data
+      description: |-
+        Fetch RTA model values and re-aggregate them according to the provided expression. Values are returned for an entire interval expression, even if boundaries (:start_ts and :end_ts) include part of them. In the case where multiple revisions of the RTA exists during the specified interval, separate entries are returned for each of them.
+
+        What does re-aggregation allow?
+
+        * Time intervals can be enlarged to an integer multiple of the original expression time interval `(SELECT INTERVAL(ts, 300) as i ... GROUP BY i -> SELECT INTERVAL(ts, 900) as i ... GROUP BY i)`
+        * GROUP BY dimensions can be reduced `(... GROUP BY a, b -> ... GROUP BY a)`
+        * Projections can be omitted `(SELECT a, b, c ... -> SELECT a, c)`
+        * Aggregations can be altered `(SELECT AVG(a) ... -> SELECT MAX(a))`
+          * Note: alterations can only reduce an aggregation complexity: a larger [l]set is more complex than a smaller [l]sets, a larger [l]ucounts is more complex than smaller [l]ucounts, an [l]set is more complex than an [l]ucount, and an [l]ucount is more complex than a min, a max, a sum, an avg, or a count.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: start_ts
+          description: RTA start timestamp
+          required: true
+        - schema:
+            type: integer
+          in: query
+          name: end_ts
+          description: RTA end timestamp
+          required: true
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: Number of records/slices to return.
+        - schema:
+            type: string
+          in: query
+          name: continuation
+          description: Continuation string returned by a previous  `get_data_by_path` call
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
   '/aerta/v1/{account_id}/rtas':
     get:
       summary: Get all RTA Model definitions for a specific account
@@ -104,10 +169,31 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
       operationId: get_rtas
       description: Gets all configured RTA Model definitions for a specific account
       security:
         - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: boolean
+          in: query
+          name: raw
+          description: Default to false. Returns sub-content if true (for internal use only)
     parameters:
       - schema:
           type: string
@@ -146,21 +232,27 @@ paths:
               type: object
               properties:
                 expression:
-                  type: string
+                  type: object
                   description: Expression SQL-like string or object
                 customers:
                   type: array
                   description: "\t\nList of customers (String) to apply filter to. [\"*\"] for all customers."
                   items:
                     type: string
+                data_type:
+                  type: string
+                  description: Data type (iff using Object expressions)
               required:
                 - expression
                 - customers
+        description: ''
       tags:
         - RTA Resources
-    delete:
-      summary: Delete RTA Model for a specific customer
-      operationId: delete_rta
+  /aerta/v1/rtas:
+    get:
+      summary: Get all Global RTAs
+      tags:
+        - RTA Resources
       responses:
         '200':
           description: OK
@@ -168,34 +260,27 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  deleted:
-                    type: string
-                    description: Deleted RTA Model ID
-      description: Deletes RTA Model for a specific customer
-      security:
-        - X-AIMS-Auth-Token: []
-      parameters:
-        - schema:
-            type: string
-          in: query
-          name: path
-          required: true
-          description: RTA Model Path
-      tags:
-        - RTA Resources
-  /aerta/v1/rtas:
-    get:
-      summary: Get all RTAs
-      tags:
-        - RTA Resources
-      responses:
-        '200':
-          description: OK
+                properties: {}
       operationId: get_global_rtas
       description: Get configured RTAs definitions defined for all customers
       security:
         - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: boolean
+          in: query
+          name: raw
+          description: Default to false. Returns sub-content if true (for internal use only)
     parameters: []
     post:
       summary: Create Global RTA Model
@@ -228,15 +313,102 @@ paths:
               type: object
               properties:
                 expression:
-                  type: string
+                  type: object
                   description: Expression SQL-like string or object
                 customers:
                   type: array
                   description: 'List of customers (String) to apply filter to. Specify ["*"] for all customers.'
                   items:
                     type: string
+                data_type:
+                  type: string
+                  description: Data type (iff using Object expressions)
+              required:
+                - expression
+                - customers
+        description: ''
       tags:
         - RTA Resources
+  '/aerta/v1/rtas/datatypes/{data_type}':
+    get:
+      summary: Get all Global RTAs for a specific data type
+      tags:
+        - RTA Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_rtas_by_data_type
+      description: Get configured RTAs definitions defined for all customers for spefic data type
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: boolean
+          in: query
+          name: raw
+          description: Default to false. Returns sub-content if true (for internal use only)
+    parameters:
+      - schema:
+          type: string
+        name: data_type
+        in: path
+        required: true
+        description: 'Ingest Data type (logmsgs, telemetry ...)'
+  '/aerta/v1/rtas/paths/{path}':
+    get:
+      summary: Get global RTA for a specific path
+      tags:
+        - RTA Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_rta_by_path
+      description: Get configured RTA definition defined for all customers by path
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: boolean
+          in: query
+          name: raw
+          description: Default to false. Returns sub-content if true (for internal use only)
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: url-encoded path (must be unique for a given account ID)
     delete:
       summary: Delete Global RTA Model
       operationId: delete_global_rta
@@ -250,67 +422,35 @@ paths:
                 properties:
                   deleted:
                     type: string
-                    description: ID of the deleted RTA Model
+      tags:
+        - RTA Resources
       description: Deletes Global RTA Model
       security:
         - X-AIMS-Auth-Token: []
-      parameters:
-        - schema:
-            type: string
-          in: query
-          name: path
-          description: RTA Model Path
-          required: true
-      tags:
-        - RTA Resources
-  '/aerta/v1/rtas/datatypes/{data_type}':
-    get:
-      summary: Get all RTAs for a specific data type
-      tags:
-        - RTA Resources
-      responses:
-        '200':
-          description: OK
-      operationId: get_global_rtas_by_data_type
-      description: Get configured RTAs definitions defined for all customers for spefic data type
-      security:
-        - X-AIMS-Auth-Token: []
-    parameters:
-      - schema:
-          type: string
-        name: data_type
-        in: path
-        required: true
-  '/aerta/v1/rtas/paths/{path}':
-    get:
-      summary: Get global RTA for a specific path
-      tags:
-        - RTA Resources
-      responses:
-        '200':
-          description: OK
-      operationId: get_global_rta_by_path
-      description: Get configured RTA definition defined for all customers for by path
-      security:
-        - X-AIMS-Auth-Token: []
-    parameters:
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
   '/aerta/v1/rtas/ids/{id}':
     get:
-      summary: Get global RTA for a specific path
+      summary: Get global RTA by Id
       tags:
         - RTA Resources
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
       operationId: get_global_rta_by_id
       description: Get configured RTA definition defined for all customers for id
       security:
         - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+            default: ''
+          in: query
+          name: raw
+          description: Default to false. Returns sub-content if true (for internal use only)
     parameters:
       - schema:
           type: string
@@ -319,13 +459,18 @@ paths:
         required: true
   '/aerta/v1/{account_id}/fetch/{data_type}/{id}':
     get:
-      summary: Get RTA Data by RTA ID
+      summary: Fetch RTA Data by RTA ID
       tags:
         - RTA Get Data
       responses:
         '200':
           description: OK
-      operationId: get_data_by_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: fetch_rta_by_id
       description: 'Fetch RTA model values using RTA ID. Values are returned for an entire interval, even if boundaries (:start_ts and :end_ts) include part of them.'
       security:
         - X-AIMS-Auth-Token: []
@@ -388,24 +533,91 @@ paths:
         name: data_type
         in: path
         required: true
+        description: 'Ingest Data type (logmsgs, telemetry ...)'
       - schema:
           type: string
         name: id
         in: path
         required: true
-  '/aerta/v1/rtas/ids/{id}/expiration':
-    get:
-      summary: "Get an RTA Model's expiration timestamp"
-      tags: []
+        description: RTA Physical Id
+    post:
+      summary: Fetch re-aggregated RTA Data by RTA ID
+      operationId: fetch_reaggregated_rta_by_id
       responses:
         '200':
           description: OK
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                type: object
+                properties: {}
+      description: |-
+        Fetch RTA model values and re-aggregate them according to the provided expression. Values are returned for an entire interval expression, even if boundaries (:start_ts and :end_ts) include part of them. In the case where multiple revisions of the RTA exists during the specified interval, separate entries are returned for each of them.
+
+        What does re-aggregation allow?
+
+        * Time intervals can be enlarged to an integer multiple of the original expression time interval `(SELECT INTERVAL(ts, 300) as i ... GROUP BY i -> SELECT INTERVAL(ts, 900) as i ... GROUP BY i)`
+        * GROUP BY dimensions can be reduced `(... GROUP BY a, b -> ... GROUP BY a)`
+        * Projections can be omitted `(SELECT a, b, c ... -> SELECT a, c)`
+        * Aggregations can be altered `(SELECT AVG(a) ... -> SELECT MAX(a))`
+          * Note: alterations can only reduce an aggregation complexity: a larger [l]set is more complex than a smaller [l]sets, a larger [l]ucounts is more complex than smaller [l]ucounts, an [l]set is more complex than an [l]ucount, and an [l]ucount is more complex than a min, a max, a sum, an avg, or a count.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: start_ts
+          description: RTA start timestamp
+        - schema:
+            type: integer
+          in: query
+          name: end_ts
+          description: RTA end timestamp
+        - schema:
+            type: string
+          in: query
+          name: out_format
+          description: Specify output format. Plain Json by default
+        - schema:
+            type: string
+          in: query
+          name: exclusive_field
+          description: Opaque; provided in telemetry/observations
+        - schema:
+            type: string
+          in: query
+          name: group_by
+          description: Opaque; provided in telemetry/observations
+        - schema:
+            type: string
+          in: query
+          description: Opaque; provided in telemetry/observations
+          name: group_by_md5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+      tags:
+        - RTA Get Data
+  '/aerta/v1/rtas/ids/{id}/expiration':
+    get:
+      summary: "Get an RTA Model's expiration timestamp"
+      tags:
+        - RTA Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
                 description: Experation Timestamp
-      operationId: get_global_rta_experiation
+                type: integer
+      operationId: get_rta_experiation
       description: "Return an rta's expiration timestamp"
       security:
         - X-AIMS-Auth-Token: []
@@ -416,6 +628,265 @@ paths:
         in: path
         required: true
         description: RTA Model ID
+    post:
+      summary: Expire RTA
+      operationId: expire_rta
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: string
+      tags:
+        - RTA Resources
+      description: |-
+        Set an rta's expiration timestamp.
+
+        Note that setting expiration is effective immediately, just like if it was set up at the rta's creation time. This means that queries for the rta having an associated timestamp posterior to the expiration time will suddenly not receive the rta. This is by design and is intended as a way to prevent bad rtas from being used by the ae system as soon as possible.
+
+        If the content_id being expired is not the first version of the rta that was posted, the rta will NOT revert to its previous content_id; it will simply disappear (it IS expired) until the next version of the rta is posted. If you find yourself in need of expiring a bad content_id and have a good copy of the rta on hand, you can post it as early as possible: expiring an earlier content_id does not affect newer ones. As to what happen to data that would have been rta by an expired tag, depending if they are processed before or after the expiration is propagated through the AE system, they will see the expired rta or not.
+
+        Note that because expiration done after the fact is done outside of regular content updates and because of caching, it may take a few minutes for the expiration to propagate throughout the AE system.
+      parameters: []
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+  '/aerta/v1/{account_id}/rtas/datatypes/{data_type}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: data_type
+        in: path
+        required: true
+        description: 'Ingest Data type (logmsgs, telemetry ...)'
+    get:
+      summary: Get all RTAs for a specific data type
+      tags:
+        - RTA Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_rtas_by_data_type
+      description: Get configured RTAs definitions defined for a specific customer for spefic data type
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: string
+          in: query
+          name: raw
+          description: Default to false. Returns sub-content if true (for internal use only)
+  '/aerta/v1/{account_id}/rtas/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: url-encoded path (must be unique for a given account ID)
+    get:
+      summary: Get RTA for a specific path
+      tags:
+        - RTA Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_rta_by_path
+      description: Get configured RTA definition defined for a specific customer by path
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: boolean
+          in: query
+          name: raw
+          description: Default to false. Returns sub-content if true (for internal use only)
+    delete:
+      summary: Delete RTA Model for a specific customer
+      operationId: delete_rta
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - RTA Resources
+      description: Deletes RTA Model for a specific customer
+      security:
+        - X-AIMS-Auth-Token: []
+  /aerta/v1/dlq_replay:
+    get:
+      summary: DLQ - Status of current request
+      tags:
+        - DLQ
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  started:
+                    type: integer
+                  limit:
+                    type: integer
+                  in_progress:
+                    type: boolean
+                  finished:
+                    type: integer
+                  count:
+                    type: integer
+      operationId: get_dlq_replay_status
+      description: |-
+        Status for the current running request
+
+        Returns the status for the current running request.
+
+        Supported engines See create a replay request
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: engine
+    post:
+      summary: DLQ - Create a replay request
+      operationId: create_dlq_replay_request
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                enum:
+                  - IN PROGRESS
+              examples: {}
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: string
+                enum:
+                  - STARTED
+      tags:
+        - DLQ
+      description: |-
+        Starts Replay of DLQ data for the specified engine
+
+        Submits a request to replay limit number of DLQ records for the engine. The API makes a best effort attept to ensure accidentally replay of the same data twice.
+
+        Supported engines
+
+        * aerta_eng
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: engine
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: limit
+        - schema:
+            type: string
+          in: query
+          name: filter
+  /aerta/v1/validations/rtas:
+    parameters: []
+    post:
+      summary: Validate RTA
+      operationId: validate_rta
+      responses:
+        '200':
+          description: OK
+      tags:
+        - RTA Resources
+      description: Validates an RTA object
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: object
+                  description: Expression SQL-like string or object
+                customers:
+                  type: array
+                  description: 'List of customers (String) to apply filter to. ["*"] for all customers.'
+                  items:
+                    type: string
+                data_type:
+                  type: string
+                  description: Data type (iff using Object expressions)
+              required:
+                - expression
+                - customers
+        description: ''
 components:
   schemas: {}
   securitySchemes:
@@ -424,4 +895,10 @@ components:
       type: apiKey
       in: header
       description: AIMS Authentication Token
-
+tags:
+  - name: RTA Resources
+    description: Analytics Engine RTA Resources Manupulation
+  - name: RTA Get Data
+    description: RTA Get Data
+  - name: DLQ
+    description: DLQ

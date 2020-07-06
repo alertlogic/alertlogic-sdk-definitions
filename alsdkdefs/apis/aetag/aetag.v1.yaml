@@ -3,6 +3,8 @@ info:
   title: aetag service
   version: '1.0'
   description: Analytics Engine Tagset Service API
+  contact:
+    email: support@alertlogic.com
 servers:
   - url: 'https://api.global-services.global.alertlogic.com'
     description: production
@@ -19,17 +21,17 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
       operationId: get_tagset_by_path
       description: |
         Return a specific tagset. Tags requested for a specific customer id are composed tagset which uses the definition to decide from where, what and how to merge tagsets together. The 'etag' header is set and may be used to cache the response by the caller. Global tags are not composed.
       security:
         - X-AIMS-Auth-Token: []
       parameters:
-        - schema:
-            type: string
-          in: query
-          name: epoch
-          description: A positive integer representing an epoch
         - schema:
             type: string
           in: query
@@ -47,6 +49,25 @@ paths:
         name: path
         in: path
         required: true
+        description: url-encoded path
+    delete:
+      summary: Delete Tagset
+      operationId: delete_tagset
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Tags Resources
+      description: Delete a tagset.
+      security:
+        - X-AIMS-Auth-Token: []
   '/aetag/v1/tags/paths/{path}':
     get:
       summary: Get Global Scope Tagset by path
@@ -55,17 +76,47 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
       operationId: get_global_tagset_by_path
       security:
         - X-AIMS-Auth-Token: []
       description: |
-        Return a specific tagset. Tags requested for a all customers are composed tagset which uses the definition to decide from where, what and how to merge tagsets together. The 'etag' header is set and may be used to cache the response by the caller. Global tags are not composed.
+        Return a specific tagset. Global tags are not composed.
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
     parameters:
       - schema:
           type: string
         name: path
         in: path
         required: true
+        description: url-encoded path
+    delete:
+      summary: Delete globat tagset
+      operationId: delete_global_tagset
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Tags Resources
+      description: Delete a global tagset.
+      security:
+        - X-AIMS-Auth-Token: []
   '/aetag/v1/tags/ids/{id}':
     get:
       summary: Get Tagset by ID
@@ -76,6 +127,7 @@ paths:
       operationId: get_tagset_by_id
       security:
         - X-AIMS-Auth-Token: []
+      description: Get tagset by id
     parameters:
       - schema:
           type: string
@@ -121,10 +173,38 @@ paths:
           name: path
           required: true
           description: tagset object path
+      tags:
+        - Tags Resources
+    get:
+      summary: Get all Global Tagsets
+      operationId: get_global_tagsets
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      tags:
+        - Tags Resources
+      description: |-
+        Return a list of tags.
+
+        When global tags are requested from this endpoint, they are simply retrieved from storage; they are not composed.
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+      security:
+        - X-AIMS-Auth-Token: []
   '/aetag/v1/tunings/paths/{path}':
     get:
       summary: Get Global Tuning Tagset by Path
-      tags: []
+      tags:
+        - Tunings Resources
       responses:
         '200':
           description: OK
@@ -137,12 +217,19 @@ paths:
       description: Get Global Tuning Tagset by Path
       security:
         - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
     parameters:
       - schema:
           type: string
         name: path
         in: path
         required: true
+        description: url-encoded path
   '/aetag/v1/{account_id}/tunings/paths/{path}':
     get:
       summary: Get Customer Tuning Tagset by Name
@@ -159,6 +246,12 @@ paths:
       description: "Return a specific tuning. The 'etag' header is set and may be used to cache the response by the caller. Tuning tagsets are not composed; they are simply retrieved from storage."
       security:
         - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: ts
+          description: A unix epoch timestamp
     parameters:
       - schema:
           type: string
@@ -171,6 +264,7 @@ paths:
         name: path
         in: path
         required: true
+        description: url-encoded path
   /aetag/v1/tunings:
     post:
       summary: Create or update a global tuning tag set related to a trigger
@@ -190,7 +284,7 @@ paths:
 
 
       tags:
-        - Tuning Resources
+        - Tunings Resources
       security:
         - X-AIMS-Auth-Token: []
       parameters:
@@ -253,6 +347,8 @@ paths:
                 explode: true
         description: map/object which validates against a given tagset definition
         required: true
+      tags:
+        - Tunings Resources
     parameters:
       - schema:
           type: string
@@ -266,6 +362,7 @@ paths:
         name: account_id
         in: path
         required: true
+        description: AIMS Account ID
     post:
       summary: Create / Update Customer Tagset
       operationId: create_tagset
@@ -302,8 +399,519 @@ paths:
           name: path
           description: Tagset Definition Name/Path
           required: true
+      tags:
+        - Tags Resources
+    get:
+      summary: Get all Tagsets
+      operationId: get_tagsets
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      tags:
+        - Tags Resources
+      description: "Return a list of tags. Tags requested for a specific customer id are composed, including all relevant tuning, global, and/or parent tag sets. The precise \"recipe\" of composition is determined by a given tag set's definition."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+  '/aetag/v1/definitions/ids/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Get Definition by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_definition_by_id
+      tags:
+        - Definitions Resources
+      description: Return a definition by its specific UUID identifier
+      security:
+        - X-AIMS-Auth-Token: []
+  /aetag/v1/definitions:
+    get:
+      summary: Get Definitions
+      tags:
+        - Definitions Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_definitions
+      description: Return all definitions
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    post:
+      summary: Create Definition
+      operationId: create_definition
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stored:
+                    type: string
+      tags:
+        - Definitions Resources
+      description: Creates a new tagset definition. Definitions must be in place before a tagset can be created using the same path.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Definitions'
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          description: tagset object path
+          required: true
+  '/aetag/v1/definitions/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: url-encoded path
+    get:
+      summary: Get Definition by Path
+      tags:
+        - Definitions Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_definition_by_path
+      description: Return a specific definition by its path
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: epcoh
+          description: A positive integer representing an epoch
+        - schema:
+            type: string
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    delete:
+      summary: Delete Definition
+      operationId: delete_definition
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Definitions Resources
+      description: Delete a definition.
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aetag/v1/definitions/ids/{id}/expiration':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Definition ID
+    get:
+      summary: Get Definition Expiration
+      tags:
+        - Definitions Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+      operationId: get_defintion_expiration
+      description: "Return a definition's expiration timestamp"
+      security:
+        - X-AIMS-Auth-Token: []
+    post:
+      summary: Expire Definition
+      operationId: expire_definition
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: string
+          description: ''
+      tags:
+        - Definitions Resources
+      description: |-
+        Set a definition's expiration timestamp.
+
+        Note that setting expiration is effective immediately, just like if it was set up at the definition's creation time. This means that queries for the definition having an associated timestamp posterior to the expiration time will suddenly not receive the definition. This is by design and is intended as a way to prevent bad definitions from being used by the ae system as soon as possible.
+
+        If the content_id being expired is not the first version of the definition that was posted, the definition will NOT revert to its previous content_id; it will simply disappear (it IS expired) until the next version of the definition is posted. If you find yourself in need of expiring a bad content_id and have a good copy of the definition on hand, you can post it as early as possible: expiring an earlier content_id does not affect newer ones. As to what happens to data that would have been processed with an expired definition, depending they are processed before or after the expiration is propagated through the AE system, it will see the expired definition or not.
+
+        Note that because expiration done after the fact is done outside of regular content updates and because of caching, it may take a few minutes for the expiration to propagate throughout the AE system.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+  '/aetag/v1/tags/ids/{id}/expiration':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Tagset ID
+    get:
+      summary: Get Tagset Expiration
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+      operationId: get_tagset_expiration
+      description: |-
+        Return a tagset's expiration timestamp
+
+        Note that setting expiration is effective immediately, just like if it was set up at the tag's creation time. This means that queries for the tag having an associated timestamp posterior to the expiration time will suddenly not receive the tag. This is by design and is intended as a way to prevent bad tags from being used by the ae system as soon as possible.
+
+        If the content_id being expired is not the first version of the tag that was posted, the tag will NOT revert to its previous content_id; it will simply disappear (it IS expired) until the next version of the tag is posted. If you find yourself in need of expiring a bad content_id and have a good copy of the tag on hand, you can post it as early as possible: expiring an earlier content_id does not affect newer ones. As to what happens to data that would have been tagged by an expired tag, depending they are processed before or after the expiration is propagated through the AE system, it will see the expired tag or not.
+
+        Note that because expiration done after the fact is done outside of regular content updates and because of caching, it may take a few minutes for the expiration to propagate throughout the AE system.
+      security:
+        - X-AIMS-Auth-Token: []
+      tags:
+        - Tags Resources
+    post:
+      summary: Expire Tagset
+      operationId: expire_tagset
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: string
+      tags:
+        - Tags Resources
+      description: "Set a tagset's expiration timestamp"
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+  '/aetag/v1/tunings/ids/{id}/expiration':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Tuning ID
+    get:
+      summary: Get Tuning Expiration
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+      operationId: get_tuning_tagset_expiration
+      description: |-
+        Return a tuning's expiration timestamp
+
+        Note that setting expiration is effective immediately, just like if it was set up at the tuning's creation time. This means that queries for the tuning having an associated timestamp posterior to the expiration time will suddenly not receive the tuning. This is by design and is intended as a way to prevent bad tunings from being used by the ae system as soon as possible.
+
+        If the content_id being expired is not the first version of the tuning that was posted, the tuning will NOT revert to its previous content_id; it will simply disappear (it IS expired) until the next version of the tuning is posted. If you find yourself in need of expiring a bad content_id and have a good copy of the tuning on hand, you can post it as early as possible: expiring an earlier content_id does not affect newer ones. As to what happens to data that would have been processed with an expired tuning, depending they are processed before or after the expiration is propagated through the AE system, it will see the expired tuning or not.
+
+        Note that because expiration done after the fact is done outside of regular content updates and because of caching, it may take a few minutes for the expiration to propagate throughout the AE system.
+      security:
+        - X-AIMS-Auth-Token: []
+      tags:
+        - Tunings Resources
+    post:
+      summary: Expire Tuning
+      operationId: expire_tuning_tagset
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: string
+      tags:
+        - Tunings Resources
+      description: "Set a tuning's expiration timestamp"
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+  /aetag/v1/definitions/paths:
+    post:
+      summary: Get specific list of definitions by paths
+      operationId: get_definitions_by_paths
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      tags:
+        - Definitions Resources
+      description: "Return definitions for a specific set of paths. The set of paths to return is specified in the body as a json list of strings. The format of the output is a json object of the requested definition keyed by path. If a path is not found, it is silently not returned. The 'etag' header is set and may be used to cache the response by the caller. Definitions are retrieved from storage and not modified in any way."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: integer
+          in: query
+          name: echo
+          description: A positive integer representing an epoch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: ''
+    parameters: []
+  /aetag/v1/tags/paths:
+    post:
+      summary: Get specific list of global tagsets by paths
+      operationId: get_global_tagsets_by_paths
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      description: "Return tags at the specified list of paths. When global tags are requested, they are simply retrieved from storage; they are not composed. The 'etag' header is set and may be used to cache the response by the caller."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: ''
+      tags:
+        - Tags Resources
+    parameters: []
+  /aetag/v1/validate/definitions:
+    post:
+      summary: Validate Definition
+      operationId: validate_definition
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Definitions Resources
+      description: Validate a definition object.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Definitions'
+  /aetag/v1/validate/tags:
+    post:
+      summary: Validate Tagset
+      operationId: validate_tagset
+      responses:
+        '200':
+          description: OK
+      description: Validate a tagset object.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      tags:
+        - Tags Resources
+  /aetag/v1/validate/tunings:
+    post:
+      summary: Validate Tuning
+      operationId: validate_tuning_tagset
+      responses:
+        '200':
+          description: OK
+      description: Validate a tuning tagset object.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      tags:
+        - Tunings Resources
+  '/aetag/v1/{account_id}/tags/paths':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Get specific list of tagsets by paths
+      operationId: get_tagsets_by_paths
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      tags:
+        - Tags Resources
+      description: "Return tags at the specified list of paths. Tags requested for a specific customer id are composed, including all relevant tuning, global, and/or parent tag sets. The precise \"recipe\" of composition is determined by a given tag set's definition."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
 components:
-  schemas: {}
+  schemas:
+    Definitions:
+      title: Definitions
+      type: object
+      properties:
+        name:
+          type: string
+        unique:
+          type: boolean
+        display_name:
+          type: string
+        desc:
+          type: string
+        type:
+          type: string
+        inherit:
+          type: string
+        direction:
+          type: string
+        expiration:
+          type: string
+        validation:
+          type: object
+        $schema:
+          type: string
+        git_revision:
+          type: string
+        default:
+          type: object
+      required:
+        - name
+        - unique
+        - display_name
+        - desc
+        - type
+        - inherit
+        - direction
+        - expiration
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
@@ -313,4 +921,7 @@ components:
 tags:
   - name: Tags Resources
     description: Analytics Engine Tags Resources Manupulation
-
+  - name: Definitions Resources
+    description: Analytics Engine Definitions Resources Manupulation
+  - name: Tunings Resources
+    description: Analytics Engine Tunings Resources Manupulation
