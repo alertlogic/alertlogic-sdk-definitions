@@ -8,7 +8,8 @@ import requests
 from argparse import ArgumentParser
 import glob
 from almdrlib.client import _YamlOrderedLoader
-
+import json
+from openapi_spec_validator import validate_spec
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
 
 
@@ -25,6 +26,11 @@ def validate_definition(definition_file):
             exit(1)
         except ValidationError as e:
             print(f"Validation has failed - schema validation has failed {e}")
+            exit(1)
+        # json schema trips over integer keys
+        except TypeError:
+            print(f"Validation has failed - please validate your response codes are not integers, "
+                  f"if any of it are, quote it, '200', '400' etc")
             exit(1)
         print("Validation passed")
     else:
