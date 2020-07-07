@@ -446,7 +446,7 @@ paths:
                     code: 400
                 Incident already closed:
                   value:
-                    error: Incident 12341ab29e36-394e-11e9-a004-720004270420 status is currently the same closed
+                    error: Incident 12341ab29e36-394e-11e9-a004-720004270420 status is currently the same completed
                     code: 400
         '401':
           description: Not authorized
@@ -615,6 +615,106 @@ paths:
           name: incident_id
           in: path
           required: true
+  '/iris/v3/{account_id}/{incident_id}/reopen':
+    post:
+      summary: reopen a closed incident
+      tags:
+        - UI operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReopenIncident'
+              examples:
+                Complete incident response example:
+                  value:
+                    new: 
+                      notes: reopening because of y
+                      reason_code: other
+                      status: open
+                      status_change_time: 2020-05-22T11:09:56.855569+00:00
+                    old:
+                      status: completed
+                      status_change_time: 2020-05-22T07:54:33.555371+00:00
+                      reason_code: further_action
+                      notes: closed because of x
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Invalid account/incident id:
+                  value:
+                    error: Invalid AccountId or IncidentId supplied
+                    code: 400
+                Invalid body:
+                  value:
+                    error: Request body should be valid JSON
+                    code: 400
+                Invalid arguments:
+                  value:
+                    error: Invalid arguments
+                    code: 400
+                Incident already open:
+                  value:
+                    error: Incident 12341ab29e36-394e-11e9-a004-720004270420 status is currently the same open
+                    code: 400
+        '401':
+          description: Not authorized
+        '404':
+          description: account_id incident_id combination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Http 404 example:
+                  value:
+                    error: "Not found"
+                    code: 404
+        '500':
+          description: Internal Server Error
+      operationId: reopen_incident
+      description: reopen an incident
+      security:
+        - X-AIMS-Auth-Token: []
+      x-code-samples:
+        - lang: Request Sample
+          source: |
+            curl -H "x-aims-auth-token: ${TOKEN}" -X POST https://api.cloudinsight.alertlogic.com/iris/v3/12341ab29e36-394e-11e9-a004-720004270420/reopen -d '{"notes": "reopening because of y"}'
+      requestBody:
+        description:  'The value in notes will be displayed in the customer console as the reason for opening'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+                  description: Notes about completion
+              required:
+                - notes
+            examples:
+              Complete incident body:
+                value:
+                  notes: Reopening because of y
+      parameters:
+        - schema:
+            type: string
+          name: account_id
+          in: path
+          required: true
+          description: AIMS Account ID
+        - schema:
+            $ref: '#/components/schemas/IncidentId'
+          name: incident_id
+          in: path
+          required: true  
 components:
   schemas:
     IncidentId:
@@ -783,6 +883,46 @@ components:
         - feedback_reason
         - feedback_uid
         - feedback_user
+    ReopenIncident:
+      title: Incident completion responses
+      type: object
+      description: Incident completion response object
+      properties:
+        new:
+          type: object
+          properties:
+            notes:
+              type: string
+            reason_code:
+              type: string
+            status:
+              type: string
+            status_change_time:
+              type: string
+          required:
+            - notes
+            - reason_code
+            - status
+            - status_change_time
+        old:
+          type: object
+          properties:
+            status:
+              type: string
+            status_change_time:
+              type: string
+            reason_code:
+              type: string
+            notes:
+              type: string
+          required:
+            - notes
+            - reason_code
+            - status
+            - status_change_time
+      required:
+        - new
+        - old
     CompleteIncident:
       title: Incident completion responses
       type: object
