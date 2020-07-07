@@ -8,8 +8,6 @@ import requests
 from argparse import ArgumentParser
 import glob
 from almdrlib.client import _YamlOrderedLoader
-import json
-from openapi_spec_validator import validate_spec
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
 
 
