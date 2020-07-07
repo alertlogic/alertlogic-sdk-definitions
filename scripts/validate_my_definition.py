@@ -43,7 +43,7 @@ if __name__ == "__main__":
     options = parser.parse_args()
     r = requests.get(OPENAPI_SCHEMA_URL)
     schema = r.json()
-    files = glob.glob(f"{options.dir}/*.yaml")
+    files = glob.glob(f"{options.dir}/*.v*.yaml")
     if files:
         for file in files:
             validate_definition(file)
