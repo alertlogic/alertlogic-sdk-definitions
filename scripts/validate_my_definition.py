@@ -27,9 +27,9 @@ def validate_definition(definition_file):
         except ValidationError as e:
             print(f"Validation has failed - schema validation has failed {e}")
             exit(1)
-        # json schema trips over integer keys
         except TypeError:
-            print(f"Validation has failed - please validate your response codes are not integers, "
+            print(f"Validation has failed - json schema trips over integer keys, please "
+                  f"validate your response codes are not integers, check also other keys are not integers"
                   f"if any of it are, quote it, '200', '400' etc")
             exit(1)
         print("Validation passed")
