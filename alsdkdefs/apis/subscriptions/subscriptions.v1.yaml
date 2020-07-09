@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Subscriptions Service
   version: 1.0.0
-  description: 'Global Usage, Entitlements, and Subscription Service'
+  description: 'Entitlements and Subscription Service'
   contact:
     name: Alert Logic Support
     email: support@alertlogic.com
