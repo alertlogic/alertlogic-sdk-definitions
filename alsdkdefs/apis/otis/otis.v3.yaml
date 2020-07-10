@@ -1,0 +1,1938 @@
+openapi: 3.0.1
+info:
+  title: Otis API
+  version: 3.0.0
+  description: |-
+      # Otis
+
+      **Note:** The previous v2 API of this service has been deprecated.
+
+      The **Otis** service manages tuning options specified by a customer. The defined
+      options are consumed by various services to operate in accordance with the
+      customer's preferences.
+
+        * [Option Representation](#option-representation)
+        * [Scope Resolving Algorithm](#scope-resolving-algorithm)
+        * [Supported Options](#supported-options)
+
+      <a name="option-representation"/>
+
+      ## Option Representation
+
+      An option is a container for the following properties:
+
+      * **id** - a unique value (UUID) calculated as hash from name + scope
+      * **name** - a name from the list of supported options
+      * **scope** - some optional scope the option is applied for
+      * **value** - arbitrary JSON data
+
+      The option ID is a hash calculated by the service based on the option name and
+      scope combination. It is possible to define only one value for one unique scope.
+
+      A client can provide multiple option values with different scope. Consumers can
+      use the resolve endpoint to find the most suitable option value for a target
+      scope. If scope is missing then an option is applied on the account level.
+
+      Values can be provided on the deployment level and override the account level
+      values, for example:
+
+      ```
+      "scope": {
+          "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+      }
+      ```
+
+      The region level values have higher priority, for example:
+
+      ```
+      "scope": {
+          "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+          "region_key": "/aws/us-east-1"
+      }
+      ```
+
+      The VPC level values have the highest priority, for example:
+
+      ```
+      "scope": {
+          "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+          "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+      }
+      ```
+
+      A value depends on the option name and can contain arbitrary JSON data. Please
+      see the section [Supported Option](#supported-options) for information about
+      valid option values.
+
+      <a name="scope-resolving-algorithm"/>
+
+      ## Scope Resolving Algorithm
+
+      The service provides the [resolve](#api-Resolve-ResolveOptions) endpoint that
+      helps to find the most specific option value for the target scope in case of
+      multiple values specified in different scope.
+
+      The algorithm consists of two parts:
+
+      1. exclude all values defined for more narrow scope than the target one
+      2. select the best value having maximum number of matching scope properties
+
+      For example, there are 3 values for the same option defined in the different scope:
+      <table style="text-align:center">
+        <tr style="background-color:#f5f5f5">
+          <td>scope/value</th>
+          <td>1</th>
+          <td>2</th>
+          <td>3</th>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">account_id</td>
+          <td>12345678</td>
+          <td>12345678</td>
+          <td>12345678</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">deployment_id</td>
+          <td></td>
+          <td>AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA</td>
+          <td>AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">region_key</td>
+          <td></td>
+          <td></td>
+          <td>/aws/us-east-1</td>
+        </tr>
+      </table>
+
+      If the target scope is: `{"deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`
+      then the value `2` wins because the value `3` is defined for the more narrow
+      scope and the value `1` has fewer matching scope properties.
+
+      <a name="supported-options"/>
+
+      ## Supported Options
+
+      A client is allowed to specify the following options:
+
+      * [cross_network_protection](#cross_network_protection)
+      * [discovery_scan_frequency](#discovery_scan_frequency)
+      * [external_scan_frequency](#external_scan_frequency)
+      * [ids_appliance_instance_type](#ids_appliance_instance_type)
+      * [ids_appliances_placement (BETA)](#ids_appliances_placement)
+      * [ids_appliances_scaling (BETA)](#ids_appliances_scaling)
+      * [ids_security_resource_tags](#ids_security_resource_tags)
+      * [max_vulnerability_scan_jobs](#max_vulnerability_scan_jobs)
+      * [max_discovery_scan_jobs](#max_discovery_scan_jobs)
+      * [predefined_security_subnet](#predefined_security_subnet)
+      * [scan_appliance_instance_type](#scan_appliance_instance_type)
+      * [scan_appliances_scaling](#scan_appliances_scaling)
+      * [scan_security_resource_tags](#scan_security_resource_tags)
+      * [scan_security_subnet_cidr_block](#scan_security_subnet_cidr_block)
+      * [security_resource_tags](#security_resource_tags)
+      * [span_port_enabled](#span_port_enabled)
+      * [vulnerability_scan_frequency](#vulnerability_scan_frequency)
+
+      <a name="cross_network_protection"/>
+
+      ### cross_network_protection
+
+      This option declares that a given scope is protected by remote IDS appliances
+      from security infrastructure deployed inside another network. All agents running
+      inside the protected scope connect to IDS appliances running in the protecting
+      network.
+
+      A value is an object containing a deployment ID and and asset key of the
+      assigned protecting network, for example, a protected network can be declared
+      like this:
+      ```
+      {
+          "name": "cross_network_protection",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": {
+              "deployment_id": "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000002"
+          }
+      }
+      ```
+
+      or some protected region can be declared as below:
+
+      ```
+      {
+          "name": "cross_network_protection",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "region_key": "/aws/us-east-1"
+          },
+          "value": {
+              "deployment_id": "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000002"
+          }
+      }
+      ```
+
+      <a name="discovery_scan_frequency"/>
+
+      ### discovery_scan_frequency
+
+      This option specifies the number of discovery scans to be performed during a day.
+
+      The value can be either the string `"automatic"` or an integer from [`1`, `2`, `3`, `4`],
+
+      for example:
+
+      ```
+      {
+          "name": "discovery_scan_frequency",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+          },
+          "value": 1
+      }
+      ```
+
+      <a name="external_scan_frequency"/>
+
+      ### external_scan_frequency
+
+      This option specifies the external scan frequency.
+
+      The value can be one of the strings [`"automatic"`, `"daily"`, `"weekly"`, `"monthly"`],
+      for example:
+
+      ```
+      {
+          "name": "external_scan_frequency",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+          },
+          "value": "daily"
+      }
+      ```
+
+      <a name="ids_appliance_instance_type"/>
+
+      ### ids_appliance_instance_type
+
+      This option specifies an instance type that the installation services shall use
+      to launch IDS appliances inside the defined scope. The option affects deployments
+      in **automatic** mode only.
+
+      The value is a string containing a value from the following supported range:
+
+      <table style="text-align:center">
+        <tr style="background-color:#f5f5f5">
+          <td>type</th>
+          <td>size</th>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">t3</td>
+          <td style="font-style:italic">t3.medium, t3.large, t3.xlarge, t3.2xlarge</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">m4</td>
+          <td style="font-style:italic">m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge, m4.16xlarge</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">m5</td>
+          <td style="font-style:italic">m5.large, m5.xlarge, m5.2xlarge, m5.4xlarge, m5.12xlarge, m5.24xlarge</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">c4</td>
+          <td style="font-style:italic">c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">c5</td>
+          <td style="font-style:italic">c5.large, c5.xlarge, c5.2xlarge, c5.4xlarge, c5.9xlarge, c5.18xlarge</td>
+        </tr>
+      </table>
+
+      for example:
+
+      ```
+      {
+          "name": "ids_appliance_instance_type",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": "c5.large"
+      }
+      ```
+
+      The following instance types are used as defaults: `c5.xlarge`, `m5.xlarge`, `c4.xlarge`
+      depending on availability, if the option is not defined.
+
+      <a name="ids_appliances_placement"/>
+
+      ### ids_appliances_placement (BETA)
+
+      Please notice, this is a **BETA** option that may be a subject for change.
+
+      This option declares placement `policy` for a selected scope. There are two
+      policies supported so far:
+
+      1. `automatic` - placement managed by Alert Logic
+
+          By default, we deploy one IDS appliance per every inhabited availability zone
+          inside a protected VPC. Useless appliances are removed, when there are no hosts
+          inside availability zones. Also, one hot appliance is never terminated in one of
+          availability zones for empty VPC.
+
+          Two flavors of automatic management supported now:
+
+          1. Automatic with maximum number of protected zones
+
+              A customer can protect some VPC by IDS appliances running in a limited number
+              of availability zones. An optional integer property `max_zones` defines the
+              maximum number of zones allowed to have appliances inside. Security
+              infrastructure is removed from empty zones automatically.
+
+              For example:
+              ```
+              {
+                  "name": "ids_appliances_placement",
+                  "scope": {
+                      "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+                  },
+                  "value": {
+                      "policy": "automatic",
+                      "max_zones": 1
+                  }
+              }
+              ```
+
+          2. Automatic with a list of protected zones defined explicitly
+
+              A customer can also protect some VPC by appliances inside the specific
+              availability zones only. A policy option `zone_keys` defines zones allowed
+              to deploy IDS appliances. Security infrastructure is automatically removed
+              from empty zones automatically.
+
+              For example:
+              ```
+              {
+                  "name": "ids_appliances_placement",
+                  "scope": {
+                      "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+                      "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+                  },
+                  "value": {
+                      "policy": "automatic",
+                      "zone_keys": [
+                          "/aws/us-east-1/zone/us-east-1a"
+                      ]
+                  }
+              }
+              ```
+
+      2. `constant` - placement predefined by a customer
+
+          Sometimes customers know that there are availability zones with stable
+          infrastructure generating traffic, so IDS appliances should be deployed to the
+          preferred zones only and never removed regardless zone population. A policy
+          option `zone_keys` defines zones where IDS appliances need to be deployed. Traffic
+          from the rest of availability zones will be handled by the appliances living in
+          the preferred zones.
+
+          For example:
+          ```
+          {
+              "name": "ids_appliances_placement",
+              "scope": {
+                  "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+                  "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+              },
+              "value": {
+                  "policy": "constant",
+                  "zone_keys": [
+                      "/aws/us-east-1/zone/us-east-1a",
+                      "/aws/us-east-1/zone/us-east-1b"
+                  ]
+              }
+          }
+          ```
+
+      <a name="ids_appliances_scaling"/>
+
+      ### ids_appliances_scaling (BETA)
+
+      Please notice, this is a **BETA** option that may be a subject for change.
+
+      The option affects **AWS** deployments in the **automatic** mode only.
+
+      This option declares IDS appliances scaling for a selected scope. The option
+      value is an object that specifies the desired policy. There are two policies
+      available so far, `automatic` and `constant`.
+
+      1. `automatic` - the number of appliances adjusted automatically
+
+          Once it is selected, then auto-scaling groups in the protected zones will be
+          automatically adjusted to the actual load (the number of agents collecting
+          traffic) respecting the predefined limits.
+
+          For example:
+
+          ```
+          {
+              "name": "ids_appliances_scaling",
+              "scope": {
+                  "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+                  "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+              },
+              "value": {
+                  "policy": "automatic",
+                  "max_instances": 3
+              }
+          }
+          ```
+
+          If it is detected that all existing appliances inside the protected zone are
+          too close to overloaded state, a new IDS appliance is launched and existing
+          agents are rebalanced accordingly. The number of appliances can be limited
+          with extra options `min_instances` affecting the lower boundary, and
+          `max_instances` (8 by default) for the upper boundary. When it is detected
+          that some appliance is idle or its termination will not affect traffic
+          analysis, the useless appliance is terminated to save resources.
+
+      2. `constant` - the constant number of appliances predefined in advance
+
+          Sometimes it is well known that there is a network with a stable load (the
+          number of agents collecting traffic) inside the protected infrastructure, so
+          the appropriate number of IDS appliances can be deployed to the preferred
+          zones and never scaled down. A policy option `num_instances` defines the
+          number of appliances to be launched by the auto-scaling group inside every
+          protected zone.
+
+          For example:
+          ```
+          {
+             "name": "ids_appliances_scaling",
+              "scope": {
+                  "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+                  "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+              },
+              "value": {
+                  "policy": "constant",
+                  "num_instances": 1
+              }
+          }
+          ```
+
+      <a name="ids_security_resource_tags"/>
+
+      ### ids_security_resource_tags
+
+      This option specifies additional tags to be associated with resources deployed
+      automatically as parts of the IDS security infrastructure. The option affects
+      AWS deployments in the **automatic** and **guided** mode only.
+
+      Please see [security_resource_tags](#security_resource_tags) for details.
+
+      <a name="max_vulnerability_scan_jobs"/>
+
+      ### max_vulnerability_scan_jobs
+
+      This option specifies the number of vulnerability scan jobs that can be performed concurrently by a scanner.
+
+      The value is an integer, for example:
+
+      ```
+      {
+          "name": "max_vulnerability_scan_jobs",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+          },
+          "value": 10
+      }
+      ```
+
+      <a name="max_discovery_scan_jobs"/>
+
+      ### max_discovery_scan_jobs
+
+      This option specifies the number of discovery scan jobs that can be performed concurrently by a scanner.
+
+      The value is an integer, for example:
+
+      ```
+      {
+          "name": "max_discovery_scan_jobs",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": 10
+      }
+      ```
+
+      <a name="predefined_security_subnet"/>
+
+      ### predefined_security_subnet
+
+      This option specifies what subnet shall be used as a security subnet by automatic
+      installation services to deploy scan appliances. The option affects deployments
+      in **guided** mode only.
+
+      The value is a string containing a subnet asset key,
+      for example:
+
+      ```
+      {
+          "name": "predefined_security_subnet",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": "/aws/us-east-1/subnet/subnet-00000001"
+      }
+      ```
+
+      <a name="scan_appliance_instance_type"/>
+
+      ### scan_appliance_instance_type
+
+      This option specifies an instance type that the installation services shall use
+      to launch scan appliances inside the defined scope. The option affects deployments
+      in **automatic** or **guided** mode only.
+
+      The value is a string containing a value from the following supported range:
+
+      <table style="text-align:center">
+        <tr style="background-color:#f5f5f5">
+          <td>type</th>
+          <td>size</th>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">m3</td>
+          <td style="font-style:italic">m3.medium</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">t3</td>
+          <td style="font-style:italic">t3.medium,t3.large</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">c4</td>
+          <td style="font-style:italic">c4.large</td>
+        </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">c5</td>
+          <td style="font-style:italic">c5.large,c5.xlarge</td>
+        </tr>
+      </table>
+
+      for example:
+
+      ```
+      {
+          "name": "scan_appliance_instance_type",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": "c5.large"
+      }
+      ```
+
+      The following instance types are used as defaults: `m3.medium`, `c5.large`, `c4.large`
+      depending on availability, if the option is not defined.
+
+      <a name="scan_appliances_scaling"/>
+
+      ### scan_appliances_scaling
+
+      This option specifies a scaling policy that deployment services shall follow
+      launching scan appliances inside the protected scope. The option affects AWS
+      deployments in **automatic**, **guided** and **manual** mode only.
+
+      The option value is an object that specifies the desired policy. There are two
+      policies available so far, `automatic` and `constant`.
+
+      If the policy `automatic` is selected, then auto-scaling groups will be
+      automatically configured to run one scan appliance while not-scanned instances
+      found in the protected VPC, and scaled down to zero once all the targets are
+      scanned,
+      for example:
+
+      ```
+      {
+          "name": "scan_appliances_scaling",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": {
+              "policy": "automatic"
+          }
+      }
+      ```
+
+      If the policy `constant` is set, then auto-scaling groups will be configured to
+      run the desired number of scan appliances and never scaled down, for example:
+
+      ```
+      {
+          "name": "scan_appliances_scaling",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": {
+              "policy": "constant",
+              "num_instances": 1
+          }
+      }
+      ```
+
+      By default, our deployment service follows the policy `automatic`.
+
+      <a name="scan_security_resource_tags"/>
+
+      ### scan_security_resource_tags
+
+      This option specifies additional tags to be associated with resources deployed
+      automatically as parts of the Scan security infrastructure. The option affects
+      AWS deployments in the **automatic** and **guided** mode only.
+
+      Please see [security_resource_tags](#security_resource_tags) for details.
+
+      <a name="scan_security_subnet_cidr_block"/>
+
+      ### scan_security_subnet_cidr_block
+
+      This option specifies a CIDR block to be assigned to a security subnet.
+      A deployment service creates a security subnet in the protected VPC to deploy
+      scan appliances, the created subnet is configured to use some free block of /28
+      size. Once the option is defined, the created security subnet will be configured
+      with the predefined CIDR block. The option affects AWS deployments in
+      the **automatic** mode only.
+
+      The value is a string specifying a CIDR block with the allowed netmask between
+      `/16` and `/28`, for example:
+
+      ```
+      {
+          "name": "scan_security_subnet_cidr_block",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": "10.0.1.0/28"
+      }
+      ```
+
+      <a name="security_resource_tags"/>
+
+      ### security_resource_tags
+
+      This option specifies additional tags to be associated with security resources
+      deployed by deployment services. The option affects AWS deployments in the
+       **automatic** and **guided** mode only.
+
+      The value is an array of objects specifying desired tag keys and values,
+      for example:
+
+      ```
+      {
+          "name": "security_resource_tags",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+          },
+          "value": [
+              {
+                  "key": "Key",
+                  "value": "Value"
+              }
+          ]
+      }
+      ```
+
+      All the list items must be unique. The maximum number of tags allowed is 30.
+      Also, the key prefix `AlertLogic` is reserved and any prefixed tags will be rejected.
+
+      <a name="span_port_enabled"/>
+
+      ### span_port_enabled
+
+      This option is a hint that IDS appliances detected in VPC must be configured as
+      span port connected.
+
+      The value is boolean, for example:
+
+      ```
+      {
+          "name": "span_port_enabled",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/dc/network/BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"
+          },
+          "value": true
+      }
+      ```
+
+      <a name="vulnerability_scan_frequency"/>
+
+      ### vulnerability_scan_frequency
+
+      This option specifies the vulnerability scan frequency.
+
+      The value can be one of the strings [`"automatic"`, `"daily"`, `"weekly"`, `"monthly"`],
+      for example:
+
+      ```
+      {
+          "name": "vulnerability_scan_frequency",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+          },
+          "value": "daily"
+      }
+      ```
+servers:
+  - url: 'https://api.cloudinsight.alertlogic.com'
+    description: production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.cloudinsight.product.dev.alertlogic.com'
+    description: integration
+    x-alertlogic-session-endpoint: true
+paths:
+  '/otis/v3/{account_id}/cross_protected_networks':
+    parameters:
+      - $ref: '#/components/parameters/path_account_id'
+      - $ref: '#/components/parameters/query_deployment_id'
+      - $ref: '#/components/parameters/query_option_id'
+      - $ref: '#/components/parameters/query_vpc_key'
+    get:
+      summary: List protected networks
+      description: List protected networks
+      tags:
+        - CrossNetworkProtection
+      security:
+        - X-AIMS-Auth-Token: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    account_id:
+                      $ref: '#/components/schemas/AccountId'
+                    deployment_id:
+                      $ref: '#/components/schemas/DeploymentId'
+                    vpc_key:
+                      $ref: '#/components/schemas/VpcKey'
+                    option_id:
+                      $ref: '#/components/schemas/Uuid'
+                    protecting_network:
+                      $ref: '#/components/schemas/Network'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: list_cross_protected_networks
+  '/otis/v3/{account_id}/cross_protecting_networks':
+    parameters:
+      - $ref: '#/components/parameters/path_account_id'
+      - $ref: '#/components/parameters/query_deployment_id'
+      - $ref: '#/components/parameters/query_option_id'
+      - $ref: '#/components/parameters/query_vpc_key'
+    get:
+      tags:
+        - CrossNetworkProtection
+      summary: List protecting networks
+      description: List protecting networks
+      security:
+        - X-AIMS-Auth-Token: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    account_id:
+                      $ref: '#/components/schemas/AccountId'
+                    deployment_id:
+                      $ref: '#/components/schemas/DeploymentId'
+                    vpc_key:
+                      $ref: '#/components/schemas/VpcKey'
+                    option_id:
+                      $ref: '#/components/schemas/Uuid'
+                    protected_network:
+                      $ref: '#/components/schemas/Network'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: list_cross_protecting_networks
+  '/otis/v3/{account_id}/options':
+    parameters:
+      - $ref: '#/components/parameters/path_account_id'
+    post:
+      summary: Create option.
+      description: Create option.
+      tags:
+        - Options
+      requestBody:
+        description: Create option request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionsReqBody'
+            x-alertlogic-schema:
+              name: option
+              encoding:
+                explode: true
+      security:
+        - X-AIMS-Auth-Token: []
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/OptionsRespBody'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: create_option
+    get:
+      summary: List options.
+      description: List options.
+      tags:
+        - Options
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OptionsRespBody'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: list_options
+  '/otis/v3/{account_id}/options/{option_id}':
+    parameters:
+      - $ref: '#/components/parameters/path_account_id'
+      - $ref: '#/components/parameters/path_option_id'
+    put:
+      summary: Update option value
+      description: Update option value
+      tags:
+        - Options
+      requestBody:
+        description: Update option request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionsReqBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: string
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: update_option
+    get:
+      summary: Get option.
+      description: Get option by id.
+      tags:
+        - Options
+      security:
+        - X-AIMS-Auth-Token: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionsRespBody'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get_option
+    delete:
+      summary: Delete option.
+      description: Delete option by id.
+      tags:
+        - Options
+      security:
+        - X-AIMS-Auth-Token: []
+      responses:
+        '204':
+          description: Success
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: delete_option
+components:
+  responses:
+    '400':
+      description: The server cannot or will not process the request due to malformed request syntax
+    '401':
+      description: The request has not been applied because it lacks valid authentication credentials for the target resource.
+    '403':
+      description: The server understood the request but refuses to authorize it.
+    '500':
+      description: The server encountered an unexpected condition that prevented it from fulfilling the request.
+  parameters:
+    query_deployment_id:
+      name: deployment_id
+      schema:
+        $ref: '#/components/schemas/DeploymentId'
+      in: query
+    query_vpc_key:
+      name: vpc_key
+      schema:
+        $ref: '#/components/schemas/VpcKey'
+      in: query
+    query_option_id:
+      name: option_id
+      schema:
+        $ref: '#/components/schemas/Uuid'
+      in: query
+    path_account_id:
+      name: account_id
+      required: true
+      description: Alert Logic account ID
+      in: path
+      schema:
+        $ref: '#/components/schemas/AccountId'
+    path_option_id:
+      name: option_id
+      required: true
+      description: Otis option ID.
+      in: path
+      schema:
+        $ref: '#/components/schemas/Uuid'
+  schemas:
+    Uuid:
+      description: UUID of an option item stored in the database
+      type: string
+      example: FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+      pattern: '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
+    AccountId:
+      type: string
+      minLength: 1
+      example: "12345678"
+    DeploymentId:
+      type: string
+      example: FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+      minLength: 1
+    RegionKey:
+      type: string
+      example: /aws/us-east-1
+      minLength: 1
+    VpcKey:
+      type: string
+      example: /aws/us-east-1/vpc/vpc-00000000000000001
+      minLength: 1
+    Scope:
+      type: object
+      properties:
+        deployment_id:
+          $ref: '#/components/schemas/DeploymentId'
+        region_key:
+          $ref: '#/components/schemas/RegionKey'
+        vpc_key:
+          $ref: '#/components/schemas/VpcKey'
+      additionalProperties: false
+    Network:
+      type: object
+      properties:
+        account_id:
+          $ref: '#/components/schemas/AccountId'
+        deployment_id:
+          $ref: '#/components/schemas/DeploymentId'
+        vpc_key:
+          $ref: '#/components/schemas/VpcKey'
+    OptionsReqBody:
+      type: object
+      oneOf:
+        - type: object
+          title: custom_routing
+          description: Indicates whether custom routing is enabled.
+          properties:
+            name:
+              type: string
+              enum:
+                - custom_routing
+            value:
+              type: boolean
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: discovery_scan_frequency
+          description: This option specifies the number of discovery scans to be performed during a day.
+          properties:
+            name:
+              type: string
+              enum:
+                - discovery_scan_frequency
+            value:
+              enum:
+                - automatic
+                - 1
+                - 2
+                - 3
+                - 4
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          description: This option specifies the external scan frequency.
+          title: external_scan_frequency
+          properties:
+            name:
+              type: string
+              enum:
+                - external_scan_frequency
+            value:
+              enum:
+                - automatic
+                - monthly
+                - weekly
+                - daily
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          description: >
+            This option specifies an instance type that the installation services shall use
+            to launch IDS appliances inside the defined scope. The option affects deployments
+            in **automatic** mode only.
+          title: ids_appliance_instance_type
+          properties:
+            name:
+              type: string
+              enum:
+                - ids_appliance_instance_type
+            value:
+              enum:
+                - t3.medium
+                - t3.large
+                - t3.xlarge
+                - t3.2xlarge
+                - m4.large
+                - m4.xlarge
+                - m4.2xlarge
+                - m4.4xlarge
+                - m4.10xlarge
+                - m4.16xlarge
+                - m5.large
+                - m5.xlarge
+                - m5.2xlarge
+                - m5.4xlarge
+                - m5.12xlarge
+                - m5.24xlarge
+                - c4.large
+                - c4.xlarge
+                - c4.2xlarge
+                - c4.4xlarge
+                - c4.8xlarge
+                - c5.large
+                - c5.xlarge
+                - c5.2xlarge
+                - c5.4xlarge
+                - c5.9xlarge
+                - c5.18xlarge
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: ids_appliances_placement
+          description: >
+            Please notice, this is a **BETA** option that may be a subject for change.
+            This option declares placement `policy` for a selected scope.
+          properties:
+            name:
+              type: string
+              enum:
+                - ids_appliances_placement
+            value:
+              oneOf:
+                - type: object
+                  title: Automatic policy configuration
+                  description: Automatic with maximum number of protected zones.
+                  properties:
+                    policy:
+                      title: Type of policy
+                      description: Type of policy, automatic or constant.
+                      type: string
+                      enum:
+                        - automatic
+                    max_zones:
+                      type: integer
+                      title: Maximum number of zones
+                      description: Maximum number of zones
+                      minimum: 1
+                  required:
+                    - policy
+                  additionalProperties: false
+                - type: object
+                  title: Automatic explicit zones policy configuration
+                  description: Automatic policy configuration, with explicit zones configuration.
+                  properties:
+                    policy:
+                      title: Type of policy
+                      description: Type of policy, automatic or constant.
+                      type: string
+                      enum:
+                        - automatic
+                    zone_keys:
+                      type: array
+                      items:
+                        type: string
+                        minLength: 1
+                      uniqueItems: true
+                      minItems: 1
+                  required:
+                    - policy
+                    - zone_keys
+                  additionalProperties: false
+                - type: object
+                  title: Constant policy configuration
+                  description: Constant policy configuration, with explicit zones configuration.
+                  properties:
+                    policy:
+                      title: Type of policy
+                      description: Type of policy, automatic or constant.
+                      type: string
+                      enum:
+                        - constant
+                    zone_keys:
+                      title: Zone keys
+                      description: Zone asset keys list
+                      type: array
+                      items:
+                        type: string
+                        minLength: 1
+                      uniqueItems: true
+                      minItems: 1
+                  required:
+                    - policy
+                    - zone_keys
+                  additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: ids_appliances_scaling
+          description: >
+            Please notice, this is a **BETA** option that may be a subject for change.
+            The option affects **AWS** deployments in the **automatic** mode only.
+            This option declares IDS appliances scaling for a selected scope. The option
+            value is an object that specifies the desired policy.
+            There are two policies available so far, `automatic` and `constant`.
+          properties:
+            name:
+              type: string
+              enum:
+                - ids_appliances_scaling
+            value:
+              type: object
+              properties:
+                policy:
+                  enum:
+                    - constant
+                num_instances:
+                  type: integer
+                  minimum: 1
+                  maximum: 8
+              required:
+                - policy
+                - num_instances
+              additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: ids_security_resource_tags
+          description: >
+            This option specifies additional tags to be associated with security resources
+            deployed by deployment services. The option affects AWS deployments in the
+             **automatic** and **guided** mode only.
+          properties:
+            name:
+              type: string
+              enum:
+                - ids_security_resource_tags
+            value:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,128}$"
+                  value:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,256}$"
+                required:
+                  - key
+                  - value
+                additionalProperties: false
+              uniqueItems: true
+              minItems: 1
+              maxItems: 30
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: cross_network_protection
+          description: >
+            This option declares that a given scope is protected by remote IDS appliances
+            from security infrastructure deployed inside another network. All agents running
+            inside the protected scope connect to IDS appliances running in the protecting
+            network.
+          properties:
+            name:
+              type: string
+              enum:
+                - cross_network_protection
+            value:
+              type: object
+              properties:
+                deployment_id:
+                  type: string
+                  minLength: 1
+                vpc_key:
+                  type: string
+                  minLength: 1
+              required:
+                - deployment_id
+                - vpc_key
+              additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          description: >
+            This option specifies what subnet shall be used as a security subnet by automatic
+            installation services to deploy scan appliances. The option affects deployments
+            in **guided** mode only.
+          title: predefined_security_subnet
+          properties:
+            name:
+              type: string
+              enum:
+                - predefined_security_subnet
+            value:
+              type: string
+              minLength: 1
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_appliance_instance_type
+          description: >
+            This option specifies an instance type that the installation services shall use
+            to launch scan appliances inside the defined scope. The option affects deployments
+            in **automatic** or **guided** mode only.
+          properties:
+            name:
+              type: string
+              enum:
+                - scan_appliance_instance_type
+            value:
+              enum:
+                - m3.medium
+                - t3.medium
+                - t3.large
+                - c4.large
+                - c5.large
+                - c5.xlarge
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_appliances_scaling
+          description: >
+            This option specifies a scaling policy that deployment services shall follow
+            launching scan appliances inside the protected scope. The option affects AWS
+            deployments in **automatic**, **guided** and **manual** mode only.
+
+            The option value is an object that specifies the desired policy. There are two
+            policies available so far, `automatic` and `constant`.
+          properties:
+            name:
+              type: string
+              enum:
+                - scan_appliances_scaling
+            value:
+              oneOf:
+                - type: object
+                  title: Automatic scaling policy configuration
+                  description: Automatic scaling policy configuration
+                  properties:
+                    policy:
+                      type: string
+                      title: Scaling policy type
+                      description: Scaling policy type
+                      enum:
+                        - automatic
+                  required:
+                    - policy
+                  additionalProperties: false
+                - type: object
+                  title: Constant scaling policy configuration
+                  description: Constant scaling policy configuration
+                  properties:
+                    policy:
+                      title: Scaling policy type
+                      description: Scaling policy type
+                      enum:
+                        - constant
+                    num_instances:
+                      title: Number of the instances
+                      description: Number of the instances
+                      type: integer
+                      minimum: 0
+                  required:
+                    - policy
+                    - num_instances
+                  additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_security_resource_tags
+          description: >
+            This option specifies additional tags to be associated with resources deployed
+            automatically as parts of the Scan security infrastructure. The option affects
+            AWS deployments in the **automatic** and **guided** mode only.
+          properties:
+            name:
+              type: string
+              enum:
+                - scan_security_resource_tags
+            value:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,128}$"
+                  value:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,256}$"
+                required:
+                  - key
+                  - value
+                additionalProperties: false
+              uniqueItems: true
+              minItems: 1
+              maxItems: 30
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_security_subnet_cidr_block
+          description: >
+            This option specifies a CIDR block to be assigned to a security subnet.
+            A deployment service creates a security subnet in the protected VPC to deploy
+            scan appliances, the created subnet is configured to use some free block of /28
+            size. Once the option is defined, the created security subnet will be configured
+            with the predefined CIDR block. The option affects AWS deployments in
+            the **automatic** mode only.
+
+            The value is a string specifying a CIDR block with the allowed netmask between
+            `/16` and `/28`
+          properties:
+            name:
+              type: string
+              enum:
+                - scan_security_subnet_cidr_block
+            value:
+              type: string
+              pattern: "^([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/(1[6-9]|2[0-8]))$"
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: span_port_enabled
+          description: >
+            This option is a hint that IDS appliances detected in VPC must be configured as
+            span port connected.
+          properties:
+            name:
+              type: string
+              enum:
+                - span_port_enabled
+            value:
+              type: boolean
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: security_resource_tags
+          description: >
+            This option specifies additional tags to be associated with security resources
+            deployed by deployment services. The option affects AWS deployments in the
+             **automatic** and **guided** mode only.
+          properties:
+            name:
+              type: string
+              enum:
+                - security_resource_tags
+            value:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,128}$"
+                  value:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,256}$"
+                required:
+                  - key
+                  - value
+                additionalProperties: false
+              uniqueItems: true
+              minItems: 1
+              maxItems: 30
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: vulnerability_scan_frequency
+          description: >
+            This option specifies the vulnerability scan frequency,
+            The value can be one of the strings [`"automatic"`, `"daily"`, `"weekly"`, `"monthly"`]
+          properties:
+            name:
+              type: string
+              enum:
+                - vulnerability_scan_frequency
+            value:
+              enum:
+                - automatic
+                - monthly
+                - weekly
+                - daily
+            scope:
+              $ref: '#/components/schemas/Scope'
+    OptionsRespBody:
+      oneOf:
+        - type: object
+          title: custom_routing
+          description: Indicates whether custom routing is enabled.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - custom_routing
+            value:
+              type: boolean
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: discovery_scan_frequency
+          description: This option specifies the number of discovery scans to be performed during a day.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - discovery_scan_frequency
+            value:
+              enum:
+                - automatic
+                - 1
+                - 2
+                - 3
+                - 4
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          description: This option specifies the external scan frequency.
+          title: external_scan_frequency
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - external_scan_frequency
+            value:
+              enum:
+                - automatic
+                - monthly
+                - weekly
+                - daily
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          description: >
+            This option specifies an instance type that the installation services shall use
+            to launch IDS appliances inside the defined scope. The option affects deployments
+            in **automatic** mode only.
+          title: ids_appliance_instance_type
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - ids_appliance_instance_type
+            value:
+              enum:
+                - t3.medium
+                - t3.large
+                - t3.xlarge
+                - t3.2xlarge
+                - m4.large
+                - m4.xlarge
+                - m4.2xlarge
+                - m4.4xlarge
+                - m4.10xlarge
+                - m4.16xlarge
+                - m5.large
+                - m5.xlarge
+                - m5.2xlarge
+                - m5.4xlarge
+                - m5.12xlarge
+                - m5.24xlarge
+                - c4.large
+                - c4.xlarge
+                - c4.2xlarge
+                - c4.4xlarge
+                - c4.8xlarge
+                - c5.large
+                - c5.xlarge
+                - c5.2xlarge
+                - c5.4xlarge
+                - c5.9xlarge
+                - c5.18xlarge
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: ids_appliances_placement
+          description: >
+            Please notice, this is a **BETA** option that may be a subject for change.
+            This option declares placement `policy` for a selected scope.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - ids_appliances_placement
+            value:
+              oneOf:
+                - type: object
+                  title: Automatic policy configuration
+                  description: Automatic with maximum number of protected zones.
+                  properties:
+                    policy:
+                      title: Type of policy
+                      description: Type of policy, automatic or constant.
+                      type: string
+                      enum:
+                        - automatic
+                    max_zones:
+                      type: integer
+                      title: Maximum number of zones
+                      description: Maximum number of zones
+                      minimum: 1
+                  required:
+                    - policy
+                  additionalProperties: false
+                - type: object
+                  title: Automatic explicit zones policy configuration
+                  description: Automatic policy configuration, with explicit zones configuration.
+                  properties:
+                    policy:
+                      title: Type of policy
+                      description: Type of policy, automatic or constant.
+                      type: string
+                      enum:
+                        - automatic
+                    zone_keys:
+                      type: array
+                      items:
+                        type: string
+                        minLength: 1
+                      uniqueItems: true
+                      minItems: 1
+                  required:
+                    - policy
+                    - zone_keys
+                  additionalProperties: false
+                - type: object
+                  title: Constant policy configuration
+                  description: Constant policy configuration, with explicit zones configuration.
+                  properties:
+                    policy:
+                      title: Type of policy
+                      description: Type of policy, automatic or constant.
+                      type: string
+                      enum:
+                        - constant
+                    zone_keys:
+                      title: Zone keys
+                      description: Zone asset keys list
+                      type: array
+                      items:
+                        type: string
+                        minLength: 1
+                      uniqueItems: true
+                      minItems: 1
+                  required:
+                    - policy
+                    - zone_keys
+                  additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: ids_appliances_scaling
+          description: >
+            Please notice, this is a **BETA** option that may be a subject for change.
+            The option affects **AWS** deployments in the **automatic** mode only.
+            This option declares IDS appliances scaling for a selected scope. The option
+            value is an object that specifies the desired policy.
+            There are two policies available so far, `automatic` and `constant`.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - ids_appliances_scaling
+            value:
+              type: object
+              properties:
+                policy:
+                  enum:
+                    - constant
+                num_instances:
+                  type: integer
+                  minimum: 1
+                  maximum: 8
+              required:
+                - policy
+                - num_instances
+              additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: ids_security_resource_tags
+          description: >
+            This option specifies additional tags to be associated with security resources
+            deployed by deployment services. The option affects AWS deployments in the
+             **automatic** and **guided** mode only.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - ids_security_resource_tags
+            value:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,128}$"
+                  value:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,256}$"
+                required:
+                  - key
+                  - value
+                additionalProperties: false
+              uniqueItems: true
+              minItems: 1
+              maxItems: 30
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: cross_network_protection
+          description: >
+            This option declares that a given scope is protected by remote IDS appliances
+            from security infrastructure deployed inside another network. All agents running
+            inside the protected scope connect to IDS appliances running in the protecting
+            network.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - cross_network_protection
+            value:
+              type: object
+              properties:
+                deployment_id:
+                  type: string
+                  minLength: 1
+                vpc_key:
+                  type: string
+                  minLength: 1
+              required:
+                - deployment_id
+                - vpc_key
+              additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          description: >
+            This option specifies what subnet shall be used as a security subnet by automatic
+            installation services to deploy scan appliances. The option affects deployments
+            in **guided** mode only.
+          title: predefined_security_subnet
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - predefined_security_subnet
+            value:
+              type: string
+              minLength: 1
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_appliance_instance_type
+          description: >
+            This option specifies an instance type that the installation services shall use
+            to launch scan appliances inside the defined scope. The option affects deployments
+            in **automatic** or **guided** mode only.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - scan_appliance_instance_type
+            value:
+              enum:
+                - m3.medium
+                - t3.medium
+                - t3.large
+                - c4.large
+                - c5.large
+                - c5.xlarge
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_appliances_scaling
+          description: >
+            This option specifies a scaling policy that deployment services shall follow
+            launching scan appliances inside the protected scope.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - scan_appliances_scaling
+            value:
+              oneOf:
+                - type: object
+                  title: Automatic scaling policy configuration
+                  description: Automatic scaling policy configuration
+                  properties:
+                    policy:
+                      type: string
+                      title: Scaling policy type
+                      description: Scaling policy type
+                      enum:
+                        - automatic
+                  required:
+                    - policy
+                  additionalProperties: false
+                - type: object
+                  title: Constant scaling policy configuration
+                  description: Constant scaling policy configuration
+                  properties:
+                    policy:
+                      title: Scaling policy type
+                      description: Scaling policy type
+                      enum:
+                        - constant
+                    num_instances:
+                      title: Number of the instances
+                      description: Number of the instances
+                      type: integer
+                      minimum: 0
+                  required:
+                    - policy
+                    - num_instances
+                  additionalProperties: false
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_security_resource_tags
+          description: >
+            This option specifies additional tags to be associated with resources deployed
+            automatically as parts of the Scan security infrastructure.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - scan_security_resource_tags
+            value:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,128}$"
+                  value:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,256}$"
+                required:
+                  - key
+                  - value
+                additionalProperties: false
+              uniqueItems: true
+              minItems: 1
+              maxItems: 30
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: scan_security_subnet_cidr_block
+          description: >
+            This option specifies a CIDR block to be assigned to a security subnet.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - scan_security_subnet_cidr_block
+            value:
+              type: string
+              pattern: "^([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/(1[6-9]|2[0-8]))$"
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: span_port_enabled
+          description: >
+            This option is a hint that IDS appliances detected in VPC must be configured as
+            span port connected.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - span_port_enabled
+            value:
+              type: boolean
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: security_resource_tags
+          description: >
+            This option specifies additional tags to be associated with security resources
+            deployed by deployment services.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - security_resource_tags
+            value:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,128}$"
+                  value:
+                    type: string
+                    pattern: "^[a-zA-Z0-9+-=._:/@ ]{1,256}$"
+                required:
+                  - key
+                  - value
+                additionalProperties: false
+              uniqueItems: true
+              minItems: 1
+              maxItems: 30
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          title: vulnerability_scan_frequency
+          description: This option specifies the vulnerability scan frequency.
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+              enum:
+                - vulnerability_scan_frequency
+            value:
+              enum:
+                - automatic
+                - monthly
+                - weekly
+                - daily
+            scope:
+              $ref: '#/components/schemas/Scope'
+  securitySchemes:
+    X-AIMS-Auth-Token:
+      name: X-AIMS-Auth-Token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+tags:
+  - name: CrossNetworkProtection
+    description: Cross network protection operations
+  - name: Options
+    description: Otis options operations
