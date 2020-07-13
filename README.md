@@ -1,5 +1,4 @@
-# alertlogic-sdk-definitions
-Alert Logic APIs definitions
+# Alert Logic APIs definitions
 
 [![Build Status](https://travis-ci.com/alertlogic/alertlogic-sdk-definitions.svg?branch=master)](https://travis-ci.com/alertlogic/alertlogic-sdk-definitions)
 [![PyPI version](https://badge.fury.io/py/alertlogic-sdk-definitions.svg)](https://badge.fury.io/py/alertlogic-sdk-definitions)
