@@ -281,8 +281,8 @@ paths:
       - $ref: '#/components/parameters/ParamReturnCount'
       - $ref: '#/components/parameters/ParamReduce'
       - $ref: '#/components/parameters/ParamQFields'
-      - $ref: '#/components/parameters/ParamAnything'
-      - $ref: '#/components/parameters/ParamRelationship'
+      - $ref: '#/components/parameters/ParamFilter'
+      - $ref: '#/components/parameters/ParamFilterRelationship'
     get:
       operationId: query_assets
       summary: Query Assets for Account
@@ -349,8 +349,8 @@ paths:
       - $ref: '#/components/parameters/ParamReturnCount'
       - $ref: '#/components/parameters/ParamReduce'
       - $ref: '#/components/parameters/ParamQFields'
-      - $ref: '#/components/parameters/ParamAnything'
-      - $ref: '#/components/parameters/ParamRelationship'
+      - $ref: '#/components/parameters/ParamFilter'
+      - $ref: '#/components/parameters/ParamFilterRelationship'
     get:
       operationId: query_deployment_assets
       summary: Query Assets in Deployment
@@ -1213,17 +1213,24 @@ components:
         Optional comma-separated list of fields to be returned as part of the objects. `key`, `type`
         and `deployment_id` are always returned. Both `&qfields=object.field` and `&qfields=field`
         are acceptable; in the latter case all objects will be filtered.
-    ParamAnything:
+    ParamFilter:
       schema:
-        type: string
+        type: object
       in: query
-      name: '{anything}'
+      style: form
+      example:
+        'host.key': "/aws/host/i-123456789"
+        'tag.tag_key': "Key"
+      name: filter
       description: Filters and variables, as described in [Filtering assets](#filtering-assets).
-    ParamRelationship:
+    ParamFilterRelationship:
       schema:
-        type: boolean
+        type: object
       in: query
-      name: '{asset_type}..{related_asset_type}'
+      style: form
+      name: filter_relationships
+      example:
+        'region..vpc': "false"
       description: |-
         A constraint on the existence of a relationship between the given asset types. The lefthand
         asset_type must be present in the `asset_types` parameter. If set to `true`, only rows
