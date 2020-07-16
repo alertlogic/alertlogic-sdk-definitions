@@ -42,7 +42,6 @@ paths:
               schema:
                 anyOf:
                   - $ref: '#/components/schemas/Integration-Webhook'
-                  - $ref: '#/components/schemas/Integration-Email'
               examples:
                 Webhook Response Example:
                   value:
@@ -53,19 +52,6 @@ paths:
                     type: webhook
                     headers:
                       X-Header: HeaderValue
-                    created:
-                      at: 1517452871
-                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-                    modified:
-                      at: 1517452871
-                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-                Email Response Example:
-                  value:
-                    id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
-                    account_id: '12345678'
-                    email: user@example.com
-                    name: My Email Integration
-                    type: email
                     created:
                       at: 1517452871
                       by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
@@ -116,17 +102,6 @@ paths:
                         modified:
                           at: 1517452871
                           by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-                      - id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
-                        account_id: '12345678'
-                        email: user@example.com
-                        name: My Email Integration
-                        type: email
-                        created:
-                          at: 1517452871
-                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-                        modified:
-                          at: 1517452871
-                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
         '403':
           description: Forbidden
       operationId: 'get-herald-v2-:account_id-integrations'
@@ -162,7 +137,6 @@ paths:
                   value:
                     integration_types:
                       - name: webhook
-                      - name: email
         '403':
           description: Forbidden
       operationId: get-herald-v2-integration_types
@@ -655,47 +629,6 @@ components:
             at: 1517452871
             by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
       description: ''
-    Integration-Email:
-      title: Integration-Email
-      type: object
-      properties:
-        id:
-          type: string
-        account_id:
-          type: string
-        email:
-          type: string
-        name:
-          type: string
-        type:
-          type: string
-        created:
-          type: object
-          properties:
-            at:
-              type: number
-            by:
-              type: string
-        modified:
-          type: object
-          properties:
-            at:
-              type: number
-            by:
-              type: string
-      x-examples:
-        Integration Emial Example:
-          id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
-          account_id: '12345678'
-          email: user@example.com
-          name: My Email Integration
-          type: email
-          created:
-            at: 1517452871
-            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-          modified:
-            at: 1517452871
-            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
     Notification:
       title: Notification
       type: object
