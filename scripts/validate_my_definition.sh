@@ -18,7 +18,7 @@ fi
 
 if $PYTHON -m venv $TEMP; then
   source $TEMP/bin/activate
-  pip3 install requests jsonschema PyYaml alertlogic-sdk-python --no-cache-dir --ignore-requires-python
+  pip3 install requests jsonschema PyYaml alertlogic-sdk-definitions --no-cache-dir --ignore-requires-python
   curl https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.py -o $TEMP/validate_my_definition.py
   if [ $# -eq 0 ]
   then
