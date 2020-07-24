@@ -222,7 +222,9 @@ def __list_flatten(l):
 
 
 def __resolve_refs(file_uri, spec):
-    handlers = {'': get_spec, 'file': get_spec, 'http': get_spec, 'https': get_spec}
+    def spec_ref_handler(uri):
+        return __resolve_refs(uri, get_spec(uri))
+    handlers = {'': spec_ref_handler, 'file': spec_ref_handler, 'http': spec_ref_handler, 'https': spec_ref_handler}
     resolver = jsonschema.RefResolver(file_uri, spec, handlers=handlers)
 
     def _do_resolve(node):
