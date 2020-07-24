@@ -64,7 +64,7 @@ paths:
                       - key: asset_type_param
                         description: Parameter description
                         type: string
-      operationId: get-kalm-v1-account_id-named_query-query_name
+      operationId: get_account_named_query
       security:
         - X-AIMS-Auth-Token: []
       description: Returns named query
@@ -99,7 +99,7 @@ paths:
                     columns:
                       account_id: bigint
                       environment_id: string
-      operationId: get-kalm-v1-account_id-table-table_name
+      operationId: get_account_named_table
       security:
         - X-AIMS-Auth-Token: []
       description: Returns table
@@ -150,7 +150,7 @@ paths:
                         - key: asset_type_param
                           description: Parameter description
                           type: string
-      operationId: get-kalm-v1-account_id-named_query
+      operationId: get_account_named_queries
       description: Returns list of named queries
       security:
         - X-AIMS-Auth-Token: []
@@ -181,7 +181,7 @@ paths:
                       columns:
                         account_id: bigint
                         environment_id: string
-      operationId: get-kalm-v1-account_id-table
+      operationId: get_account_named_tables
       description: Returns list of available tables.
       security:
         - X-AIMS-Auth-Token: []
@@ -224,7 +224,7 @@ paths:
                         - /aws/us-west-2/sg/sg-07f0b89cae6a8415d
                       - - 71B0F87C-E015-4368-9672-6A5863B7AAD9
                         - /aws/us-west-2/host/i-0008b17e2d0943ad8
-      operationId: get-kalm-v1-account_id-query-named_or_table_query
+      operationId: run_named_or_table_query
       description: 'Runs query and returns query results for named query or existing table. For named queries additional query parameters with a single value each can be passed. If the parameter is not passed then its key is considered as `NULL`'
       security:
         - X-AIMS-Auth-Token: []
