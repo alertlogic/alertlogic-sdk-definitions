@@ -1,0 +1,150 @@
+NoContent:
+  description: '`No Content`.'
+Unauthorized:
+  description: '`Unauthorized`. The provided `x-aims-auth-token` header could not be authenticated.'
+Forbidden:
+  description: '`Forbidden`. Insufficient permissions.'
+NotFound:
+  description: '`Not Found`. The requested object was not found.'
+RequestEntityTooLarge:
+  description: |-
+    `Request Entity Too Large`. The request body size exceeds the configured body size
+    limit, which is 1MB.
+UnavailableError:
+  description: '`Unavailable`. The specified account is unavailable at the moment.'
+InvalidValueError:
+  description: '`400 Bad Request`: Returned when an invalid value is provided for a known parameter. The parameter and value are specified in the response.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          invalid_value:
+            type: string
+        required:
+          - invalid_value
+      examples:
+        Invalid Type:
+          value:
+            invalid_value: 'not_true is not a valid value for scope (should be either true or false)'
+QueryAssetsBadRequestError:
+  description: '`400 Bad Request`: There was a problem with one or more of the request parameters'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+            enum:
+              - invalid_asset_type
+              - invalid_parameter
+              - invalid_query_item
+              - query_item_redefinition
+              - tag_type_must_be_last_asset_type
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        Not a valid asset type:
+          value:
+            error_type: invalid_asset_type
+            message: '''foo'' is not a valid asset type'
+        Invalid parameter:
+          value:
+            error_type: invalid_parameter
+            message: x is not defined in the 'asset_types' parameter
+        Invalid query item:
+          value:
+            error_type: invalid_query_item
+            message: :host is not a valid query item
+        Query item redefinition:
+          value:
+            error_type: query_item_redefinition
+            message: x has been defined more than once in the 'asset_types' parameter
+        The tag asset type must be the last:
+          value:
+            error_type: tag_type_must_be_last_asset_type
+            message: The tag asset type must be the last in asset_types if it is requested.
+FindAssetBadRequest:
+  description: '`Bad Request` Find endpoint parameters incorrect or missing.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: missing_parameters
+            message: Find endpoint parameters incorrect or missing
+FindAssetConflict:
+  description: '`Conflict` Multiple assets match.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+            enum:
+              - conflict
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: conflict
+            message: Multiple assets match
+AssetDetailsBadRequest:
+  description: '`Bad Request` Details endpoint parameters incorrect or missing.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: missing_parameters
+            message: details endpoint parameters incorrect or missing
+AssetDetailsConflict:
+  description: '`Conflict` Multiple assets match.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+            enum:
+              - conflict
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: conflict
+            message: Multiple assets match
