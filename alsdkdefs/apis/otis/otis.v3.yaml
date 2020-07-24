@@ -1024,6 +1024,7 @@ components:
               enum:
                 - discovery_scan_frequency
             value:
+              type: string
               enum:
                 - automatic
                 - 1
@@ -1041,6 +1042,7 @@ components:
               enum:
                 - external_scan_frequency
             value:
+              type: string
               enum:
                 - automatic
                 - monthly
@@ -1060,6 +1062,7 @@ components:
               enum:
                 - ids_appliance_instance_type
             value:
+              type: string
               enum:
                 - t3.medium
                 - t3.large
@@ -1183,6 +1186,7 @@ components:
               type: object
               properties:
                 policy:
+                  type: string
                   enum:
                     - constant
                 num_instances:
@@ -1281,6 +1285,7 @@ components:
               enum:
                 - scan_appliance_instance_type
             value:
+              type: string
               enum:
                 - m3.medium
                 - t3.medium
@@ -1326,6 +1331,7 @@ components:
                     policy:
                       title: Scaling policy type
                       description: Scaling policy type
+                      type: string
                       enum:
                         - constant
                     num_instances:
@@ -1448,6 +1454,7 @@ components:
               enum:
                 - vulnerability_scan_frequency
             value:
+              type: string
               enum:
                 - automatic
                 - monthly
@@ -1482,6 +1489,7 @@ components:
               enum:
                 - discovery_scan_frequency
             value:
+              type: string
               enum:
                 - automatic
                 - 1
@@ -1501,6 +1509,7 @@ components:
               enum:
                 - external_scan_frequency
             value:
+              type: string
               enum:
                 - automatic
                 - monthly
@@ -1522,6 +1531,7 @@ components:
               enum:
                 - ids_appliance_instance_type
             value:
+              type: string
               enum:
                 - t3.medium
                 - t3.large
@@ -1649,6 +1659,7 @@ components:
               type: object
               properties:
                 policy:
+                  type: string
                   enum:
                     - constant
                 num_instances:
@@ -1755,6 +1766,7 @@ components:
               enum:
                 - scan_appliance_instance_type
             value:
+              type: string
               enum:
                 - m3.medium
                 - t3.medium
@@ -1798,6 +1810,7 @@ components:
                     policy:
                       title: Scaling policy type
                       description: Scaling policy type
+                      type: string
                       enum:
                         - constant
                     num_instances:
@@ -1918,6 +1931,7 @@ components:
               enum:
                 - vulnerability_scan_frequency
             value:
+              type: string
               enum:
                 - automatic
                 - monthly
