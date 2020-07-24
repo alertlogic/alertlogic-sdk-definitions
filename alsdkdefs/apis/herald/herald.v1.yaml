@@ -82,9 +82,7 @@ paths:
                   integrations:
                     type: array
                     items:
-                      allOf:
-                        - $ref: '#/components/schemas/Integration-Webhook'
-                        - $ref: '#/components/schemas/Integration-Email'
+                      $ref: '#/components/schemas/Integration-Webhook' 
               examples:
                 List account Integrations for the Specified Account Response Example:
                   value:
