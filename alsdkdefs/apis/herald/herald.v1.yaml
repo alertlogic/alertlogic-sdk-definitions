@@ -62,7 +62,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-      operationId: get_account_integration
+      operationId: get-subscriptions-v1-account_id-entitlements
       description: Get the specified account integration
       security:
         - X-AIMS-Auth-Token: []
@@ -102,7 +102,7 @@ paths:
                           by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
         '403':
           description: Forbidden
-      operationId: get_account_integrations
+      operationId: 'get-herald-v2-:account_id-integrations'
       security:
         - X-AIMS-Auth-Token: []
       description: List the specified account integration
@@ -137,7 +137,7 @@ paths:
                       - name: webhook
         '403':
           description: Forbidden
-      operationId: get_integration_types
+      operationId: get-herald-v2-integration_types
       description: Get the list of available integration types
       security:
         - X-AIMS-Auth-Token: []
@@ -157,7 +157,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-      operationId: get_notification
+      operationId: 'get-herald-v2-notifications-:notification_id'
       security:
         - X-AIMS-Auth-Token: []
       description: Get a notification by ID
@@ -185,7 +185,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-      operationId: get_account_notification
+      operationId: 'get-herald-v2-:account_id-notifications-:notification_id'
       security:
         - X-AIMS-Auth-Token: []
       description: Get a notification by account id and notification id
@@ -218,7 +218,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-      operationId: get_sent_incident_notifications
+      operationId: 'get-herald-v2-notifications-type-incidents-alerts-:long_incident_id'
       description: Get a notification by ID
       security:
         - X-AIMS-Auth-Token: []
@@ -232,7 +232,7 @@ paths:
   '/herald/v2/{account_id}/notifications':
     post:
       summary: Send a notification
-      operationId: sent_notification
+      operationId: 'post-herald-v2-:account_id-notifications'
       responses:
         '202':
           description: Accepted
@@ -420,7 +420,7 @@ paths:
       summary: List subscribers
       tags:
         - Subscribers
-      operationId: get_account_subscription_subscribers
+      operationId: 'get-herald-v2-:account_id-subscriptions-:subscription_id-subscribers'
       security:
         - X-AIMS-Auth-Token: []
       description: List all subscribers subscribed to that subscription
@@ -470,7 +470,7 @@ paths:
                       $ref: '#/components/schemas/Notification-Type'
         '403':
           description: Forbidden
-      operationId: get_notification_types
+      operationId: get-herald-v2-notification_types
       description: Get available notification types
       security:
         - X-AIMS-Auth-Token: []
@@ -507,7 +507,7 @@ paths:
                     error: invalid_search_parameters
         '403':
           description: Forbidden
-      operationId: get_account_subscriptions
+      operationId: 'get-herald-v2-:account_id-subscriptions'
       security:
         - X-AIMS-Auth-Token: []
       description: List subscriptions for an account
@@ -554,7 +554,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
-      operationId: get_account_subscription
+      operationId: 'get-herald-v2-:account_id-subscriptions-:subscription_id'
       description: List a subscription for an account by subscription id
       security:
         - X-AIMS-Auth-Token: []
