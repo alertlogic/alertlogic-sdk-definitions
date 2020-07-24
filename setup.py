@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = []
+requirements = ['jsonschema[format_nongpl]==3.2.0', 'pyyaml==5.1.2', 'requests>=2.18']
 
 setup(
     name='alertlogic-sdk-definitions',
@@ -28,7 +28,7 @@ setup(
     scripts=[],
     # yeah yeah i know, circular dependency, but we need it for test now, later i'll think how to decouple
     # definitions parsing/loading and client
-    tests_require=['jsonschema', 'PyYaml', 'requests', 'alertlogic-sdk-python'],
+    tests_require=requirements,
     packages=find_packages(exclude=['contrib', 'docs', 'tests*', 'troubleshooting']),
     include_package_data=True,
     zip_safe=False,
