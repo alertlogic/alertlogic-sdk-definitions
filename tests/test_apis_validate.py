@@ -18,5 +18,5 @@ class TestServiceDefs(unittest.TestCase):
             print("Validating ", service)
             for defintion_file in alsdkdefs.get_service_defs(service):
                 print("Validating def", defintion_file)
-                obj = alsdkdefs.get_spec(defintion_file)
+                obj = alsdkdefs.get_spec(alsdkdefs.make_file_uri(defintion_file))
                 alsdkdefs.validate(obj, defintion_file)
