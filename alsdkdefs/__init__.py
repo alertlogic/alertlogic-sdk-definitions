@@ -3,8 +3,8 @@ from os.path import join as pjoin
 import glob
 import collections
 import jsonschema
-from urllib.parse import urlparse
-from urllib.request import urlopen
+from urllib.parse import urlparse, urlsplit, urlunsplit
+from urllib.request import urlopen, url2pathname
 import yaml
 import yaml.resolver
 from functools import reduce, lru_cache
@@ -13,6 +13,7 @@ import json
 import re
 
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
+URI_SCHEMES = ['file', 'http', 'https']
 
 
 class AlertLogicOpenApiValidationException(Exception):
@@ -62,7 +63,6 @@ class OpenAPIKeyWord:
     COMPONENTS = "components"
     SCHEMAS = "schemas"
     PROPERTIES = "properties"
-    REQUIRED = "required"
     CONTENT = "content"
     DEFAULT = "default"
     ENCODING = "encoding"
@@ -127,25 +127,24 @@ def load_service_spec(service_name, apis_dir=None, version=None):
             version = version > new_version and version or new_version
     else:
         version = version[:1] != "v" and version or version[1:]
-    service_spec_file = f"file:///{pjoin(service_api_dir, service_name)}.v{version}.yaml"
-    return load_spec(service_spec_file)
+    service_spec_file_path = f"{pjoin(service_api_dir, service_name)}.v{version}.yaml"
+    return load_spec(service_spec_file_path)
 
 
-def load_spec(uri):
+def load_spec(uri_or_path):
     """Loads spec out of RFC3986 URI, resolves refs, normalizes"""
-    return normalize_spec(get_spec(uri), uri)
+    uri_or_path = __normalize_uri(uri_or_path)
+    return normalize_spec(uri_or_path, get_spec(uri_or_path))
 
 
-def normalize_spec(spec, uri):
+def normalize_spec(uri_or_path, spec):
     """Resolves refs, normalizes"""
-    return __normalize_spec(__resolve_refs(uri, spec))
+    uri_or_path = __normalize_uri(uri_or_path)
+    return __normalize_spec(__resolve_refs(__base_uri(uri_or_path), spec))
 
 
 def get_spec(uri):
     """Loads spec out of RFC3986 URI, yaml's Reader detects encoding automatically"""
-    parsed = urlparse(uri)
-    if not parsed.scheme:
-        uri = f"file://{uri}"
     with urlopen(uri) as stream:
         try:
             return yaml.load(stream, _YamlOrderedLoader)
@@ -210,22 +209,45 @@ def validate(spec, uri=None, schema=get_openapi_schema()):
         checks = [validate_operation_ids(spec), validate_path_parameters(spec)]
         all(checks)
 
-    obj = normalize_spec(spec, uri)
+    obj = normalize_spec(uri, spec)
     jsonschema.validate(obj, schema)
     return al_specific_validations(spec)
 
 
+def make_file_uri(path):
+    return make_uri('file', '', path, '', '')
+
+
+def make_uri(scheme, netloc, url, query, fragment):
+    return urlunsplit((scheme, netloc, url, query, fragment))
+
+
 # Private functions
+
+def __normalize_uri(uri_or_path):
+    parsed = urlparse(uri_or_path)
+    if parsed.scheme not in URI_SCHEMES:
+        return make_file_uri(uri_or_path)
+    else:
+        return uri_or_path
+
+
+def __base_uri(uri):
+    (scheme, netloc, path, query, fragment) = urlsplit(uri)
+    path = os.path.dirname(url2pathname(path)) + '/'
+    return urlunsplit((scheme, netloc, path, query, fragment))
+
 
 def __list_flatten(l):
     return [item for sublist in l for item in sublist]
 
 
-def __resolve_refs(file_uri, spec):
+def __resolve_refs(file_base_uri, spec):
     def spec_ref_handler(uri):
         return __resolve_refs(uri, get_spec(uri))
+
     handlers = {'': spec_ref_handler, 'file': spec_ref_handler, 'http': spec_ref_handler, 'https': spec_ref_handler}
-    resolver = jsonschema.RefResolver(file_uri, spec, handlers=handlers)
+    resolver = jsonschema.RefResolver(file_base_uri, spec, handlers=handlers)
 
     def _do_resolve(node):
         if isinstance(node, collections.abc.Mapping) and OpenAPIKeyWord.REF in node:
