@@ -13,9 +13,6 @@ jobs:
     install:
       - pip install ./
     script: python scripts/validate_my_definition.py -d alsdkdefs/apis/assets_query/
-  - python: 3.7
-    install: pip install -U tox-travis
-    script: tox
   - stage: test_other_os
     language: sh
     python: 3
@@ -41,7 +38,7 @@ jobs:
   - stage: github_release
     if: type = push AND tag =~ /^v\d*\.\d*\.\d*$/
     name: "(Pipeline Stage 3)Create release containing just definitions"
-    script: zip -rj AlertLogicOpenAPIDefinitions.zip alsdkdefs/apis
+    script: cd alsdkdefs/apis; zip -r ../../AlertLogicOpenAPIDefinitions.zip .; cd ..
     deploy:
       provider: releases
       api_key: "$GITHUB_SECRET_TOKEN"
