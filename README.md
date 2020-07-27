@@ -34,6 +34,21 @@ Get path to a service definitions paths:
 ['/usr/local/lib/python3.8/site-packages/alsdkdefs/apis/aerta/aerta.v1.yaml']
 ```
 
+Get normalised service spec of a service(all refs resolved, 
+                                 path parameters moved to the methods, 
+                                 allOfs are merged if possible):
+```
+>>> import alsdkdefs
+>>> alsdkdefs.load_service_spec("aerta")
+```
+
+Validate service spec: 
+```
+>>> import alsdkdefs
+>>> service_spec = alsdkdefs.load_service_spec("aerta")
+>>> alsdkdefs.validate(service_spec)
+```
+
 #### Quick validation of a definition
 
 While YAML definition is developed apart from the current package and current repo,
