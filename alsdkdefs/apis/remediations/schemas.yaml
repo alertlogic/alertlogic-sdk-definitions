@@ -1,0 +1,594 @@
+AccountId:
+  type: string
+  description: AIMS account ID
+DeploymentId:
+  type: string
+  description: Deployment ID
+AssetKey:
+  type: string
+  description: Asset Key
+AssetType:
+  type: string
+  description: Asset Type
+AssetName:
+  type: string
+  description: Asset Name
+Filters:
+  type: array
+  description: Filters
+ItemId:
+  type: string
+  description: Item ID
+RemediationId:
+  type: string
+  description: Remediation ID
+State:
+  type: string
+  description: The remediation-item state.
+TimestampMS:
+  type: number
+  description: Milliseconds since Unix Epoch
+UserId:
+  type: string
+  description: The User ID
+Version:
+  title: Version
+  type: number
+  description: Object Version
+Asset:
+  title: Asset
+  type: object
+  x-examples:
+    VPC Asset:
+      account_id: "12345678"
+      deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+      key: /aws/us-east-1/vpc/i-1234abcd1234abcd
+      name: My VPC
+      created_on: 1486669539672
+      modified_on: 1487192879798
+      version: 12
+  properties:
+    account_id:
+      $ref: '#/AccountId'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    type:
+      $ref: '#/AssetType'
+    key:
+      $ref: '#/AssetKey'
+    name:
+      $ref: '#/AssetName'
+    created_on:
+      $ref: '#/TimestampMS'
+    modified_on:
+      $ref: '#/TimestampMS'
+    version:
+      $ref: '#/Version'
+  required:
+    - account_id
+    - deployment_id
+    - type
+    - key
+DisposeConcludeFilters:
+  type: string
+  description: |-
+    The list of filters to which the `remediation-item` is being applied/created. Filters
+    are specified as asset `type:key` pairs, except application, which is always
+    `application:product`. See the above description of [filters](#section/Remediation-filters).
+    Note that non-asset filters (`deployment_id`, `deployment_type`, `remediation`,
+    `vulnerability`, `category`, `severity`, `cve`, `cwe` and `asset_type`) will be ignored.
+DeploymentIds:
+  type: string
+  description: |-
+    A list of deployment IDs in which to dispose the given remediation(s). If not given, all
+    deployments where the remediation exists will have a remediation item created.
+RemediationIds:
+  type: string
+  description: |-
+    A list of remediation IDs. Note that this parameter is *mutually exclusive* with
+    `"vulnerability_ids"`, and any operation that includes both will be rejected.
+VulnerabilityIds:
+  type: string
+  description: |-
+    A list of vulnerability IDs. Note that this parameter is *mutually exclusive* with
+    `"remediation_ids"`, and any operation that includes both will be rejected.
+QueryAssetsResponse:
+  title: General assets query response
+  type: object
+  properties:
+    assets:
+      type: array
+      title: row
+      items:
+        type: array
+        title: column
+        items:
+          $ref: '#/Asset'
+    rows:
+      type: integer
+      title: the number of rows in the query response
+  required:
+    - assets
+    - rows
+  x-examples:
+    basic example:
+      assets:
+        - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+            type: host
+            key: /aws/us-east-1/host/i-1234abcd1234abcd
+            account_id: "12345678"
+        - - deployment_id: 9E4B8AAB-5E07-4B46-8E07-AA16D3CA1D03
+            type: subnet
+            key: /aws/us-east-1/subnet/subnet-abcd1234
+            account_id: "12345678"
+      rows: 2
+FindAssetResponse:
+  title: Find asset response
+  type: object
+  properties:
+    type:
+      type: string
+      title: The asset type of the returned asset
+    key:
+      type: string
+      title: The asset key of the returned asset
+    deployment_id:
+      $ref: '#/DeploymentId'
+    host_key:
+      type: string
+      title: The asset key of the host associated to the returned asset
+FindAssetsResponse:
+  title: Find assets response
+  type: object
+  properties:
+    assets:
+      type: object
+      title: |-
+        The top-level object containing responses keyed by the `uuid` field of each parameter
+        object the request list.
+      properties:
+        '{key}':
+          title: |-
+            The response of the lookup for the asset, keyed by parameters used to find the asset.
+            The structure of the key is described above.
+          type: object
+          properties:
+            type:
+              type: string
+              title: The asset type of the returned asset
+            key:
+              type: string
+              title: The asset key of the returned asset
+            deployment_id:
+              $ref: '#/DeploymentId'
+            host_key:
+              type: string
+              title: The asset key of the host associated to the returned asset
+AssetDetailsResponse:
+  title: Get asset details response
+  type: object
+  properties:
+    type:
+      type: string
+      title: The asset type of the asset being elaborated.
+    key:
+      type: string
+      title: the asset key of the asset being elaborated.
+    deployment:
+      type: object
+      title: The deployment asset associated to the asset being elaborated.
+    '{type}':
+      type: object
+      title: |-
+        The key of this property will match the value of `type` in the response, and the value
+        is an object containing the asset and its related assets.
+      properties:
+        '{key}':
+          type: object
+          title: The asset key of the asset being elaborated.
+          properties:
+            asset:
+              type: object
+              title: The asset properties of the asset identified by the enclosing `type` and `key`.
+            related:
+              type: object
+              title: |-
+                A map of objects related to the asset, keyed by `{type}` and `{key}`. This is a
+                recursive structure (see examples).
+QueryExposuresResponse:
+  title: Query exposures response
+  type: object
+  properties:
+    filters:
+      type: array
+      items:
+        type: object
+        description: Filter item.
+    exposures:
+      type: object
+      description: In the response when `group` is `exposures` or not set.
+      properties:
+        assets:
+          type: array
+          description: List of exposures assets.
+          items:
+            type: object
+        rows:
+          type: integer
+          description: Count of exposures assets returned.
+    remediations:
+      type: object
+      description: In the response when `group` is `remediations`.
+      properties:
+        assets:
+          type: array
+          description: List of remediation assets.
+          items:
+            type: object
+        rows:
+          type: integer
+          description: Count of remediation assets returned.
+    exposures_count:
+      type: integer
+      description: Count of exposures. Not present when `group` is not `exposures`.
+    summary:
+      type: object
+      properties:
+        severities:
+          type: object
+          properties:
+            high:
+              type: integer
+            info:
+              type: integer
+            low:
+              type: integer
+            medium:
+              type: integer
+QueryRemediationItemsResponse:
+  title: Query remediation-items response
+  type: object
+  properties:
+    filters:
+      type: array
+      description: |-
+        An array of filter strings. This is the union of all filters in the `remediation-items`
+        returned in the `remediation-items.assets` field. See the [filters](#section/Remediation-filters)
+        documentation.
+    remediation-items:
+      type: object
+      description: An object containing the `remediation-items` in the response and their count.
+      properties:
+        assets:
+          type: object
+          description: |-
+            A list of objects representing `remediation-item` assets. Each asset represents a
+            single `remediation-item`.
+          properties:
+            asset_count:
+              type: integer
+              description: |-
+                The number of unique assets with an exposure associated to the `remediation-item`.
+            exposures:
+              type: array
+              description: |-
+                A list of exposures associated to the `remediation-item` by remediation ID or vulnerability ID.
+              items:
+                type: object
+                properties:
+                  asset_count:
+                    type: integer
+                    description: |-
+                      The number of unique assets with an exposure associated to the `exposure`.
+                  vinstances:
+                    type: array
+                    description: |-
+                      A list of `vinstance` objects associated to the `exposure` which describe the vulnerable
+                      asset. Only present when the `details` query parameter is set to `true`.
+                  vinstances_count:
+                    type: integer
+                    description: The total number of vulnerable assets associated to the `exposure`.
+                  vulnerability_id:
+                    type: string
+                    description: The vulnerability ID of the `exposure`.
+            filters:
+              type: array
+              description: |-
+                An array of filter strings applied to the `remediation-item`. See the
+                [filters](#section/Remediation-filters) documentation.
+            remediation:
+              type: object
+              description: |-
+                The remediation that the `remediation-item` is associated to. This is present
+                regardless of whether the `remediation-item` disposes exposures by remediation ID or
+                vulnerability ID.
+            remediation_id:
+              type: string
+              description: |-
+                The remediation ID that the `remediation-item` is associated to. This is only present
+                if the `remediation-item` disposes exposures by remediation ID.
+            vinstances_count:
+              type: integer
+              description: The total number of vulnerable assets associated to the `remediation-item`.
+            vulnerability:
+              type: object
+              description: |-
+                The vulnerability that the `remediation-item` is associated to. This is only present
+                if the `remediation-item` disposes exposures by vulnerability ID.
+    rows:
+      type: integer
+      description: The number of rows in the `assets` list.
+    summary:
+      type: object
+      description: A summary of the exposures included in the response
+      properties:
+        severities:
+          type: object
+          description: |-
+            A summary of the total count of all exposures (`vinstances`) in all
+            `remediation-items` returned in the response, counted by severity (the `all`
+            sub-property contains the full count of all the other severities combined)
+QueryTopologyResponse:
+  title: Query topology response
+  type: object
+  properties:
+    topology:
+      type: object
+      title: The primary key of the API response.
+      properties:
+        assets:
+          type: array
+          description: An array of assets objects containing `key`, `type`, `created_on`, `threatiness` and `threatiness_level`.
+    extras:
+      type: object
+      description: Extra assets are returned here if `extras` query param was set and such assets were found.
+QueryTopologyOverviewResponse:
+  title: Query topology overview response
+  type: object
+  properties:
+    topology:
+      type: object
+      title: The primary key of the API response.
+      properties:
+        asset_counts_by_type:
+          type: object
+          description: |-
+            A map of asset counts by asset type. The special key `all` is always present and
+            includes the counts of all assets. Note that while the value for most asset types is
+            an integer, some asset types (such as `host`) contain an object with further broken
+            down counts. In that case, the special sub-property `all` is always present, and will
+            contain the total number of all assets of that type.
+          properties:
+            host:
+              type: object
+              description: The host count data, keyed by host properties.
+              properties:
+                all:
+                  type: integer
+                  description: The total count of all unique host assets in the response.
+                appliance:
+                  type: integer
+                  description: The total count of all hosts that have the `alertlogic_appliance` property set, which indicates that the host is an Alert Logic appliance.
+                agent:
+                  type: integer
+                  description: The total count of all hosts that have the `alertlogic_agent` property set, which indicates that the host has an Alert Logic agent installed on it.
+                running:
+                  type: integer
+                  description: |-
+                    The total count of all running hosts in the response (excluding appliances). This is extrapolated from the `state` property of each host.
+                    Assets are considered "running" if their state is equal to `running`, `succeeded`, or `ok`.
+            subnet:
+              type: object
+              description: The subnet count data, keyed by subnet properties.
+              properties:
+                all:
+                  type: integer
+                  description: The total count of all unique subnet assets in the response.
+                security:
+                  type: integer
+                  description: |-
+                    The total count of all subnet that have the `alertlogic_security` property set, which indicates that the subnet is an
+                    Alert Logic security subnet (which contains Alert Logic appliances).
+                standard:
+                  type: integer
+                  description: The total count of all subnet that do not have the `alertlogic_security` property set, which indicates that the subnet is a standard customer subnet.
+        assets:
+          type: array
+          description: |-
+            An array of arrays of asset references. Each element in the array is an array of asset
+            references (that can be resolved by looking up the reference in the `topology.data`
+            object) that describe relationship sequences: `region`, `vpc`, `subnet`, `host`.
+            Partial rows contain `null` entries.
+        data:
+          type: object
+          description: |-
+            An object containing all of the asset details for asset references in the
+            `topology.assets` and `topology.extras` properties. The object keys are asset
+            references produced by colon-joining asset type and asset key, e.g.,
+            `region:/aws/us-east-1`.
+        extras:
+          type: string
+          description: |-
+            An array of arrays of asset references. Each element in the array is an array of asset
+            references (that can be resolved by looking up the reference in the `topology.data`
+            object) that describe relationship sequences: `host`, `<extra>`. The first element is
+            always a host reference, and the second entry is a reference to an extra asset related
+            to that host.
+        rows:
+          type: integer
+          description: The count of rows in the `topology.assets` array.
+TopologyPreviewResponse:
+  title: Preview topology response
+  type: object
+  properties:
+    topology:
+      type: object
+      description: The primary key of the API response.
+      properties:
+        assets:
+          type: array
+          description: |-
+            An array of arrays of asset references. Each element in the array is an array of asset
+            references (that can be resolved by looking up the reference in the `topology.data`
+            object) that describe topological relationship sequences.
+        data:
+          type: object
+          description: |-
+            An object containing all of the asset details for asset references in the
+            `topology.assets`. The object keys are asset
+            references produced by colon-joining deployment ID, asset type and asset key, e.g.,
+            `814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1`.
+        rows:
+          type: integer
+          description: The count of rows in the `topology.assets` array.
+ExposuresSummaryResponse:
+  title: Exposures summary response
+  type: object
+  properties:
+    exposures:
+      type: array
+      description: Array of summarized exposures objects.
+    summary:
+      type: object
+      properties:
+        all:
+          type: integer
+        high:
+          type: integer
+        info:
+          type: integer
+        low:
+          type: integer
+        medium:
+          type: integer
+TagsSummaryResponse:
+  title: Tags summary response
+  type: object
+  properties:
+    tags:
+      type: array
+      description: Array of summarized tags objects.
+      items:
+        type: object
+        properties:
+          key:
+            $ref: '#/AssetKey'
+          type:
+            $ref: '#/AssetType'
+          deployment_id:
+            $ref: '#/DeploymentId'
+          tags:
+            type: object
+            description: Object containing the tag name as keys and their descriptions as values.
+DisposeRemediationsResponse:
+  title: Dispose remediations response
+  type: object
+  properties:
+    assets:
+      type: object
+      description: Asset object.
+      properties:
+        account_id:
+          $ref: '#/AccountId'
+        deployment_id:
+          $ref: '#/DeploymentId'
+        comment:
+          type: string
+          description: User's comment on the disposition.
+        filters:
+          $ref: '#/Filters'
+        item_id:
+          $ref: '#/ItemId'
+        key:
+          $ref: '#/AssetKey'
+        remediation_id:
+          $ref: '#/RemediationId'
+        reason:
+          type: string
+          description: The reason for the disposition.
+        state:
+          $ref: '#/State'
+        user_id:
+          $ref: '#/UserId'
+    rows:
+      type: integer
+      description: Number of rows in the response.
+ConcludeRemediationsResponse:
+  title: Conclude remediations response
+  type: object
+  properties:
+    assets:
+      type: object
+      description: Asset object.
+      properties:
+        account_id:
+          $ref: '#/AccountId'
+        deployment_id:
+          $ref: '#/DeploymentId'
+        filters:
+          $ref: '#/Filters'
+        item_id:
+          $ref: '#/ItemId'
+        key:
+          $ref: '#/AssetKey'
+        remediation_id:
+          $ref: '#/RemediationId'
+        state:
+          $ref: '#/State'
+        user_id:
+          $ref: '#/UserId'
+    rows:
+      type: integer
+      description: Number of rows in the response.
+DisposeRemediationsRequestBody:
+  title: Dispose Remediations Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `dispose_remediations`.
+      enum:
+        - dispose_remediations
+    comment:
+      type: string
+      description: User's comment on the disposition (arbitrary string).
+    reason:
+      type: string
+      description: |-
+        The reason for the disposition. This must be one of the following:
+
+        * `acceptable_risk`,
+        * `compensating_control`
+        * `false_positive`
+
+        `compensating_control` indicates that there's some mitigating factor that the scanner
+        doesn't know about which reduces the threat posed by this remediation.
+    filters:
+      $ref: '#/DisposeConcludeFilters'
+    deployment_ids:
+      $ref: '#/DeploymentIds'
+    remediation_ids:
+      $ref: '#/RemediationIds'
+    vulnerability_ids:
+      $ref: '#/VulnerabilityIds'
+  required:
+    - operation
+ConcludeRemediationsRequestBody:
+  title: Conclude Remediations Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `conclude_remediations`.
+      enum:
+        - conclude_remediations
+    filters:
+      $ref: '#/DisposeConcludeFilters'
+    deployment_ids:
+      $ref: '#/DeploymentIds'
+    remediation_ids:
+      $ref: '#/RemediationIds'
+    vulnerability_ids:
+      $ref: '#/VulnerabilityIds'
+  required:
+    - operation
