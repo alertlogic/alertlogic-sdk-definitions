@@ -38,7 +38,7 @@ jobs:
   - stage: github_release
     if: type = push AND tag =~ /^v\d*\.\d*\.\d*$/
     name: "(Pipeline Stage 3)Create release containing just definitions"
-    script: cd alsdkdefs/apis; zip -r ../../AlertLogicOpenAPIDefinitions.zip .; cd ..
+    script: cd alsdkdefs/apis; zip -r ../../AlertLogicOpenAPIDefinitions.zip .; cd ../..
     deploy:
       provider: releases
       api_key: "$GITHUB_SECRET_TOKEN"
