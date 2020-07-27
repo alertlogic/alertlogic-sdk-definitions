@@ -1,0 +1,877 @@
+openapi: 3.0.2
+info:
+  title: remediations
+  version: "1.0"
+  contact:
+    email: support@alertlogic.com
+    name: Alert Logic Support
+    url: https://support.alertlogic.com
+  x-alertlogic-iws-service:
+    type: public
+  description: |-
+    ## Usage
+    This section contains advice and tips of how to interact with the remediations service.
+
+    All calls to remediations service must be authenticated. Authentication is done via a token
+    obtained from the AIMS service. The following will get a token and store it in `$AL_TOKEN`
+    given a valid email address and password:
+
+    ```
+    export AL_TOKEN=`curl -X POST -H "Accept: application/json" --user "$EMAIL_ADDRESS:$PASSWORD"
+    https://api.cloudinsight.alertlogic.com/aims/v1/authenticate | jq -r .authentication.token`
+    ```
+    *Note: you must use https://api.cloudinsight.alertlogic.co.uk if your console is at
+    https://console.cloudinsight.alertlogic.co.uk.*
+
+    This token will be passed as the value of the `x-aims-auth-token` header.
+
+    ## Remediations
+    The Remediations service provides a set of endpoints for handling exposures in the Alert Logic product.
+    A remediation is a conceptual set of work to do to fix a vulnerability. Many asset types may be
+    vulnerable, such as `host`, `vpc`, `db-instance`, `user`, etc.
+
+    When an asset is vulnerable, it has a `vulnerability` asset related to it. The vulnerability is
+    related to a `remediation` asset.
+
+    *Note*: remediations uses a `threatiness` property which is an internal measurement used for
+    relative comparison and is not considered useful to customers.
+
+    A `remediation-item` is an indication of intent to do (or not do) work for a subset of
+    vulnerabilities on vulnerable assets. A `remediation-item` may have a set of filters which limit
+    which vulnerable assets the `remediation-item` applies to.
+
+    A `remediation-item` may be in one of the following states:
+
+    ### "planned"
+    This is the initial state. A user has committed to performing the work necessary to fix a
+    vulnerability. The `remediation-item` has a `user_id` and `filters` fields. The `user_id` is the
+    user who added the remediations to their plan. The `filters` field is a list of
+    [filter](#section/Remediation-filters) strings.
+
+    ### "disposed"
+    A remediation-item may be "disposed," indicating that the vulnerabilities identified by the
+    `remediation-item` are not important enough to work on. A remediation may be disposed for one
+    of three different reasons: `"acceptable_risk"`, `"compensating_control"`, `"false_positive"`.
+    A comment and expiration date are also required to dispose a remediation-item.
+
+    ### "complete"
+    A `remediation-item` may be moved to the `complete` state. This is used to indicate that the
+    user that owns the `remediation-item` has completed the work and believes the vulnerabilities
+    attached to the `remediation-item` have been resolved.
+
+    If the vulnerable assets are scanned again and found to have the vulnerabilities, the
+    `remediation-item` state will revert to `planned`.
+
+    ### Remediation filters
+    When talking about remediations and `remediation-items`, it's important to consider any filters
+    that limit the scope of a set of vulnerabilities or a `remediation-item`. Remediation items also
+    have a (possibly empty) list of `filters`. The filter limits the scope of the remediations
+    requested (for GET requests) or limits the scope of a `remediation-item`.
+
+    The filter is composed of two parts: the filter type and the limiting property of the filter.
+    The limiting property is a field that must match vulnerable assets. E.g. the filter
+    `"image:/aws/us-east-1/image/ami-12345678"` means that a `remediation-item` only applies to
+    vulnerabilities declared on the image with key `"/aws/us-east-1/image/ami-12345678"`. Different
+    filters use a different limiting property: most use the `key` property of an asset, but not all.
+
+    #### Identity and relational filters
+    There are a number of classes of filters. The two main classes are relational filters and
+    identity filters. Relational filters yield assets (and their vulnerabilities) that have
+    relationships to the filtered asset. A filter type can be both a relational filter and an
+    identity filter. For example, `"sg:/aws/us-east-1/sg/sg-12345678"` will filter relationships
+    on the security group with that key and assets within that security group. These classes are
+    identified with `I` and `R` in the table below.
+
+    #### The `any` limiting property value
+    Some filters allow the limiting property value to be `any`, indicating that only
+    `remediation-items` that apply to the specific filter type will be returned. These are part of
+    the `any` class of filters. E.g. the filter `"s3-bucket:any"` yields only vulnerabilities on
+    s3-buckets. This is identified with `A` in the table below.
+
+    #### The `none` limiting property value
+    Some filters allow the limiting property value to be `none`, indicating that only
+    `remediation-items` that do not apply to the specific filter type will be returned. These are
+    part of the `none` class of filters. E.g. the filter `"cve:none"` yields only exposures whose
+    vulnerabilities `cve` field isn't set. This is identified with `N` in the table below.
+
+    #### Allowable Filters
+
+    The following table is a list of supported asset filters:
+
+    | Type                | Limiting Property | Class<sup>1</sup> | Example | Notes |
+    |---------------------|-------------------|-------------------|----------|------|
+    | `acl`               | `key`             | I       | `"acl:/aws/us-east-1/acl/acl-7ada4a1c"` | |
+    | `application`       | `type`            | A, R    | `"application:any"`, `"application:Apache"` | |
+    | `cloud-trail`       | `key`             | I       | `"cloud-trail:/aws/us-west-2/cloud-trail/trail/Rackspace"` | |
+    | `cve`               | `key`             | A, N, R | `"cve:any"`, `"cve:none"`, `"cve:CVE-2013-1937"` | |
+    | `cwe`               | `key`             | A, N, R | `"cwe:any"`, `"cwe:none"`, `"cwe:CWE-121"` | |
+    | `db-instance`       | `key`             | I       | `"db-instance:/aws/us-east-1/db-instance/db-12345678"` | |
+    | `dns-zone`          | `key`             | A, I    | `"dns-zone:/a/dns-zone/key"` | |
+    | `deployment`        | `key`             | A, I    | `"deployment:/al/12345678/deployment/aws/00001111-2222-3333-4444-555566667777"` | |
+    | `host`              | `key`             | I       | `"host:/aws/us-east-1/host/i-1234567890abcdef0"` | |
+    | `image`             | `key`             | I, R    | `"image:/aws/us-east-1/ami/ami-12345678"` | |
+    | `instance-profile`  | `key`             | A, I    | `"instance-profile:/an/instance-profile/key"` | |
+    | `kms-key`           | `key`             | I       | `"kms-key:/aws/us-east-1/kms-key/1"` | |
+    | `load-balancer`     | `key`             | I, R    | `"load-balancer:/aws/us-east-1/load-balancer/s-12345678"` ||
+    | `redshift-cluster`  | `key`             | I       | `"redshift-cluster:/aws/us-east-1/redshift-cluster/rc-12345678"` | |
+    | `remediation`       | `remediation_id`  | R       | `"remediation:00001111-2222-3333-4444-555566667777"` | |
+    | `region`            | `key`             | I       | `"region:/aws/us-east-1"` | <sup>2</sup> |
+    | `role`              | `key`             | A, I    | `"role:/a/role/key"` | |
+    | `route`             | `key`             | I       | `"route:/aws/eu-west-2/route/rtb-0e738966"` | |
+    | `s3-bucket`         | `key`             | A, I    | `"s3-bucket:any"`, `"s3-bucket:/an/s3-bucket/key"` | |
+    | `sg`                | `key`             | I, R    | `"sg:/aws/us-east-1/sg/s-12345678"` ||
+    | `user`              | `key`             | A, I    | `"user:any"`, `"user:/aws/123456789012/user/jdoe"` | |
+    | `volume`            | `key`             | I       | `"volume:/aws/us-east-1/volume/vol-12345678"` | |
+    | `vulnerability`     | `vulnerability_id`| R       | `"vulnerability:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:id`  | `vulnerability_id`| R       | `"vulnerability:id:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:key` | `key`             | R       | `"vulnerability:/aws/us-east-1/host/i-1234567890abcdef0/vulnerability/09876543210fedcba0987654321fedcba/tcp/22"` | <sup>3</sup> |
+    | `vpc`               | `key`             | R       | `"vpc:/aws/us-east-1/vpc/vpc-12345678"` | |
+
+    Notes:
+    1. A = `any` allowed, I = identity, R = relational, N = none.
+    2. The region filter will also be relational in the near future.
+    3. This selects only assets that have the vulnerability specified by the vulnerability key.
+       This will only ever return a single remediation on a single asset.
+
+    #### Additional remediations query filters
+
+    | Type                | Example | Notes |
+    |---------------------|---------|-------|
+    |`deployment_id`      | `deployment_id:825283AC-8244-412C-8674-4DBF931E6C16` | |
+    |`category`           | `category:security`, `category:configuration,security`, `category:!security` | |
+    |`severity`           | `severity:high` | |
+    |`asset_type`         | `asset_type:host` | Only one asset_type filter of a single asset type is supported in a request. This filter must be present in the exposures query request to be included in the response. |
+paths:
+############################## COLLECTION HEALTH ##############################
+
+  /remediations/v1/{account_id}/health/{asset_type}:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/UrlParamAssetType'
+    get:
+      operationId: get_collection_health
+      summary: Get Collection Health
+      description: |-
+        This endpoint will return collection health information for the given asset type (agent, appliance,
+        collector, network, or vpc). By default, the endpoint summarizes the health of assets of
+        the given asset type across all deployments, but supports filtration by deployment ID, deployment type,
+        protection level (`protection_policy_id`), and vulnerability category, as well as evaluating assets in scope (default) or not.
+
+        Note that the protection level filter, `protection_policy_id`, requires a policy ID from the
+        policies service. If given, only assets in the protection scope of that policy will be used to
+        generate the collection health information. The protection scope is not taken into account for
+        all asset types, notably, the `collector` type.
+
+        Note that specifying `disposed` or `concluded` query parameters as `true` will hide undisposed
+        or unconcluded remediations on affected assets. The unhealthiness calculation will reflect
+        these remediation options and may make a healthy asset appear unhealthy or vice-versa. These
+        options should be used with care when determining the health of an asset.
+      tags:
+        - Collection Health
+      parameters:
+        - $ref: 'parameters.yaml#/ParamScopeTrue'
+        - $ref: 'parameters.yaml#/ParamDisposed'
+        - $ref: 'parameters.yaml#/ParamConcluded'
+        - schema:
+            type: string
+          in: query
+          name: filter
+          description: |-
+              Filters assets must match to be included in the report. `filter`s can be chained
+              together (applied using `AND`). Each filter is a colon-separated pair of `type` (e.g.,
+              `deployment`) and `value` (e.g., `DEADBEEF-0000-0000-0000-000000000001`). The currently
+              supported filter types are `category`, `deployment`, `deployment_type`, `health_level`,
+              `protection_policy_id`. and any others returned in the `filters` API response
+              (see examples below). Note that a `deployment` filter must be applied to allow
+              other filters to be included. Note that even if `category` is not provided, requests
+              will look up vulnerabilities as `category:configuration,connection`, any additional `category`
+              filter included in the request will work as an "AND" operation. Since this filter supports negation
+              (e.g. `category:!configuration`) you can exclude a category, or exclusively get one
+              (e.g. `category:connection`). Only configuration and connection vulnerabilities are
+              considered in collection health, even if you filter category` it beyond that.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: object
+                    description: |-
+                      An object whose keys are all asset keys, e.g.,
+                      `6AF0EAB2-C331-4FBC-B91F-81CEB69D48FA:agent:/agent/DA663430-E658-4F53-932E-DACBFFDE3DE2`.
+                      Note that if a `deployment` filter is given, the deployment ID will **not** be included,
+                      e.g. `agent:/agent/DA663430-E658-4F53-932E-DACBFFDE3DE2`. In either case, the value at
+                      each key is the asset object with its key summary properties included.
+                  filters:
+                    type: object
+                    description: |-
+                      An object whose keys are all filters, e.g., `deployment_type:datacenter`. The value at
+                      each key is an object containing information about the results that would be returned
+                      if the filter were applied (`count`, `health_level`, and `unhealthiness`).
+                  list:
+                    type: array
+                    description: |-
+                      An array of objects in the report. Each object contains keys of the given URL's
+                      `asset_type` (except in the case of `network`, in which case the key is `vpc`) whose
+                      value is the asset key which may be looked up in the `assets` key of the main response
+                      JSON (see above) to get the full asset details. Additional keys in the object include:
+          
+                      * Associated assets (e.g., `deployment`, `host`, `image`, `region`)
+                      * `exposures` - an array of objects with 2 properties:
+                         * `asset_count`: The number of assets affected by the given exposure
+                         * `exposure`: the `exposure` key referenced from the top-level `assets` object,
+                            which contains the detailed exposure information.
+                      * `exposures_by_remediation` - an object keyed by remediations referenced from the top-level `assets` object.
+                        Each value is an array of `exposure` keys referenced from the top-level `assets` object.
+                      * `exposures_count` - the number of exposures in the entry.
+                      * `remediations` - an array of remediation keys referenced from the top-level `assets` object
+                      * `remediations_count` - the number of remediations in the entry.
+                      * `remediation_filters` - a list of `filter`s to pass to the remediations API to view
+                        full remediation details)
+                      * `health_level`
+                      * `unhealthiness`
+                      * `asset_count` (only included for the `network`/`vpc` asset types)
+                    items:
+                      type: object
+              examples:
+                Agent Collection Health (no deployment filter) Example:
+                  $ref: 'examples.yaml#/AgentCollectionHealthNoDeploymentExample'
+                Agent Collection Health (by deployment) Example:
+                  $ref: 'examples.yaml#/AgentCollectionHealthByDeploymentExample'
+                Collector Collection Health (no deployment filter) Example:
+                  $ref: 'examples.yaml#/CollectorCollectionHealthNoDeploymentExample'
+        "400":
+          $ref: 'responses.yaml#/InvalidValueError'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+        "503":
+          $ref: 'responses.yaml#/UnavailableError'
+      x-codeSamples:
+        - lang: Shell
+          label: Get agent health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/agent" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get agent health (by deployment)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/agent?filter=deployment:DEADBEEF-0000-0000-0000-000000000001" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get agent health (by protection level)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/appliance?filter=protection_policy_id:D12D5E67-166C-474F-87AA-6F86FC9FB9BC" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get agent health (by category)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/agent?filter=category:connection" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get agent health (excluding a category)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/agent?filter=category:!connection" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get agent health (include disposed and concluded remediations)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/agent?disposed=all&concluded=all" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get agent health (include only concluded remediations)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/agent?concluded=true" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get appliance health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/appliance" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get collector health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/collector" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get network health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/network" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get vpc health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/vpc" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      security:
+        - x-aims-auth-token: []
+  /remediations/v1/{account_id}/health/summary:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+    get:
+      operationId: get_collection_health_summary
+      summary: Get Collection Health Summary
+      description: |-
+        This endpoint will return a summary of collection health by asset type (agent, appliance, network).
+        The summary is a count of total/protected (as applicable) assets of the given type, as well as a
+        breakdown of the counts of each by `health_level`. By default, the endpoint summarizes the health
+        of all deployments, but supports filtration by deployment ID, deployment type, and protection
+        level (`protection_policy_id`), as well as evaluating assets in scope (default) or not.
+
+        Note that the protection level filter, `protection_policy_id`, requires a policy ID from the
+        policies service. If given, only assets in the protection scope of that policy will be used to
+        generate the summary.
+
+        Note that specifying `disposed` or `concluded` query parameters as `true` will hide undisposed
+        or unconcluded remediations on affected assets. The unhealthiness calculation will reflect
+        these remediation options and may make a healthy asset appear unhealthy or vice-versa. These
+        options should be used with care when determining the health of an asset.
+      tags:
+        - Collection Health
+      parameters:
+        - $ref: 'parameters.yaml#/ParamScopeTrue'
+        - schema:
+            type: string
+          in: query
+          name: filter
+          description: |-
+              Filters assets must match to be included in the report. `filter`s can be chained
+              together (applied using `AND`). Each filter is a colon-separated pair of `type` (e.g.,
+              `deployment`) and `value` (e.g., `DEADBEEF-0000-0000-0000-000000000001`). The currently
+              supported filter types are `category`, `deployment`, `deployment_type`, `health_level`,
+              `protection_policy_id`. and any others returned in the `filters` API response
+              (see examples below). Note that a `deployment` filter must be applied to allow
+              other filters to be included. Note that even if `category` is not provided, requests
+              will look up vulnerabilities as `category:configuration,connection`, any additional `category`
+              filter included in the request will work as an "AND" operation. Since this filter supports negation
+              (e.g. `category:!configuration`) you can exclude a category, or exclusively get one
+              (e.g. `category:connection`). Only configuration and connection vulnerabilities are
+              considered in collection health, even if you filter category` it beyond that.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: object
+                    description: Top-level object containing agent health summary
+                    properties:
+                      coverage:
+                        type: object
+                        description: Agent health coverage
+                        properties:
+                          protected:
+                            type: integer
+                            description: Total number of protected agents matching the given scope and filter(s)
+                          total:
+                            type: integer
+                            description: Total number of agents matching the given scope and filter(s)
+                      health:
+                        type: object
+                        description: Agent health coverage
+                        properties:
+                          scores:
+                            type: array
+                            description: Agent health scores
+                            items:
+                              type: object
+                              properties:
+                                count:
+                                  type: integer
+                                  description: Count of agents with the given health_level in the object
+                                health_level:
+                                  type: integer
+                                  description: Health level of agents in the object
+                                  enum: [0, 2]
+                                unhealthiness:
+                                  type: number
+                                  description: Unhealthiness score of agents in the object
+                  appliances:
+                    type: object
+                    description: Top-level object containing appliance health summary
+                    properties:
+                      coverage:
+                        type: object
+                        description: Appliance health coverage
+                        properties:
+                          total:
+                            type: integer
+                            description: Total number of appliances matching the given scope and filter(s)
+                      health:
+                        type: object
+                        description: Appliance health coverage
+                        properties:
+                          scores:
+                            type: array
+                            description: Appliance health scores
+                            items:
+                              type: object
+                              properties:
+                                count:
+                                  type: integer
+                                  description: Count of appliances with the given health_level in the object
+                                health_level:
+                                  type: integer
+                                  description: Health level of appliances in the object
+                                  enum: [0, 2]
+                                unhealthiness:
+                                  type: number
+                                  description: Unhealthiness score of appliances in the object
+                  collectors:
+                    type: object
+                    description: Top-level object containing collector health summary
+                    properties:
+                      coverage:
+                        type: object
+                        description: Collector health coverage
+                        properties:
+                          total:
+                            type: integer
+                            description: Total number of collectors matching the given scope and filter(s)
+                      health:
+                        type: object
+                        description: Collector health coverage
+                        properties:
+                          scores:
+                            type: array
+                            description: Collector health scores
+                            items:
+                              type: object
+                              properties:
+                                count:
+                                  type: integer
+                                  description: Count of collectors with the given health_level in the object
+                                health_level:
+                                  type: integer
+                                  description: Health level of collectors in the object
+                                  enum: [0, 2]
+                                unhealthiness:
+                                  type: number
+                                  description: Unhealthiness score of collectors in the object
+                  networks:
+                    type: object
+                    description: Top-level object containing network health summary
+                    properties:
+                      coverage:
+                        type: object
+                        description: Network health coverage
+                        properties:
+                          protected:
+                            type: integer
+                            description: Total number of protected networks matching the given scope and filter(s)
+                          total:
+                            type: integer
+                            description: Total number of networks matching the given scope and filter(s)
+                      health:
+                        type: object
+                        description: Network health coverage
+                        properties:
+                          scores:
+                            type: array
+                            description: Network health scores
+                            items:
+                              type: object
+                              properties:
+                                count:
+                                  type: integer
+                                  description: Count of networks with the given health_level in the object
+                                health_level:
+                                  type: integer
+                                  description: Health level of networks in the object
+                                  enum: [0, 2]
+                                unhealthiness:
+                                  type: number
+                                  description: Unhealthiness score of networks in the object
+              examples:
+                Collection Health Summary Example:
+                  $ref: 'examples.yaml#/CollectionHealthSummaryExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+        "503":
+          $ref: 'responses.yaml#/UnavailableError'
+      x-codeSamples:
+        - lang: Shell
+          label: Get collection health summary
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/health/summary" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get collection health summary by deployment
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/summary?filter=deployment:DEADBEEF-0000-0000-0000-000000000001" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get collection health summary (without applying scope)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/summary?scope=false" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      security:
+        - x-aims-auth-token: []
+
+############################## SUMMARIES ##############################
+
+  /remediations/v1/{account_id}/risk/{score_type}/summary:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/UrlParamScoreType'
+    get:
+      operationId: get_risk_summary
+      summary: Get Risk Summary
+      description: |-
+        This endpoint will return the risk summary of given score type for also given account.
+        The only score type supported is TRI (Threat Risk Index). This endpoint returns the risk summary scores for `deployment` and `vpc` asset types.
+        
+        The response report provides daily threat risk index (TRI) scores summary of given account's environment, including the overall TRI score
+        (see response entry example with `"type": "overall"`).
+      tags:
+        - Summaries
+      parameters:
+        - $ref: 'parameters.yaml#/ParamScopeTrue'
+        - $ref: 'parameters.yaml#/ParamExposuresSummaryFilter'
+        - $ref: 'parameters.yaml#/ParamExposuresSummaryDisposed'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: Top-level object containing the asset risk summary fields.
+                  properties:
+                    type:
+                      type: string
+                      description: Asset type (`deployment`, `vpc`) or `overall` type of reported scores.
+                      enum: [deployment, host, overall]
+                    tri_trend_4w:
+                      type: number
+                      description: TRI month trend.
+                    tri_trend_1w:
+                      type: number
+                      description: TRI week trend.
+                    tri_trend_13w:
+                      type: number
+                      description: TRI 13 week trend.
+                    tri_severity:
+                      type: integer
+                      description: TRI severity level.
+                    tri_pctile_segment:
+                      type: number
+                      description: TRI percentile segment.
+                    tri_pctile_all:
+                      type: number
+                      description: TRI percentile all.
+                    tri_last_updated:
+                      type: integer
+                      description: Last time TRI score was updated (0 if never updated).
+                    tri_asset_count:
+                      type: integer
+                      description: Number of assets with TRI score associated to response type.
+                    tri:
+                      type: number
+                      description: Current TRI score.
+                    risk_level:
+                      type: integer
+                      description: Threat risk level.
+                    relative_severity:
+                      type: integer
+                      description: Threat relative severity. Only on `deployment` and `vpc` summary types.
+                    network_uuid:
+                      type: string
+                      description: The VPC network UUID. Only on `vpc` summary types.
+                    cidr_ranges:
+                      type: array
+                      description: Array of strings representing Classless Inter-Domain Routing (CIDR) IPs ranges. Only on `vpc` summary types.
+                    name:
+                      type: string
+                      description: Asset name or predefined "Overall by deployment".
+                    key:
+                      type: string
+                      description: Asset key or predefined "overall".
+                    deployment_id:
+                      type: string
+                      description: The Deployment ID the asset belongs to. Present in all types, except `overall`.
+                    account_id:
+                      type: string
+                      description: Account ID asset belongs to.
+              examples:
+                Get Risk Summary Example:
+                  $ref: 'examples.yaml#/GetRiskSummaryExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+      x-codeSamples:
+        - lang: Shell
+          label: Get risk summary
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/risk/tri/summary" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      security:
+        - x-aims-auth-token: []
+  /remediations/v1/{account_id}/risk/{score_type}/{asset_type}/summary:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/UrlParamScoreType'
+      - $ref: 'parameters.yaml#/UrlParamAssetType'
+    get:
+      operationId: get_risk_summary_by_asset_type
+      summary: Get Risk Summary By Asset Type
+      description: |-
+        This endpoint will return the risk summary of given score type for given account and asset type. The only score type supported is TRI (Threat Risk Index).
+        
+        The response report provides daily threat risk index (TRI) scores of given account's asset type, including the overall TRI score.
+        **Note** that only `deployment` and `vpc` are supported as asset type URL param.
+      tags:
+        - Summaries
+      parameters:
+        - $ref: 'parameters.yaml#/ParamScopeTrue'
+        - $ref: 'parameters.yaml#/ParamExposuresSummaryFilter'
+        - $ref: 'parameters.yaml#/ParamExposuresSummaryDisposed'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: Top-level object containing the asset risk summary fields.
+                  properties:
+                    type:
+                      type: string
+                      description: Asset type (`deployment`, `vpc`) or `overall` type of reported scores.
+                      enum: [deployment, host, overall]
+                    tri_trend_4w:
+                      type: number
+                      description: TRI month trend.
+                    tri_trend_1w:
+                      type: number
+                      description: TRI week trend.
+                    tri_trend_13w:
+                      type: number
+                      description: TRI 13 week trend.
+                    tri_severity:
+                      type: integer
+                      description: TRI severity level.
+                    tri_pctile_segment:
+                      type: number
+                      description: TRI percentile segment.
+                    tri_pctile_all:
+                      type: number
+                      description: TRI percentile all.
+                    tri_last_updated:
+                      type: integer
+                      description: Last time TRI score was updated (0 if never updated).
+                    tri_asset_count:
+                      type: integer
+                      description: Number of assets with TRI score associated to response type.
+                    tri:
+                      type: number
+                      description: Current TRI score.
+                    risk_level:
+                      type: integer
+                      description: Threat risk level.
+                    relative_severity:
+                      type: integer
+                      description: Threat relative severity. Only on `deployment` and `vpc` summary types.
+                    network_uuid:
+                      type: string
+                      description: The VPC network UUID. Only on `vpc` summary types.
+                    cidr_ranges:
+                      type: array
+                      description: Array of strings representing Classless Inter-Domain Routing (CIDR) IPs ranges. Only on `vpc` summary types.
+                    name:
+                      type: string
+                      description: Asset name or predefined "Overall by deployment".
+                    key:
+                      type: string
+                      description: Asset key or predefined "overall".
+                    deployment_id:
+                      type: string
+                      description: The Deployment ID the asset belongs to. Present in all types, except `overall`.
+                    account_id:
+                      type: string
+                      description: Account ID asset belongs to.
+              examples:
+                Get Risk Summary By Asset Example:
+                  $ref: 'examples.yaml#/GetRiskSummaryByAssetTypeExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+      x-codeSamples:
+        - lang: Shell
+          label: Get risk summary by asset type
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/risk/tri/vpc/summary" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      security:
+        - x-aims-auth-token: []
+  /remediations/v1/{account_id}/scores/current:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+    get:
+      operationId: get_current_scores
+      summary: Get Current Scores
+      description: |-
+        This endpoint will return all current asset scores for given account's deployments and VPCs in a summary format.
+      tags:
+        - Summaries
+      parameters:
+        - $ref: 'parameters.yaml#/ParamScopeTrue'
+        - $ref: 'parameters.yaml#/ParamExposuresSummaryFilter'
+        - $ref: 'parameters.yaml#/ParamExposuresSummaryDisposed'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: Top-level object containing the asset scores fields.
+                  properties:
+                    value:
+                      type: number
+                      description: The current score value.
+                    type:
+                      type: string
+                      description: Asset type (`deployment`, `vpc`) of reported scores.
+                      enum: [deployment, host]
+                    severity:
+                      type: integer
+                      description: Threat severity.
+                    score_type:
+                      type: string
+                      enum: [tri]
+                      description: The score type.
+                    raw_severity:
+                      type: integer
+                      description: The raw value of the threat severity.
+                    p90_severity:
+                      type: integer
+                      description: The 90th percentile of the threat severity.
+                    network_uuid:
+                      type: string
+                      description: The VPC network UUID. Only on `vpc` summary types.
+                    cidr_ranges:
+                      type: array
+                      description: Array of strings representing Classless Inter-Domain Routing (CIDR) IPs ranges. Only on `vpc` summary types.
+                    name:
+                      type: string
+                      description: The Asset name.
+                    key:
+                      type: string
+                      description: Asset key.
+                    deployment_id:
+                      type: string
+                      description: The Deployment ID the asset belongs to.
+                    account_id:
+                      type: string
+                      description: Account ID asset belongs to.
+              examples:
+                Get Current Scores Example:
+                  $ref: 'examples.yaml#/GetCurrentScoresExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+      x-codeSamples:
+        - lang: Shell
+          label: Get Current Scores
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/scores/current" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      security:
+        - x-aims-auth-token: []
+  /remediations/v1/{account_id}/deployments/{deployment_id}/assessment-specs:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+    get:
+      operationId: get_assessment_specs
+      summary: Get Assessment Specs
+      description: |-
+        This endpoint will return all assessment-spec assets, the assets that were evaluated as
+        part of that assessment spec, and the vulnerabilities found.
+      tags:
+        - Exposures and Remediations
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  type:
+                    type: string
+                  threat_level:
+                    type: string
+              examples:
+                Assessment Specs Example:
+                  $ref: 'examples.yaml#/AssessmentSpecsExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+        "503":
+          $ref: 'responses.yaml#/UnavailableError'
+      x-codeSamples:
+        - lang: Shell
+          label: Get assessment-specs
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      security:
+        - x-aims-auth-token: []
+components:
+  securitySchemes:
+    x-aims-auth-token:
+      name: x-aims-auth-token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+servers:
+  - url: https://api.cloudinsight.alertlogic.com
+    x-alertlogic-session-endpoint: true
+    description: production (US)
+  - url: https://api.cloudinsight.alertlogic.co.uk
+    description: production (UK)
+    x-alertlogic-session-endpoint: true
+  - url: https://api.product.dev.alertlogic.com
+    description: integration
+tags:
+  - name: Summaries
+    description: Summary endpoints
+  - name: Collection Health
+    description: Collection Health endpoints
+  - name: Exposures and Remediations
+    description: Exposures and Remediations endpoints
