@@ -1,0 +1,393 @@
+openapi: 3.0.0
+info:
+  title: aecontent
+  version: '1.0'
+  description: A service to manage observation definitions for Analytics Engines
+  contact:
+    email: support@alertlogic.com
+servers:
+  - url: 'https://api.global-services.global.alertlogic.com'
+    description: production
+  - url: 'https://api.global-integration.product.dev.alertlogic.com'
+    description: integration
+paths:
+  /aecontent/v1/observations:
+    get:
+      summary: Get Global Observations
+      tags:
+        - Observations Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_observations
+      description: >-
+        Return all current global observation definitions either system wide OR
+        system plus customer specific ones. The UUIDs are content identifiers.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          description: The epoch id to use for this request
+          name: epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: return_parents
+    post:
+      summary: Create Global Observation
+      operationId: create_global_observation
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stored:
+                    type: string
+          description: Created
+      tags:
+        - Observations Resources
+      description: >-
+        Create or update (overwrite) a new observation definition with the given
+        path. This endpoint has system and customer specific variant. System
+        wide should only be used by internal systems/tools and is documented
+        here for testing and troubleshooting purposes. Customer specific
+        endpoints allow create custom content and should be used for creation
+        correlation content.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          required: true
+          description: >-
+            the urlencoded content path for this observation definition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+  '/aecontent/v1/observations/ids/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: the UUID identified assigned to a definition
+    get:
+      summary: Get Global Observation by Id
+      tags:
+        - Observations Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_observation_by_id
+      description: Returns the observation definition indentified by id.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters: []
+  '/aecontent/v1/obserations/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: the urlencoded content path of an observation definition
+    get:
+      summary: Get Global Observation by Path
+      tags:
+        - Observations Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_observation_by_path
+      description: Returns the observation definition.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: The epoch id to use for this request
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+    delete:
+      summary: Delete Global Observation
+      operationId: delete_global_observation
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Observations Resources
+      description: Deletes a global observation
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aecontent/v1/{account_id}/observations':
+    get:
+      summary: Get Observations
+      tags:
+        - Observations Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_observations
+      description: >-
+        Return all current observation definitions either system wide OR system
+        plus customer specific ones. The UUIDs are content identifiers.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          description: The epoch id to use for this request
+          name: epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: return_parents
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Create Observation
+      operationId: create_observation
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stored:
+                    type: string
+      tags:
+        - Observations Resources
+      description: >-
+        Create or update (overwrite) a new observation definition with the given
+        path. This endpoint has system and customer specific variant. System
+        wide should only be used by internal systems/tools and is documented
+        here for testing and troubleshooting purposes. Customer specific
+        endpoints allow create custom content and should be used for creation
+        correlation content.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          required: true
+          description: >-
+            the urlencoded content path for this observation definition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+  '/aecontent/v1/{account_id}/observations/ids/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: the UUID identified assigned to a definition
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get Observation by Id
+      tags:
+        - Observations Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_observation_by_id
+      description: Returns the observation definition indentified by id.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters: []
+  '/aecontent/v1/{account_id}/obserations/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: the urlencoded content path of an observation definition
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get Observation by Path
+      tags:
+        - Observations Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_observation_by_path
+      description: Returns the observation definition.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: The epoch id to use for this request
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+    delete:
+      summary: Delete Observation
+      operationId: delete_observation
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Observations Resources
+      description: Deletes a global observation
+      security:
+        - X-AIMS-Auth-Token: []
+  /aecontent/v1/validations/observations:
+    post:
+      summary: Validate Global Observation
+      operationId: validate_global_observation
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Observations Resources
+      description: >-
+        Alidates the given observation template JSON against its internal rules.
+        This endpoint is intended for use to validate content either by
+        automated systems or by humans during their content definition work.
+        system-wide or customer specific endpoint behave identically
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+  '/aecontent/v1/{account_id}/validations/observations':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Validate Observation
+      operationId: validate_observation
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Observations Resources
+      description: >-
+        Validates the given observation template JSON against its internal
+        rules. This endpoint is intended for use to validate content either by
+        automated systems or by humans during their content definition work.
+        system-wide or customer specific endpoint behave identically
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+components:
+  schemas: {}
+  securitySchemes:
+    X-AIMS-Auth-Token:
+      name: X-AIMS-Auth-Token
+      type: apiKey
+      in: header
+tags:
+  - name: Observations Resources
+    description: Analytics Engine Observations Resources Manupulation
