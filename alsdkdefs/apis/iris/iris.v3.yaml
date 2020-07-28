@@ -197,6 +197,16 @@ paths:
                       eq:
                         property: string
                         value: string
+                    metadata:
+                      total_count: number
+                      limit: number
+                      offset: number
+                      links:
+                        self: string
+                        first: string
+                        prev: string
+                        next: string
+                        last: string
                     returnVals:
                       - __appliance_name: string
                         __content_type: string
@@ -281,6 +291,16 @@ paths:
           name: return_value
           in: query
           description: "Comma delimited list of 'dot-notation' string names of desired properties in the result set. Use if you want only a subset of attributes from results"
+        - schema:
+            type: number
+          name: limit
+          in: query
+          description: "Maximum number of items in the result set"
+        - schema:
+            type: number
+          name: offset
+          in: query
+          description: "The (zero-based) offset of the first item in the result set to return"
   '/iris/v3/{account_id}/incidents_by_time':
     get:
       summary: Get incidents in a timespan for account
@@ -1116,6 +1136,8 @@ components:
         AssociatedElaborations Example: null
       properties:
         filter:
+          type: object
+        metadata:
           type: object
         returnVals:
           type: array
