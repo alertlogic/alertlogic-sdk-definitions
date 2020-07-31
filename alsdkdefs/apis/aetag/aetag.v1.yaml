@@ -137,6 +137,121 @@ paths:
         name: id
         in: path
         required: true
+  '/aetag/v1/tags/key/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: url-encoded path
+    post:
+      summary: Atomically perform CRUD operations on specific keys of a tagset.
+      tags:
+        - Tags Resources
+      responses:
+        '200':
+          description: Combination of reads (if any) and modified tagset uuid (if any modification)
+      operationId: crud_global_tagset_keys_by_path
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+        Specific operations to be performed are specified through the call body. This body is of one or more objects
+        executed sequentially. Each objects have at least an "operation" key, which has a value being one of
+        "read", "write", "delete", "add", or "subtract":
+
+        - read: returns the tuning tagset key identified in the object's key "key"
+
+        - write: replaces the tuning tagset key identified in the object's key "key" with the object's key "value"; may
+          take an optional "expiration_ts" key
+
+        - delete: removes the tuning tagset key identified in the object's key "key"
+
+        - add: if the tuning tagset key identified in the object's key "key" is a list, adds the object's key "value"
+          provided it is not already in the list; may take an optional "expiration_ts" key
+
+        - subtract: if the tuning tagset key identified in the object's key "key" is a list, removes all occurrences of
+          the object's key "value"
+
+        Operations are performed in the order they are specified.
+
+
+        Specifying an "expiration_ts" key (where allowed) causes the tagset key to expire at a given time. The value of
+        the key is an integer representing the expiration time as a Unix epoch.
+
+
+        Tags requested for a specific customer id are **composed** tuning tagset which uses the definition to decide
+        from where, what and how to merge tagsets together. The 'etag' header is set and may be used to cache the
+        response by the caller. Global tags are not composed.
+      requestBody: &crudBody
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                anyOf:
+                - $ref: '#/components/schemas/CrudKeyWrite'
+                - $ref: '#/components/schemas/CrudKeyRead'
+                - $ref: '#/components/schemas/CrudKeyDelete'
+                - $ref: '#/components/schemas/CrudKeyAdd'
+                - $ref: '#/components/schemas/CrudKeySubtract'
+            x-alertlogic-schema:
+              name: crud_list
+              encoding:
+                explode: true
+        description: JSON array of crud operations to perform.
+  '/aetag/v1/{account_id}/tags/key/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: url-encoded path
+    post:
+      summary: Atomically perform CRUD operations on specific keys of a tagset.
+      tags:
+        - Tags Resources
+      responses:
+        '200':
+          description: Combination of reads (if any) and modified tagset uuid (if any modification)
+      operationId: crud_tagset_keys_by_path
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+        Specific operations to be performed are specified through the call body. This body is of one or more objects
+        executed sequentially. Each objects have at least an "operation" key, which has a value being one of
+        "read", "write", "delete", "add", or "subtract":
+
+        - read: returns the tuning tagset key identified in the object's key "key"
+
+        - write: replaces the tuning tagset key identified in the object's key "key" with the object's key "value"; may
+          take an optional "expiration_ts" key
+
+        - delete: removes the tuning tagset key identified in the object's key "key"
+
+        - add: if the tuning tagset key identified in the object's key "key" is a list, adds the object's key "value"
+          provided it is not already in the list; may take an optional "expiration_ts" key
+
+        - subtract: if the tuning tagset key identified in the object's key "key" is a list, removes all occurrences of
+          the object's key "value"
+
+        Operations are performed in the order they are specified.
+
+        Specifying an "expiration_ts" key (where allowed) causes the tagset key to expire at a given time. The value of
+        the key is an integer representing the expiration time as a Unix epoch.
+
+        Tags requested for a specific customer id are **composed** tuning tagset which uses the definition to decide
+        from where, what and how to merge tagsets together. The 'etag' header is set and may be used to cache the
+        response by the caller. Global tags are not composed.
+      requestBody: *crudBody
   /aetag/v1/tags:
     parameters: []
     post:
@@ -1001,6 +1116,76 @@ components:
         - inherit
         - direction
         - expiration
+    CrudKeyWrite:
+      type: object
+      properties:
+        operation:
+          type: string
+          pattern: "^write$"
+        key:
+          type: string
+        value: {}
+        expiration_ts:
+          type: integer
+      required:
+        - operation
+        - key
+        - value
+      additionalProperties: false
+    CrudKeyAdd:
+      type: object
+      properties:
+        operation:
+          type: string
+          pattern: "^add$"
+        key:
+          type: string
+        value: {}
+        expiration_ts:
+          type: integer
+      required:
+        - operation
+        - key
+        - value
+      additionalProperties: false
+    CrudKeySubtract:
+      type: object
+      properties:
+        operation:
+          type: string
+          pattern: "^subtract$"
+        key:
+          type: string
+        value: {}
+      required:
+      - operation
+      - key
+      - value
+      additionalProperties: false
+    CrudKeyDelete:
+      type: object
+      properties:
+        operation:
+          type: string
+          pattern: "^delete$"
+        key:
+          type: string
+      required:
+      - operation
+      - key
+      additionalProperties: false
+    CrudKeyRead:
+      type: object
+      properties:
+        operation:
+          type: string
+          pattern: "^read$"
+        key:
+          type: string
+      required:
+      - operation
+      - key
+      additionalProperties: false
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
