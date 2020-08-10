@@ -25,7 +25,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       operationId: get_tagset_by_path
       description: >
         Return a specific tagset. Tags requested for a specific customer id are
@@ -83,7 +82,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       operationId: get_global_tagset_by_path
       security:
         - X-AIMS-Auth-Token: []
@@ -303,7 +301,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       tags:
         - Tags Resources
       description: >-
@@ -332,7 +329,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       operationId: get_global_tuning_tagset_by_path
       description: Get Global Tuning Tagset by Path
       security:
@@ -362,7 +358,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       operationId: get_tuning_tagset_by_path
       description: >-
         Return a specific tuning. The 'etag' header is set and may be used to
@@ -539,7 +534,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       tags:
         - Tags Resources
       description: >-
@@ -571,7 +565,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       operationId: get_definition_by_id
       tags:
         - Definitions Resources
@@ -590,7 +583,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       operationId: get_definitions
       description: Return all definitions
       security:
@@ -657,7 +649,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       operationId: get_definition_by_path
       description: Return a specific definition by its path
       security:
@@ -917,7 +908,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       tags:
         - Definitions Resources
       description: >-
@@ -960,7 +950,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       description: >-
         Return tags at the specified list of paths. When global tags are
         requested, they are simply retrieved from storage; they are not
@@ -1054,7 +1043,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: {}
       tags:
         - Tags Resources
       description: >-
@@ -1124,7 +1112,8 @@ components:
           pattern: "^write$"
         key:
           type: string
-        value: {}
+        value:
+          type: object
         expiration_ts:
           type: integer
       required:
@@ -1140,7 +1129,8 @@ components:
           pattern: "^add$"
         key:
           type: string
-        value: {}
+        value:
+          type: object
         expiration_ts:
           type: integer
       required:
@@ -1156,7 +1146,8 @@ components:
           pattern: "^subtract$"
         key:
           type: string
-        value: {}
+        value:
+          type: object
       required:
       - operation
       - key
