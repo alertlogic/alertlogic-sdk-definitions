@@ -25,7 +25,7 @@ paths:
                 properties:
                   logmsgs:
                     type: array
-                    description: List of log-based analyitcs
+                    description: List of log-based analytics
                     items:
                       type: string
                   telemetry:
@@ -39,7 +39,7 @@ paths:
       operationId: list_analytics
       security:
         - aims_request_authorizer: []
-      description: List anayltics for an account
+      description: List analytics for an account
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerSrvFunction.Arn}/invocations'
@@ -130,7 +130,7 @@ paths:
               required:
                 - reason
         required: true
-      description: Update an ananlytic
+      description: Update an analytic
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateAnalyticFunction.Arn}/invocations'
@@ -275,7 +275,6 @@ paths:
               properties:
                 setting:
                   type: array
-                  description: List of applicable handling settings
                   items:
                     $ref: '#/components/schemas/IncidentTypeHandlingSetting'
                 reason:
@@ -347,6 +346,18 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+  /healthcheck:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: get_healthcheck
+      description: Check health status of the service.
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetHealthcheckFunction.Arn}/invocations'
 components:
   securitySchemes:
     aims_request_authorizer:
@@ -430,29 +441,37 @@ components:
         incident_handling:
           $ref: '#/components/schemas/IncidentTypeHandlingInfo'
     IncidentSeverity:
-      type: string
-      title: IncidentSeverity
-      description: Severity of an incident
-      enum:
-        - informational
-        - low
-        - medium
-        - high
-        - critical
+      anyOf:
+        - type: string
+          title: IncidentSeverity
+          description: Severity of an incident
+          enum:
+            - informational
+            - low
+            - medium
+            - high
+            - critical
+        - type: "null"
     IncidentVisibility:
-      type: string
-      title: IncidentVisibility
-      description: Visibility of an incident
-      enum:
-        - observation
-        - incident
+      anyOf:
+        - type: string
+          title: IncidentVisibility
+          description: Visibility of an incident
+          enum:
+            - observation
+            - incident
+            - test
+        - type: "null"
     IncidentTypeHandlingSetting:
       type: string
       title: IncidentTypeHandlingSetting
       description: |-
-        * `auto_soc_close` - is only relevant to incident being shown to SOC or not, no other behaviour or values are affected. If True, will bypass the SOC and become available in the Customer Console.
-        * `auto_escalate` - is only relevant to whether the customer receives an email notification or not, no other behaviour or values are affected. If an incident is escalated, and becomes soc-closed, a notification will be generated with the escalations flag set to True.
-        * `auto_customer_close` - is only relevant to whether the customer sees the incident as “Closed” in the Customer Console or not, no other behaviour or values are affected. If True, the incident will only show in the Customer Console under the 'Closed' filter.
+        * `auto_soc_close` - is only relevant to incident being shown to SOC or not, no other behaviour or values are affected.
+            If True, will bypass the SOC and become available in the Customer Console.
+        * `auto_escalate` - is only relevant to whether the customer receives an email notification or not, no other behaviour or values are affected.
+            If an incident is escalated, and becomes soc-closed, a notification will be generated with the escalations flag set to True.
+        * `auto_customer_close` - is only relevant to whether the customer sees the incident as “Closed” in the Customer Console or not, no other behaviour or values are affected.
+            If True, the incident will only show in the Customer Console under the 'Closed' filter.
       enum:
         - auto_soc_close
         - auto_escalate
