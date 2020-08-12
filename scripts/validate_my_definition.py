@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: future_fstrings -*-
 
 from yaml import YAMLError
 from jsonschema.exceptions import ValidationError, RefResolutionError
@@ -7,7 +8,6 @@ import glob
 from alsdkdefs import AlertLogicOpenApiValidationException
 import alsdkdefs
 import os
-
 
 def validate_definition(definition_file):
     print(f"Validating {definition_file}")

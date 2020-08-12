@@ -1,3 +1,4 @@
 jsonschema[format_nongpl]==3.2.0
 pyyaml==5.1.2
 requests>=2.18
+future_fstrings
