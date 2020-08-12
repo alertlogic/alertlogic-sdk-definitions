@@ -6,13 +6,16 @@ jobs:
   include:
   - stage: test
     name: 'Run python tests '
-    python: 3.8
+    python: 3.5
     install: pip install -U tox-travis
     script: tox
   - python: 3.6
     install: pip install -U tox-travis
     script: tox
   - python: 3.7
+    install: pip install -U tox-travis
+    script: tox
+  - python: 3.8
     install: pip install -U tox-travis
     script: tox
   - python: 3.8
