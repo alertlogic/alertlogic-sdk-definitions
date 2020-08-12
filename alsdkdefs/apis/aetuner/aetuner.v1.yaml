@@ -3,6 +3,8 @@ info:
   title: aetuner
   version: '1.0'
   description: Analytics Engine Tuning Service
+  contact:
+    email: support@alertlogic.com
 servers:
   - url: 'https://aetuner.mdr.global.alertlogic.com'
     x-alertlogic-global-endpoint: production
@@ -14,7 +16,8 @@ paths:
   '/v1/{account_id}/analytics':
     get:
       summary: List Analytics for an account
-      tags: []
+      tags:
+        - aetuner
       responses:
         '200':
           description: OK
@@ -25,7 +28,7 @@ paths:
                 properties:
                   logmsgs:
                     type: array
-                    description: List of log-based analyitcs
+                    description: List of log-based analytics
                     items:
                       type: string
                   telemetry:
@@ -39,7 +42,7 @@ paths:
       operationId: list_analytics
       security:
         - aims_request_authorizer: []
-      description: List anayltics for an account
+      description: List analytics for an account
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerSrvFunction.Arn}/invocations'
@@ -89,6 +92,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalyticFunction.Arn}/invocations'
+      tags:
+        - aetuner
     parameters:
       - schema:
           type: string
@@ -130,14 +135,66 @@ paths:
               required:
                 - reason
         required: true
-      description: Update an ananlytic
+      description: Update an analytic
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateAnalyticFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/analytics/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Analytic Fully Qualified Name
+    post:
+      summary: Reset Analytics setting to defaults
+      operationId: reset_analytic
+      responses:
+        '201':
+          description: Ok
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+#                TODO -support partial reset?
+#                visibility:
+#                  $ref: '#/components/schemas/IncidentVisibility'
+#                severity:
+#                  $ref: '#/components/schemas/IncidentSeverity'
+#                tuning:
+#                  type: object
+#                  description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
+#                  additionalProperties: true
+                reason:
+                  type: string
+                  description: Reason for the performing the reset. This information is used for auditing purposes.
+              required:
+                - reason
+        required: true
+      description: Reset an analytic
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAnalyticFunction.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/incident_types':
     get:
       summary: List Incident Types
-      tags: []
+      tags:
+        - aetuner
       responses:
         '200':
           description: OK
@@ -164,7 +221,8 @@ paths:
   '/v1/{account_id}/incident_types/{path}':
     get:
       summary: Get Incident Type by Name
-      tags: []
+      tags:
+        - aetuner
       responses:
         '200':
           description: OK
@@ -218,10 +276,58 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateIncidentTypeFunction.Arn}/invocations'
+      description: Update Incident Type properties
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/incident_types/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Incident Type Fully Qualified Name
+    post:
+      summary: Reset Incident Type properties
+      operationId: reset_incident_type
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for a change.
+                exclude:
+                  type: string
+                  enum:
+                    - severity
+                    - visibility
+              required:
+                - reason
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetIncidentTypeFunction.Arn}/invocations'
+      description: Reset Incident Type properties
+      tags:
+        - aetuner
   '/v1/{account_id}/incident_handling/{path}':
     get:
       summary: Get Incident Type Handling Setting
-      tags: []
+      tags:
+        - aetuner
       responses:
         '200':
           description: OK
@@ -275,7 +381,6 @@ paths:
               properties:
                 setting:
                   type: array
-                  description: List of applicable handling settings
                   items:
                     $ref: '#/components/schemas/IncidentTypeHandlingSetting'
                 reason:
@@ -287,22 +392,29 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateIncidentHandlingFunction.Arn}/invocations'
-    delete:
-      summary: Delete Incident Handling Setting
-      operationId: delete_incident_handling
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/incident_handling/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Incident Type Fully Qualified Name
+    post:
+      summary: Reset Incident Handling Setting
+      operationId: reset_incident_handling
       responses:
-        '200':
+        '201':
           description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  stored:
-                    type: string
-                    format: uuid
-                    description: UUID of the stored record
-      description: Delete Incident Handling setting
+      description: Reset Incident Handling setting
       security:
         - aims_request_authorizer: []
       requestBody:
@@ -318,11 +430,14 @@ paths:
                 - reason
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerDeleteIncidentHandlingFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetIncidentHandlingFunction.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/incident_handling':
     get:
       summary: Get a list of all incident handling settings for a customer
-      tags: []
+      tags:
+        - aetuner
       responses:
         '200':
           description: OK
@@ -347,6 +462,18 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+  /healthcheck:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: get_healthcheck
+      description: Check health status of the service.
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetHealthcheckFunction.Arn}/invocations'
 components:
   securitySchemes:
     aims_request_authorizer:
@@ -370,7 +497,7 @@ components:
           type: string
           enum:
             - logmsgs
-            - observations
+            - observation
             - telemetry
           description: Data Type used to generate analytic outcome.
         display_name:
@@ -446,13 +573,17 @@ components:
       enum:
         - observation
         - incident
+        - test
     IncidentTypeHandlingSetting:
       type: string
       title: IncidentTypeHandlingSetting
       description: |-
-        * `auto_soc_close` - is only relevant to incident being shown to SOC or not, no other behaviour or values are affected. If True, will bypass the SOC and become available in the Customer Console.
-        * `auto_escalate` - is only relevant to whether the customer receives an email notification or not, no other behaviour or values are affected. If an incident is escalated, and becomes soc-closed, a notification will be generated with the escalations flag set to True.
-        * `auto_customer_close` - is only relevant to whether the customer sees the incident as “Closed” in the Customer Console or not, no other behaviour or values are affected. If True, the incident will only show in the Customer Console under the 'Closed' filter.
+        * `auto_soc_close` - is only relevant to incident being shown to SOC or not, no other behaviour or values are affected.
+            If True, will bypass the SOC and become available in the Customer Console.
+        * `auto_escalate` - is only relevant to whether the customer receives an email notification or not, no other behaviour or values are affected.
+            If an incident is escalated, and becomes soc-closed, a notification will be generated with the escalations flag set to True.
+        * `auto_customer_close` - is only relevant to whether the customer sees the incident as “Closed” in the Customer Console or not, no other behaviour or values are affected.
+            If True, the incident will only show in the Customer Console under the 'Closed' filter.
       enum:
         - auto_soc_close
         - auto_escalate
@@ -470,4 +601,6 @@ components:
         path:
           type: string
           description: Handling preferences path.
-
+tags:
+  - name: aetuner
+    description: aetuner operations
