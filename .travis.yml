@@ -22,8 +22,7 @@ jobs:
     install:
       - pip install ./
     script: python scripts/validate_my_definition.py -d alsdkdefs/apis/assets_query/
-  - stage: test_other_os
-    language: sh
+  - language: sh
     python: 3
     before_install:
       - choco install python3
