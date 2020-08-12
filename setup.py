@@ -13,12 +13,13 @@ setup(
     license='MIT license',
     author='Alert Logic Inc.',
     author_email='devsupport@alertlogic.com',
-    python_requires='>=3.6',
+    python_requires='>=3.5',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8'
