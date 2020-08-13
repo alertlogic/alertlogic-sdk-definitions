@@ -6,7 +6,7 @@ jobs:
   include:
   - stage: test
     name: 'Run python tests '
-    python: 3.5
+    python: 3.8
     install: pip install -U tox-travis
     script: tox
   - python: 3.6
@@ -16,13 +16,11 @@ jobs:
     install: pip install -U tox-travis
     script: tox
   - python: 3.8
-    install: pip install -U tox-travis
-    script: tox
-  - python: 3.8
     install:
       - pip install ./
     script: python scripts/validate_my_definition.py -d alsdkdefs/apis/assets_query/
-  - language: sh
+  - stage: test_other_os
+    language: sh
     python: 3
     before_install:
       - choco install python3

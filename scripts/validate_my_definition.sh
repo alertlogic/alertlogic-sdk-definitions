@@ -9,8 +9,6 @@ elif command -v python3.7; then
   PYTHON=python3.7
 elif command -v python3.6; then
   PYTHON=python3.6
-elif command -v python3.5; then
-  PYTHON=python3.5
 elif command -v python3; then
   PYTHON=python3
 else
