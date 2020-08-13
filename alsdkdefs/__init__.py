@@ -1,4 +1,3 @@
-# -*- coding: future_fstrings -*-
 import os
 from os.path import join as pjoin
 import glob

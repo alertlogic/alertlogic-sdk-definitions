@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: future_fstrings -*-
 """Tests for `alertlogic-sdk-definitions` package."""
 
 import unittest
 import alsdkdefs
+
 
 class TestServiceDefs(unittest.TestCase):
     def setUp(self):
