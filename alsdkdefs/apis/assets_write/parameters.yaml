@@ -1,0 +1,17 @@
+UrlParamAccountId:
+  schema:
+    type: string
+  name: account_id
+  in: path
+  required: true
+  description: |-
+    The AIMS account ID whose assets are being accessed. Only valid account IDs are acceptable.
+    Invalid account IDs result in an `HTTP 404 Not Found` or `HTTP 403 Forbidden`, depending on
+    the client's access level.
+UrlParamDeploymentId:
+  schema:
+    type: string
+  name: deployment_id
+  in: path
+  required: true
+  description: The ID of the deployment source as represented in the deployments service (uppercase UUID).

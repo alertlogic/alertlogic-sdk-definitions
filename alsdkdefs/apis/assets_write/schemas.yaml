@@ -1,0 +1,637 @@
+# Request Params
+ConditionsParam:
+  type: array
+  items:
+    type: object
+    properties:
+      property:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+  description: |-
+    A list of conditions evaluated against the asset being modified. Scope is applied to
+    property names used in conditions same way as described above, e.g. if scope is `"aws"`
+    and the name of the property used in a condition (value of the `"property"` field) is
+    `"foo"`, then condition will be evaluated against `"scope_aws_foo"` property of the asset
+    being modified.
+EnvironmentIdParam:
+  type: string
+  description: |-
+    The ID of the environment source as represented in the sources service (uppercase UUID string).
+    Should be the same as the `deployment_id` in the URL.
+ExclusiveParam:
+  type: string
+  description: |-
+    This parameter can be used when the `"relationships"` parameter is used. When this
+    parameter is set to `"scope"`, it will replace all relationships of the specified scope
+    with those provided. When it's set to `"type"`, it will replace all relationships of the
+    specified type(s) and scope with those provided. When it's set to `"complete"`, it will
+    replace all relationships with those provided. If the exclusive parameter is omitted,
+    all relationships provided will be added to the asset.
+  enum:
+    - scope
+    - type
+    - complete
+ExclusiveTypesParam:
+  type: array
+  description: |-
+    An array of asset types. This parameter can be used with the `exclusive=type` parameter.
+    When using `exclusive=type`, these asset types will be considered for exclusion within
+    the given `"scope"` in addition to the asset types of the `"relationships"` in the
+    request. This allows clients to effectively declare **empty** relationships for
+    specific asset type(s).
+GroupNameParam:
+  type: string
+  description: |-
+    The unique name for the `asset-group` asset, such as `my-group`. This will be the same
+    as the asset `key`.
+GroupPropertiesParam:
+  type: object
+  description: An object of properties pertaining to the asset being created.
+  properties:
+    scopes:
+      description: |-
+        An array of scope objects that define the asset membership in the group. Each `scope`
+        object represents distinct, independent criteria for group inclusion. If an asset meets
+        the criteria defined in **any** scope, it will be included in the group.
+      type: array
+      items:
+        type: object
+        properties:
+          include:
+            description: |-
+              An array of topological constraints on assets that define the asset membership in the
+              group. Examples: `deployment:any`, `tag:/tag/name/environment/value/production`,
+              `host:!/aws/us-east-1/i-1234`. Any groupable asset that meets the constraints on it
+              (and whose topological ancestor assets meet the constraints on them) will be included
+            type: array
+            items:
+              type: string
+          exclude:
+            description: |-
+              An array of topological constraints on assets that define the asset membership in the
+              group. Examples: `deployment:any`, `tag:/tag/name/environment/value/production`,
+              `host:!/aws/us-east-1/i-1234`. Any groupable asset that meets the constraints on it
+              (and whose topological ancestor assets meet the constraints on them) will be
+              **excluded** from the group, even if they meet the `includes` criteria.
+            type: array
+            items:
+              type: string
+          asset_types:
+            description: |-
+              An array of asset types strings that define what type(s) of assets can be in the group.
+              If set, only assets of the given type(s) will be included in the group. If not, all
+              groupable asset types are eligible to be included in the group.
+            type: array
+            items:
+              type: string
+KeyParam:
+  type: string
+  description: |-
+    The opaque, unique key for this asset, such as `"/aws/us-east-1/host/i-1234567"`. The
+    key and type parameters form a unique identifier for any asset.
+PropertiesParam:
+  type: string
+  description: |-
+    An object whose properties pertain to the asset being created or modified. This may
+    be omitted if no properties are needed. Scope is applied to properties in the following
+    way: if scope is `"aws"` and the property is `"foo": "bar"`, it becomes
+    `"scope_aws_foo": "bar"`. When subsequently querying the asset, some properties are
+    promoted depending on the asset type. These properties are
+    [merged](#api-_-merge-properties) onto an existing asset's properties, if present.
+RelationshipsParam:
+  type: array
+  items:
+    type: object
+    properties:
+      key:
+        $ref: '#/KeyParam'
+      type:
+        $ref: '#/TypeParam'
+  description: |-
+    A list of objects describing relationships to other assets. Each object in this list
+    must have a `"type"` field and a `"key"` describing the type and key of asset the new
+    or updated asset will have a relationship to. The object may also have a
+    `"relationship_type"` field indicating the type of relationship to declare. Note that
+    relationships to and from type `"tag"` have [special constraints](#api-_-tag-rel-constraints)
+    that clients should be aware of.
+ScopeParam:
+  type: string
+  description: |-
+    The declaring software's authority or area of function. For example, the scan subsystem
+    declaring vulnerabilities passes scope `"scan"`, and the UI declaring a credential for
+    an asset passes scope `"config"`. `cloud_explorer`, responsible for discovering
+    deployments (environments), passes `"aws"`. The scope must match the regex pattern
+    `[0-9A-Za-z-]`.
+StrategyParam:
+  type: string
+  description: |-
+    This parameter is used by the accumulate operation. Based on this paramenter, the
+    `"accumulate"` operation will increment the current calendar hour counter, shift hours
+    when the next hour is reached, etc. Currently, only `hourly` is supported.
+TypeParam:
+  type: string
+  description: |-
+    The type of the asset being created or modified. It must be one of the
+    [supported asset types](#api-_-asset-types). See also the
+    [deprecated asset types](#api-_-deprecated-asset-types) for additional types that are
+    supported through asset type aliasing. Together, the `"key"` and `"type"` parameters
+    form a unique identifier for any asset within a deployment.
+VulnerableTypeParam:
+  type: string
+  description: |-
+    The type of the vulnerable asset being referred to. It must be one of the
+    [supported vulnerable asset types](#api-_-vulnerable-asset-types). Together, the
+    `"key"` and `"type"` parameters form a unique identifier for any asset within a deployment.
+# Request Bodies
+CreateNetworkRequestBody:
+  title: Create Network Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `create_network`.
+      enum:
+        - create_network
+    scope:
+      type: string
+      description: Currently limited to `"datacenter"`, will be extended to any value later.
+    properties:
+      $ref: '#/PropertiesParam'
+  required:
+    - operation
+    - scope
+DeclareApplicationsRequestBody:
+  title: Declare Applications Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `declare_applications`.
+      enum:
+        - declare_applications
+    destinations:
+      type: array
+      description: |-
+        A list of lists representing the applications. Each sublist must have `id` (string) and a JSON object
+        that represents application properties (may be empty). See the example.
+    type:
+      $ref: '#/TypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+  required:
+    - operation
+    - destinations
+    - type
+    - key
+    - scope
+DeclareEnvironmentsRequestBody:
+  title: Declare Environments Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `declare_environment`.
+      enum:
+        - declare_environment
+    environment_id:
+      $ref: '#/EnvironmentIdParam'
+    environment_type:
+      type: string
+      description: The type of environment to be declared (e.g. `"aws"`, `"azure"`).
+    environment_type_id:
+      type: string
+      description: |-
+        The native account ID for the cloud provider (AWS account ID, Azure subscription ID).
+    scope:
+      $ref: '#/ScopeParam'
+    properties:
+      $ref: '#/PropertiesParam'
+  required:
+    - operation
+    - environment_id
+    - environment_type
+    - scope
+DeclareVulnerabilitiesRequestBody:
+  title: Declare Vulnerabilities Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `declare_vulnerability`.
+      enum:
+        - declare_vulnerability
+    type:
+      $ref: '#/VulnerableTypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+    vulnerabilities:
+      type: array
+      description: |-
+        A list of objects representing the vulnerabilities. The dict must have a `id` field
+        representing the vulnerability id (typically a UUID), a `properties` object, and a
+        `remediation` object. The `properties` object is required and **must** include the
+        `vulnerability_id` (string), though the following fields are suggested
+        (all are strings, unless noted):
+        
+        * `name` - short description of vulnerability
+        * `ccss_score` - number,
+        * `ccss_vector`
+        * `cve`
+        * `cvss_score` - number,
+        * `cvss_vector`
+        * `cwe`
+        * `description` - a long description of the vulnerability
+        * `port` - integer, valid port
+        * `ip_protocol` - `"tcp"`, `"udp"`, etc.
+        * `categories` - a list of string categories for the vulnerability
+        * `finding_type` - a single string describing the type of vulnerability
+        
+        The `remediation` object must have an `id` field (also typically a UUID) and a
+        `properties` object. The following remediation fields are suggested (all are strings):
+        
+        * `name`
+        * `description`
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          properties:
+            type: object
+          remediation:
+            type: object
+            properties:
+              id:
+                type: string
+              properties:
+                type: object
+              name:
+                type: string
+              description:
+                type: string
+            required:
+              - id
+              - properties
+          name:
+            type: string
+            description: Short description of vulnerability.
+          ccss_score:
+            type: number
+          ccss_vector:
+            type: array
+          cve:
+            type: string
+          cvss_score:
+            type: number
+          cwe:
+            type: string
+          description:
+            type: string
+            description: A long description of the vulnerability.
+          port:
+            type: integer
+          ip_protocol:
+            type: string
+          categories:
+            type: array
+            description: A list of string categories for the vulnerability.
+          finding_type:
+            type: string
+            description: A single string describing the type of vulnerability.
+        required:
+          - id
+          - properties
+          - remediation
+  required:
+    - operation
+    - type
+    - key
+    - scope
+    - vulnerabilities
+AccumulateRequestBody:
+  title: Accumulate Statistics Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `accumulate`.
+      enum:
+        - accumulate
+    scope:
+      $ref: '#/ScopeParam'
+    properties:
+      type: object
+      description: A JSON Object with properties pertaining to the asset being modified. For the `accumulate` operation, this has to be declared and statistics must be present.
+    key:
+      $ref: '#/KeyParam'
+    strategy:
+      $ref: '#/StrategyParam'
+  required:
+    - operation
+    - type
+    - scope
+    - properties
+    - key
+DeclareAccessLevelsRequestBody:
+  title: Declare Access Levels Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `declare_access_levels`.
+      enum:
+        - declare_access_levels
+    asset:
+      type: object
+      description: |-
+        This field should be an object containing the `type` and `key` of the source asset for
+        the access levels you wish to declare.
+    scope:
+      $ref: '#/ScopeParam'
+    access_levels:
+      type: array
+      description: |-
+        A list of objects representing the access levels. Each object must have `derives_from`
+        (list of objects) and `destination` (object), each with `type` and `key`, as well as a
+        `properties` dict that must contain an `access_type` property. Currently `access_type`
+        can only be set to `"admin"`
+  required:
+    - operation
+    - asset
+    - scope
+    - access_levels
+DeclareAssetRequestBody:
+  title: Declare Asset Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `declare_asset`.
+      enum:
+        - declare_asset
+    type:
+      $ref: '#/TypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+    properties:
+      $ref: '#/PropertiesParam'
+    relationships:
+      $ref: '#/RelationshipsParam'
+    exclusive:
+      $ref: '#/ExclusiveParam'
+    exclusive_types:
+      $ref: '#/ExclusiveTypesParam'
+  required:
+    - operation
+    - type
+    - key
+    - scope
+DeclareBatchRequestBody:
+  title: Declare Batch Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `batch_declare`.
+      enum:
+        - batch_declare
+    transaction:
+      type: boolean
+      description: |-
+        If batch declare is issued with transaction flag enabled all operations run sequentially
+        and the batch will fail (abort on spot) as soon as any of the declares is unsuccessful.
+        No rollback is performed. For operations that failed "not executed" error will be
+        returned (see example). Default: `false`.
+    operations:
+      type: array
+      items:
+        type: object
+      description: |-
+        Any combination of `declare_asset`, `declare_properties`, and `declare_relationships`
+        operations.
+  required:
+    - operation
+    - operations
+DeclarePropertiesRequestBody:
+  title: Declare Properties Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `declare_properties`.
+      enum:
+        - declare_properties
+    type:
+      $ref: '#/TypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+    properties:
+      $ref: '#/PropertiesParam'
+    conditions:
+      $ref: '#/ConditionsParam'
+    create:
+      type: boolean
+      description: |-
+        A flag that determines if an asset should be created by the operation, if it
+        does not already exist. This property is presumed to be `true` if not set,
+        and a `conditions` list is present in the request body. It is presumed to be `false`
+        if not set, and there is no `conditions` list present in the request body.
+  required:
+    - operation
+    - type
+    - key
+    - scope
+    - properties
+DeclareRelationshipsRequestBody:
+  title: Declare Relationships Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `declare_relationships`.
+      enum:
+        - declare_relationships
+    type:
+      $ref: '#/TypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+    relationships:
+      $ref: '#/RelationshipsParam'
+    exclusive:
+      $ref: '#/ExclusiveParam'
+    exclusive_types:
+      $ref: '#/ExclusiveTypesParam'
+  required:
+    - operation
+    - type
+    - key
+    - scope
+    - relationships
+RemoveAssetRequestBody:
+  title: Remove Asset Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `remove_asset`.
+      enum:
+        - remove_asset
+    type:
+      $ref: '#/TypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+  required:
+    - operation
+    - type
+    - key
+    - scope
+RemoveAssetsRequestBody:
+  title: Remove Assets Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `remove_assets`.
+      enum:
+        - remove_assets
+    assets:
+      type: array
+      items:
+        type: object
+        properties:
+          type:
+            $ref: '#/TypeParam'
+          key:
+            $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+  required:
+    - operation
+    - assets
+    - scope
+RemovePropertiesRequestBody:
+  title: Remove Properties Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `remove_properties`.
+      enum:
+        - remove_properties
+    property_names:
+      type: array
+      items:
+        type: string
+      description: |-
+        A list of property names to remove; these can either be strings or lists of strings for
+        nested property paths. Property names may only be composed of characters `[a-zA-Z0-9_]`.
+    type:
+      $ref: '#/TypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+    conditions:
+      $ref: '#/ConditionsParam'
+  required:
+    - operation
+    - property_names
+    - type
+    - key
+    - scope
+RemoveRelationshipsRequestBody:
+  title: Remove Relationships Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `remove_relationships`.
+      enum:
+        - remove_relationships
+    relationships:
+      $ref: '#/RelationshipsParam'
+    type:
+      $ref: '#/TypeParam'
+    key:
+      $ref: '#/KeyParam'
+    scope:
+      $ref: '#/ScopeParam'
+  required:
+    - operation
+    - relationships
+    - type
+    - key
+    - scope
+CreateAssetGroupRequestBody:
+  title: Create Asset Group Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `create_asset_group`.
+      enum:
+        - create_asset_group
+    properties:
+      $ref: '#/GroupPropertiesParam'
+    name:
+      $ref: '#/GroupNameParam'
+    scope:
+      $ref: '#/ScopeParam'
+  required:
+    - operation
+    - properties
+    - name
+    - scope
+DeleteAssetGroupRequestBody:
+  title: Delete Asset Group Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `delete_asset_group`.
+      enum:
+        - delete_asset_group
+    name:
+      $ref: '#/GroupNameParam'
+    scope:
+      $ref: '#/ScopeParam'
+  required:
+    - operation
+    - name
+    - scope
+UpdateAssetGroupRequestBody:
+  title: Update Asset Group Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `update_asset_group`.
+      enum:
+        - update_asset_group
+    properties:
+      $ref: '#/GroupPropertiesParam'
+      description: An object of properties pertaining to the asset updated.
+    name:
+      $ref: '#/GroupNameParam'
+    scope:
+      $ref: '#/ScopeParam'
+  required:
+    - operation
+    - properties
+    - name
+    - scope

@@ -1,0 +1,331 @@
+# Response params
+AccountId:
+  type: string
+  description: AIMS account ID
+DeploymentId:
+  type: string
+  description: Deployment ID
+AssetKey:
+  type: string
+  description: Asset Key
+AssetType:
+  type: string
+  description: Asset Type
+GroupKey:
+  type: string
+  description: Group Key
+GroupProperties:
+  type: object
+  description: Group Properties
+  properties:
+    scopes:
+      type: array
+      items:
+        type: object
+        properties:
+          include:
+            type: array
+            items:
+              type: string
+          exclude:
+            type: array
+            items:
+              type: string
+          asset_types:
+            type: array
+            items:
+              type: string
+GroupType:
+  type: string
+  description: Group Type
+  enum:
+    - asset-group
+TimestampMS:
+  type: number
+  description: Milliseconds since Unix Epoch
+Version:
+  title: Version
+  type: number
+  description: Object Version
+Relationships:
+  title: Relationships
+  description: Asset relationships
+  type: array
+  items:
+    type: object
+    properties:
+      key:
+        $ref: '#/AssetKey'
+      type:
+        $ref: '#/AssetType'
+
+# Error responses
+NoContent:
+  description: '`No Content`.'
+Unauthorized:
+  description: '`Unauthorized`. The provided `x-aims-auth-token` header could not be authenticated.'
+Forbidden:
+  description: '`Forbidden`. Insufficient permissions.'
+NotFound:
+  description: '`Not Found`. The requested object was not found.'
+BadRequest:
+  description: '`Bad Request` An invalid parameter was given in the request (see the response message for details)'
+  content:
+    application/json:
+      schema:
+        $ref: '#/InvalidParameter'
+      examples:
+        Invalid Asset Key:
+          value:
+            message: 'Invalid asset key'
+RequestEntityTooLarge:
+  description: |-
+    `Request Entity Too Large`. The requested object was larger than the maximum allowed size.
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error:
+            type: string
+            enum:
+              - Request body too large
+        required:
+          - error
+InvalidParameter:
+  title: Invalid Parameter
+  type: object
+  properties:
+    message:
+      type: string
+  required:
+    - message
+InvalidOperation:
+  title: Invalid Operation
+  type: object
+  properties:
+    error:
+      type: string
+  required:
+    - error
+InvalidOperationOrParameter:
+  description: |-
+    `Bad Request` An invalid parameter was given in the request (see the response message for details)<br>
+    `Bad Request` Returned when an invalid operation is provided in a request.
+  content:
+    application/json:
+      schema:
+        oneOf:
+          - $ref: '#/InvalidParameter'
+          - $ref: '#/InvalidOperation'
+      examples:
+        Invalid Asset Key:
+          value:
+            message: 'Invalid asset key'
+        Invalid Operation:
+          value:
+            error: 'Invalid operation'
+
+# Responses
+CreateNetworkResponse:
+  title: Create Network response
+  type: object
+  properties:
+    key:
+      $ref: '#/AssetKey'
+DeclareApplicationsResponse:
+  title: Declare Applications Response
+  type: object
+  properties:
+    operation:
+      type: string
+    type:
+      $ref: '#/AssetType'
+    key:
+      $ref: '#/AssetKey'
+    scope:
+      type: string
+    destinations:
+      type: array
+      items:
+        type: array
+DeclareEnvironmentsResponse:
+  title: Declare Environments Response
+  type: object
+  properties:
+    version:
+      $ref: '#/Version'
+    type:
+      $ref: '#/AssetType'
+    relationships:
+      $ref: '#/Relationships'
+    properties:
+      type: object
+    modified_on:
+      $ref: '#/TimestampMS'
+    key:
+      $ref: '#/AssetKey'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    deleted_on:
+      $ref: '#/TimestampMS'
+    declared:
+      type: boolean
+    created_on:
+      $ref: '#/TimestampMS'
+    account_id:
+      $ref: '#/AccountId'
+AccumulateResponse:
+  title: Accumulate Response
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    relationships:
+      $ref: '#/Relationships'
+    properties:
+      type: object
+      properties:
+        statistics:
+          type: object
+    modified_on:
+      $ref: '#/TimestampMS'
+    key:
+      $ref: '#/AssetKey'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    account_id:
+      $ref: '#/AccountId'
+DeclareAssetResponse:
+  title: Declare Asset Response
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    relationships:
+      $ref: '#/Relationships'
+    key:
+      $ref: '#/AssetKey'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    account_id:
+      $ref: '#/AccountId'
+DeclareBatchResponse:
+  title: Declare Batch Response
+  type: object
+  properties:
+    return_values:
+      type: array
+      items:
+        type: object
+        properties:
+          code:
+            type: integer
+            description: HTML response code (e.g. 201, 400, 404, 413)
+          value:
+            type: object
+            description: The operation resulting object (e.g Declare Asset response)
+DeclarePropertiesResponse:
+  title: Declare Properties Response
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    key:
+      $ref: '#/AssetKey'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    account_id:
+      $ref: '#/AccountId'
+DeclareRelationshipsResponse:
+  title: Declare Relationships Response
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    relationships:
+      $ref: '#/Relationships'
+    key:
+      $ref: '#/AssetKey'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    account_id:
+      $ref: '#/AccountId'
+RemovePropertiesResponse:
+  title: Remove Properties Response
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    key:
+      $ref: '#/AssetKey'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    account_id:
+      $ref: '#/AccountId'
+RemoveRelationshipsResponse:
+  title: Remove Relationships Response
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    relationships:
+      $ref: '#/Relationships'
+    key:
+      $ref: '#/AssetKey'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    account_id:
+      $ref: '#/AccountId'
+CreateAssetGroupResponse:
+  title: Create Asset Group Response
+  type: object
+  properties:
+    account_id:
+      $ref: '#/AccountId'
+    created_on:
+      $ref: '#/TimestampMS'
+    declared:
+      type: boolean
+    deleted_on:
+      $ref: '#/TimestampMS'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    key:
+      $ref: '#/GroupKey'
+    modified_on:
+      $ref: '#/TimestampMS'
+    properties:
+      $ref: '#/GroupProperties'
+    relationships:
+      $ref: '#/Relationships'
+    type:
+      $ref: '#/GroupType'
+    version:
+      $ref: '#/Version'
+UpdateAssetGroupResponse:
+  title: Update Asset Group Response
+  type: object
+  properties:
+    account_id:
+      $ref: '#/AccountId'
+    created_on:
+      $ref: '#/TimestampMS'
+    declared:
+      type: boolean
+    deleted_on:
+      $ref: '#/TimestampMS'
+    deployment_id:
+      $ref: '#/DeploymentId'
+    key:
+      $ref: '#/GroupKey'
+    modified_on:
+      $ref: '#/TimestampMS'
+    properties:
+      $ref: '#/GroupProperties'
+    relationships:
+      $ref: '#/Relationships'
+    type:
+      $ref: '#/GroupType'
+    version:
+      $ref: '#/Version'

@@ -1,0 +1,572 @@
+openapi: 3.0.2
+info:
+  title: assets_write
+  version: "1.0"
+  contact:
+    email: support@alertlogic.com
+    name: Alert Logic Support
+    url: https://support.alertlogic.com
+  x-alertlogic-iws-service:
+    type: public
+  description: |-
+    The assets writer interface for consumers
+    # Assets Write
+
+    ### <a id="api-_-asset-types"></a>Supported Asset Types
+
+    The following are the currently supported asset types:
+
+    * `"access-level"`
+    * `"acl"`
+    * `"acl-entry"`
+    * `"agent"`
+    * `"appliance"`
+    * `"application"`
+    * `"application-name"`
+    * `"assessment-spec"`
+    * `"auto-scaling-group"`
+    * `"billing-report"`
+    * `"cgw"`
+    * `"cipher-policy"`
+    * `"cloud-trail"`
+    * `"collector"`
+    * `"config-delivery-channel"`
+    * `"configuration-recorder"`
+    * `"container"`
+    * `"container-image"`
+    * `"data-service"`
+    * `"db-instance"`
+    * `"db-subnet-group"`
+    * `"deployment"`
+    * `"dns-record-set"`
+    * `"dns-zone"`
+    * `"external-dns-name"`
+    * `"external-ip"`
+    * `"group"`
+    * `"host"`
+    * `"igw"`
+    * `"image"`
+    * `"instance-profile"`
+    * `"kms-key"`
+    * `"launch-config"`
+    * `"listener"`
+    * `"load-balancer"`
+    * `"netflow-log"`
+    * `"network-interface"`
+    * `"nsg"`
+    * `"policy"`
+    * `"public-ip-address"`
+    * `"redshift-cluster"`
+    * `"region"`
+    * `"remediation"`
+    * `"remediation-item"`
+    * `"role"`
+    * `"route"`
+    * `"route-entry"`
+    * `"s3-acl"`
+    * `"s3-bucket"`
+    * `"sg"`
+    * `"sns-subscription"`
+    * `"sns-topic"`
+    * `"subnet"`
+    * `"tag"`
+    * `"user"`
+    * `"vgw"`
+    * `"volume"`
+    * `"vpc"`
+    * `"vpnconn"`
+    * `"vulnerability"`
+    * `"zone"`
+
+    #### <a id="api-_-vulnerable-asset-types"></a>Vulnerable Asset Types
+
+    The following asset types can have vulnerabilities declared against them:
+
+    * `"acl"`
+    * `"cloud-trail"`
+    * `"collector"`
+    * `"db-instance"`
+    * `"deployment"`
+    * `"dns-zone"`
+    * `"external-dns-name"`
+    * `"external-ip"`
+    * `"host"`
+    * `"igw"`
+    * `"image"`
+    * `"instance-profile"`
+    * `"kms-key"`
+    * `"load-balancer"`
+    * `"nsg"`
+    * `"redshift-cluster"`
+    * `"region"`
+    * `"remediation"`
+    * `"remediation-item"`
+    * `"role"`
+    * `"route"`
+    * `"s3-bucket"`
+    * `"sg"`
+    * `"user"`
+    * `"volume"`
+    * `"vpc"`
+    * `"vulnerability"`
+
+    #### <a id="api-_-deprecated-asset-types"></a>Deprecated Asset Types
+
+    The following types are deprecated but still supported; their preferred type names are mapped below:
+
+    | Deprecated type name | Actual type name      |
+    |----------------------|-----------------------|
+    |`"environment"`       |`"deployment"`         |
+    |`"location"`          |`"region"`             |
+    |`"vnet"`              |`"vpc"`                |
+    |`"vm"`                |`"host"`               |
+    |`"vm-scale-set"`      |`"auto-scaling-group"` |
+
+    Additionally, assets of type "tag" no longer need to be declared. Instead, "tag" assets are
+    automatically derived from the presence of relationships to them declared on other assets.
+    Only those "tag" relationships need to be declared.
+
+    ### <a id="api-_-tag-rel-constraints"></a>Special Tag Relationship Constraints
+
+    #### Tag names should be unique
+
+    Because of the nature of tagging, assets may only be related to a single tag asset per unique
+    `tag_name`. That is, a single asset **may not** be concurrently related to the tags `test: example1`
+    and `test: example2`. Thus, when updating relationships (e.g., via operations like
+    [declare_asset](#api-DeclareModify-DeclareAsset) or
+    [declare_relationships](#api-DeclareModify-DeclareRelationships)), **only** the most recent
+    relationship of type `tag` with a given `tag_name` will be retained.
+
+    For technical context, asset tag names are derived from their asset key, which has the form:
+
+    ```
+    {ignored_prefix}/tag/key/{tag_name}/value/{tag_value}
+    ```
+
+    This means that, if an existing asset has a relationship to a tag like
+    `/tag/key/test/value/example1` declared by **any** scope, and another client declares a relationship
+    to `/tag/key/test/value/example2` in **any** scope, the relationship to
+    `/tag/key/test/value/example1` will be superseded by the relationship to
+    `/tag/key/test/value/example2`, and it will be deleted from the asset's `"relationships"` during
+    the operation that declares the relationship to`/tag/key/test/value/example2`.
+
+    Moreover, if a client declares relationships on a single asset to **multiple** tag assets with the
+    same `tag_name`, the conflict will be resolved by retaining only the last instance in the
+    `"relationships"` list, in addition to the removal of any previously existing relationships to tags
+    with the same `tag_name`.
+
+    #### Relationships must be declared on the tagged asset
+
+    Tag assets should no longer be declared. To represent a tagged asset, declare a tag relationship on
+    the tagged asset.
+
+    For example, when representing a host asset with key `/aws/host1` and tagged with
+    key `foo` and value `bar`, a relationship should be declared from the host asset `/aws/host1`
+    to tag asset `/tag/key/foo/value/bar`.
+
+    ### <a id="api-_-merge-properties"></a>Merging asset properties
+
+    When declaring asset properties using operations like
+    [declare_asset](#api-DeclareModify-DeclareAsset) or
+    [declare_properties](#api-DeclareModify-DeclareProperties), the given properties are merged onto the
+    existing asset using a complete replacement of each top-level property. For use cases where it is
+    necessary to update a nested sub-property without eliminating its peer sub-properties, the client
+    may pass a top-level path to the sub-property, with nested sub-properties separated by the period
+    (`.`) character within the top-level property. Note that this behavior may also be used to declare
+    new nested properties, avoiding the verbosity of expressing nested JSON.
+
+    For example, given the existing asset:
+
+    ```json
+    {
+      "scope_example_my-property" : {
+        "sub-property-1": {
+          "sub-sub-property-1": "update_me",
+          "sub-sub-property-2": "do_not_delete"
+        },
+        "sub-property-2": "do_not_delete"
+      }
+    }
+    ```
+
+    If you wanted to update the property `"sub-sub-property-1"` above, without erasing
+    `"sub-property-2"` or `"sub-sub-property-2"`, you could do so by updating the path
+    `"my-property.sub-property-1.sub-sub-property-1"`; for example:
+
+    ```json
+    {
+      "operation": "declare_properties",
+      "scope": "example",
+      "properties": {
+        "my-property.sub-property-1.sub-sub-property-1": "updated"
+      }
+    }
+    ```
+
+    This would result in the asset's properties being merged accordingly, preserving
+    the existing peer properties throughout the path:
+
+    ```json
+    {
+      "scope_example_my-property" : {
+        "sub-property-1": {
+          "sub-sub-property-1": "updated",
+          "sub-sub-property-2": "do_not_delete"
+        },
+        "sub-property-2": "do_not_delete"
+      }
+    }
+    ```
+
+    #### Merge properties restrictions
+
+    Note that you cannot merge nested properties into assets with an existing parent property that is
+    not an object. In the examples above, you cannot update the path 
+    `"my-property.sub-property-2.sub-sub-property-2"` in the asset, because the parent path
+    `"my-property.sub-property-2"` is a string, not an object. Requests to perform invalid merges like
+    this will result in a `400 Bad Request` error.
+
+paths:
+  /assets_write/v1/{account_id}/deployments/{deployment_id}/assets:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+    put:
+      operationId: declare
+      summary: Declare and Modify Asset(s)
+      description: |-
+        ## Declare Functions
+
+        ### Create Network (operation:create_network)
+        Declares (creates) a region and a network (an alias for VPC) with relationship to the region and
+        with a claim key.
+
+        ### Declare Applications (operation:declare_applications)
+        
+        `declare_applications` creates a set of assets of type `"application"` and adds relationships to the
+        target asset, specified by the `type` and `key` parameters. If such asset doesn't exist, then
+        declare_applications returns a HTTP 404 response. Declaring applications overwrites any existing
+        applications of the same scope for that asset. declare_applications returns a HTTP 204 response
+        upon success.
+
+        ### Declare Environments (operation:declare_environment)
+        Declares (creates) a deployment (née environment) in assets.
+        
+        The request must contain the environment's parameters in a JSON structure with the key items
+        detailed below.
+
+        ### Declare Vulnerabilities (operation:declare_vulnerabilities)
+        Creates vulnerabilities and remediations and adds relationships to the asset
+        which is vulnerable, specified by the `type` and `key` parameters. If such asset doesn't exist,
+        then declare_vulnerabilities returns a HTTP 404 response. Declaring vulnerabilities overwrites
+        any existing vulnerabilities of the same scope for that asset.
+
+        ## Declare and Modify
+
+        ### Accumulate Statistics (operation:accumulate)
+        
+        accumulates agents and appliances statistics. The accumulate operation may be called any number of
+        times for the same asset. The updated asset will contain a statistics property with sub-properties
+        for each accumulated statistic. This is intended to record collection statistics based on defined
+        strategy by collection type on agent and appliance assets. Currently, only `hourly` strategy is
+        supported. Hourly strategy records the last 24 calendar hours.
+        
+        Note that the response `last_hour` value is the previous hour, not the current hour value.
+        `last_day` represents the sum of the all previous hours but the current hour.
+
+        ### Declare Access Levels (operation:declare_access_levels)
+        Declares access levels for the assets specified. If `asset`, `destination`, or
+        any of `derives_from` assets don't exist, then declare_access_levels returns an `HTTP 404`
+        response.
+
+        ### Declare Asset (operation:declare_asset)
+        
+        `declare_asset` creates or [merges](#api-_-merge-properties) an asset and its relationships.
+        declare_asset may be called any number of times for the same asset, with subsets of properties
+        and relationships, and the assets service will merge the data. If a relationship is declared
+        to an asset that doesn't exist, this asset will not be returned by assets_query until it is
+        declared.
+
+        ### Declare Properties (operation:declare_properties)
+        
+        declare_properties [merges properties](#api-_-merge-properties) with an existing asset. All fields
+        are required, except `conditions` and `create`. This operation returns a HTTP/2 201 code on
+        success.
+        
+        The following algorithm applies when calling `declare_properties`
+        on a non-existent asset:
+        
+        - Apply the operation if the `create` property in the request body is `true`
+        - Discard the operation if the `create` property in the request body is `false`
+        - Apply the operation if there is no `create` property in the request body, but the `conditions` property is present
+        - Discard the operation if both the `create` and `conditions` properties are not present in the request body
+        
+        The following algorithm applies when calling `declare_properties` on an existing asset:
+        - Test conditions against the asset
+          - If `conditions` is not present in the request body, or is present and the value is an empty list, apply the operation
+          - if `conditions` is present and at least one condition is present
+            - If all conditions are satisfied, apply the operation
+            - If at least one condition is not satisfied, discard the operation and return a 304 status code
+            - If, when applying the operation, a version mismatch is hit, retry the operation including the
+              conditions evaluation and resulting behaviours
+        
+        There are two classes of conditions: *presence tests* and *comparisons*. All conditions require
+        `property` field, which holds the name of the property being tested, and `type` field, which
+        defines the test to be applied. Comparisons also must provide `value` field with value to compare
+        existing data to.
+        
+        The following presence tests are defined:
+        
+        - `"if-defined"` - check whether existing asset has the property being tested
+        - `"if-undefined"` - check whether existing asset doesn't have that property
+        
+        Following comparisons are defined:
+        
+        - `"if-equal"` - true if existing asset has the property being tested and it's value is equal to
+          the given one
+        - `"if-less"` - true if existing asset's value of the property being tested is less than the
+          given one or existing asset has no such property
+        - `"if-greater"` - true if existing asset's value of the property being tested is greater than
+          the given one or existing asset has no such property
+
+        ### Declare Relationships (operation:declare_relationships)
+        
+        `declare_relationships` creates or merges relationships for an existing asset. Calling
+        `declare_relationships` on a non-existent asset will return a 404.
+
+        ## Removals
+
+        ### Remove Asset (operation:remove_asset)
+        Deletes an existing asset and its relationships.
+
+        ### Remove Assets (operation:remote_assets)
+        Deletes multiple existing assets and their relationships.
+
+        ### Remove Properties (operation:remove_properties)
+        Completely removes the given properties (or nested properties) from the given asset.
+
+        ### Remove Relationships (operation:remove_relationships)
+        Deletes specific relationships for an existing asset.
+      tags:
+        - Declare Functions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: 'schemas.yaml#/CreateNetworkRequestBody'
+                - $ref: 'schemas.yaml#/DeclareApplicationsRequestBody'
+                - $ref: 'schemas.yaml#/DeclareEnvironmentsRequestBody'
+                - $ref: 'schemas.yaml#/DeclareVulnerabilitiesRequestBody'
+                - $ref: 'schemas.yaml#/AccumulateRequestBody'
+                - $ref: 'schemas.yaml#/DeclareAccessLevelsRequestBody'
+                - $ref: 'schemas.yaml#/DeclareAssetRequestBody'
+                - $ref: 'schemas.yaml#/DeclarePropertiesRequestBody'
+                - $ref: 'schemas.yaml#/DeclareRelationshipsRequestBody'
+                - $ref: 'schemas.yaml#/RemoveAssetRequestBody'
+                - $ref: 'schemas.yaml#/RemoveAssetsRequestBody'
+                - $ref: 'schemas.yaml#/RemovePropertiesRequestBody'
+                - $ref: 'schemas.yaml#/RemoveRelationshipsRequestBody'
+            examples:
+              Create Network Request Body Example:
+                $ref: 'examples.yaml#/CreateNetworkRequestBodyExample'
+              Declare Applications Request Body Example:
+                $ref: 'examples.yaml#/DeclareApplicationsRequestBodyExample'
+              Declare Environments Request Body Example:
+                $ref: 'examples.yaml#/DeclareEnvironmentsRequestBodyExample'
+              Declare Vulnerabilities Request Body Example:
+                $ref: 'examples.yaml#/DeclareVulnerabilitiesRequestBodyExample'
+              Accumulate Request Body Example:
+                $ref: 'examples.yaml#/AccumulateRequestBodyExample'
+              Declare Access Levels Request Body Example:
+                $ref: 'examples.yaml#/DeclareAccessLevelsRequestBodyExample'
+              Declare Asset Request Body Example:
+                $ref: 'examples.yaml#/DeclareAssetRequestBodyExample'
+              Declare Properties Request Body Example:
+                $ref: 'examples.yaml#/DeclarePropertiesRequestBodyExample'
+              Declare Properties (create=false) Request Body Example:
+                $ref: 'examples.yaml#/DeclarePropertiesCreateFalseRequestBodyExample'
+              Declare Properties (with conditions) Request Body Example:
+                $ref: 'examples.yaml#/DeclarePropertiesWithConditionsRequestBodyExample'
+              Declare Relationships Request Body Example:
+                $ref: 'examples.yaml#/DeclareRelationshipsRequestBodyExample'
+              Remove Asset Request Body Example:
+                $ref: 'examples.yaml#/RemoveAssetRequestBodyExample'
+              Remove Assets Request Body Example:
+                $ref: 'examples.yaml#/RemoveAssetsRequestBodyExample'
+              Remove Properties Request Body Example:
+                $ref: 'examples.yaml#/RemovePropertiesRequestBodyExample'
+              Remove Properties (with conditions) Request Body Example:
+                $ref: 'examples.yaml#/RemovePropertiesWithConditionsRequestBodyExample'
+              Remove Relationships Request Body Example:
+                $ref: 'examples.yaml#/RemoveRelationshipsRequestBodyExample'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: 'responses.yaml#/RemovePropertiesResponse'
+                  - $ref: 'responses.yaml#/RemoveRelationshipsResponse'
+              examples:
+                Remove Properties Example:
+                  $ref: 'examples.yaml#/RemovePropertiesExample'
+                Remove Relationships Example:
+                  $ref: 'examples.yaml#/RemoveRelationshipsExample'
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: 'responses.yaml#/CreateNetworkResponse'
+                  - $ref: 'responses.yaml#/DeclareEnvironmentsResponse'
+                  - $ref: 'responses.yaml#/AccumulateResponse'
+                  - $ref: 'responses.yaml#/DeclareAssetResponse'
+                  - $ref: 'responses.yaml#/DeclarePropertiesResponse'
+                  - $ref: 'responses.yaml#/DeclareRelationshipsResponse'
+              examples:
+                Create Network Example:
+                  $ref: 'examples.yaml#/CreateNetworkExample'
+                Declare Environments Example:
+                  $ref: 'examples.yaml#/DeclareEnvironmentsExample'
+                Accumulate Statistics Example:
+                  $ref: 'examples.yaml#/AccumulateExample'
+                Declare Asset Example:
+                  $ref: 'examples.yaml#/DeclareAssetExample'
+                Declare Properties Example:
+                  $ref: 'examples.yaml#/DeclarePropertiesExample'
+                Declare Relationships Example:
+                  $ref: 'examples.yaml#/DeclareRelationshipsExample'
+        "204":
+          description: No Content (Declare Applications, Vulnerabilities, Relationships and Remove Asset(s) successful response)
+        "400":
+          $ref: 'responses.yaml#/InvalidOperationOrParameter'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+        "413":
+          $ref: 'responses.yaml#/RequestEntityTooLarge'
+  /assets/v1/{account_id}/deployments/{deployment_id}/batch:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+    put:
+      operationId: declare_batch
+      summary: Declare Batch
+      description: |-
+        Declares a list of any combination of `declare_asset`, `declare_properties`,
+        and `declare_relationships` operations.
+      tags:
+        - Declare Functions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/DeclareBatchRequestBody'
+            examples:
+              Declare Batch Request Body Example:
+                $ref: 'examples.yaml#/DeclareBatchRequestBodyExample'
+              Declare Batch Request Body (transaction) Example:
+                $ref: 'examples.yaml#/DeclareBatchRequestBodyTransactionExample'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: 'responses.yaml#/DeclareBatchResponse'
+              examples:
+                Declare Batch Example:
+                  $ref: 'examples.yaml#/DeclareBatchExample'
+                Declare Batch Transaction Example:
+                  $ref: 'examples.yaml#/DeclareBatchTransactionExample'
+        "400":
+          $ref: 'responses.yaml#/InvalidOperationOrParameter'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+        "413":
+          $ref: 'responses.yaml#/RequestEntityTooLarge'
+  /assets_write/v1/{account_id}/assets:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+    put:
+      operationId: asset_group
+      summary: Asset Group (Create, Update, Delete)
+      description: |-
+        ### Create Asset Group (operation:operation)
+        Creates an `asset-group` asset.
+
+        ### Delete Asset Group (operation:delete_asset_group)
+        Delete an existing `asset-group` asset.
+
+        ### Update Asset Group (operation:update_asset_group)
+        Updates an existing `asset-group` asset.
+      tags:
+        - Asset Groups Operations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: 'schemas.yaml#/CreateAssetGroupRequestBody'
+                - $ref: 'schemas.yaml#/DeleteAssetGroupRequestBody'
+                - $ref: 'schemas.yaml#/UpdateAssetGroupRequestBody'
+            examples:
+              Create Asset Group Request Body Example:
+                $ref: 'examples.yaml#/CreateAssetGroupRequestBodyExample'
+              Delete Asset Group Request Body Example:
+                $ref: 'examples.yaml#/DeleteAssetGroupRequestBodyExample'
+              Update Asset Group Request Body Example:
+                $ref: 'examples.yaml#/UpdateAssetGroupRequestBodyExample'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: 'responses.yaml#/CreateAssetGroupResponse'
+                  - $ref: 'responses.yaml#/UpdateAssetGroupResponse'
+              examples:
+                Create Asset Group Example:
+                  $ref: 'examples.yaml#/CreateAssetGroupExample'
+                Update Asset Group Example:
+                  $ref: 'examples.yaml#/UpdateAssetGroupExample'
+        "204":
+          description: No Content (Delete Asset Group successful response)
+        "304":
+          description: Not Modified (Update Asset Group no-op response)
+        "400":
+          $ref: 'responses.yaml#/BadRequest'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+components:
+  securitySchemes:
+    x-aims-auth-token:
+      name: x-aims-auth-token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+servers:
+  - url: https://api.cloudinsight.alertlogic.com
+    x-alertlogic-session-endpoint: true
+    description: production (US)
+  - url: https://api.cloudinsight.alertlogic.co.uk
+    description: production (UK)
+    x-alertlogic-session-endpoint: true
+  - url: https://api.product.dev.alertlogic.com
+    description: integration
+tags:
+  - name: Declare Functions
+    description: Declare Functions
+  - name: Asset Groups Operations
+    description: Asset Groups Operations
