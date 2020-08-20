@@ -39,6 +39,14 @@ paths:
           in: query
           name: ts
           description: A unix epoch timestamp
+        - schema:
+            type: boolean
+            default: 'true'
+          in: query
+          name: compose
+          description: >-
+            Determine if the tags are retrieve with composition or not, by
+            default it is true.
     parameters:
       - schema:
           type: string
@@ -189,11 +197,11 @@ paths:
               type: array
               items:
                 anyOf:
-                - $ref: '#/components/schemas/CrudKeyWrite'
-                - $ref: '#/components/schemas/CrudKeyRead'
-                - $ref: '#/components/schemas/CrudKeyDelete'
-                - $ref: '#/components/schemas/CrudKeyAdd'
-                - $ref: '#/components/schemas/CrudKeySubtract'
+                  - $ref: '#/components/schemas/CrudKeyWrite'
+                  - $ref: '#/components/schemas/CrudKeyRead'
+                  - $ref: '#/components/schemas/CrudKeyDelete'
+                  - $ref: '#/components/schemas/CrudKeyAdd'
+                  - $ref: '#/components/schemas/CrudKeySubtract'
             x-alertlogic-schema:
               name: crud_list
               encoding:
@@ -549,6 +557,14 @@ paths:
           in: query
           name: ts
           description: A unix epoch timestamp
+        - schema:
+            type: boolean
+            default: 'true'
+          in: query
+          name: compose
+          description: >-
+            Determine if the tags are retrieve with composition or not, by
+            default it is true.
   '/aetag/v1/definitions/ids/{id}':
     parameters:
       - schema:
