@@ -286,6 +286,7 @@ paths:
       - $ref: 'parameters.yaml#/ParamQFields'
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
+      - $ref: 'parameters.yaml#/ParamTopoChain'
     get:
       operationId: query_assets
       summary: Query Assets for Account
@@ -297,6 +298,11 @@ paths:
           label: Get all assets for an account ID
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get all assets for an account ID (topo_chain=false)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets&topo_chain=false" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
           label: Get just region assets
@@ -332,6 +338,16 @@ paths:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionExample'
                 asset_types=region,any:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionAnyExample'
+                asset_types=region & created_on:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionSameCreatedOnExample'
+                asset_types=vpc,subnet in us-east-1:
+                  $ref: 'examples.yaml#/QueryAssetsAssetVPCsAndSubnetsInRegionExample'
+                asset_types=host,subnet,vpc in us-west-1:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesVPCSubnetHostInRegionExample'
+                asset_types=region & not related to a vpc:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionNotRelatedToAVpcExample'
+                topo_chain=false:
+                  $ref: 'examples.yaml#/QueryAssetsTopoChainFalseExample'
         "400":
           $ref: 'responses.yaml#/QueryAssetsBadRequestError'
         "401":
@@ -354,6 +370,7 @@ paths:
       - $ref: 'parameters.yaml#/ParamQFields'
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
+      - $ref: 'parameters.yaml#/ParamTopoChain'
     get:
       operationId: query_deployment_assets
       summary: Query Assets in Deployment
@@ -365,6 +382,11 @@ paths:
           label: Get all assets in deployment
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5/assets" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get all assets in deployment (topo_chain=false)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5/assets&topo_chain=false" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
           label: Find regions related to a specific subnet
@@ -410,6 +432,16 @@ paths:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionExample'
                 asset_types=region,any:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionAnyExample'
+                asset_types=region & created_on:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionSameCreatedOnExample'
+                asset_types=vpc,subnet in us-east-1:
+                  $ref: 'examples.yaml#/QueryAssetsAssetVPCsAndSubnetsInRegionExample'
+                asset_types=host,subnet,vpc in us-west-1:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesVPCSubnetHostInRegionExample'
+                asset_types=region & not related to a vpc:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionNotRelatedToAVpcExample'
+                topo_chain=false:
+                  $ref: 'examples.yaml#/QueryAssetsTopoChainFalseExample'
         "400":
           $ref: 'responses.yaml#/QueryAssetsBadRequestError'
         "401":
@@ -1127,6 +1159,40 @@ paths:
           $ref: 'responses.yaml#/Forbidden'
         "404":
           $ref: 'responses.yaml#/NotFound'
+        "503":
+          $ref: 'responses.yaml#/UnavailableError'
+  /assets_query/v1/{account_id}/deployments/{deployment_id}/topology/config:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+    get:
+      operationId: config_topology
+      summary: Config Topology
+      description: |-
+        Retrieve the given deployment's configuration topology. Each row in the `assets` response is a set of
+        related `region`, `vpc`, and `subnet` asset strings that can be cross-referenced as JSON keys in the `data` map.
+      tags:
+        - Topology
+      x-codeSamples:
+        - lang: Shell
+          label: Config Topology
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/deployments/814C2911-09BB-1005-9916-7831C1BAC182/topology/config" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/ConfigTopologyResponse'
+              examples:
+                Config Topology Example:
+                  $ref: 'examples.yaml#/ConfigTopologyExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
         "503":
           $ref: 'responses.yaml#/UnavailableError'
   /assets_query/v1/{account_id}/deployments/{deployment_id}/topology/overview:
