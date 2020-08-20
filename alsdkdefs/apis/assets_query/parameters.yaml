@@ -357,3 +357,15 @@ ParamSort:
   description: |-
     Controls how to order the exposures/remediations. Must be a CSV of at least one of the
     allowed values. Note that `asset_count` will not work with `group=asset`.
+ParamTopoChain:
+  schema:
+    type: boolean
+    default: true
+  in: query
+  name: topo_chain
+  description: |-
+    Flag designed to modify the behavior of the Assets Query finder. If set to `true` (default),
+    it will find the assets by its topological path (deployment -> region -> vpc -> ...).
+    If set to `false`, it will retrieve all matching assets regardless of their topology path.
+    Note that `topo_chain=false` may include assets with broken path to the response
+    (e.g. a host without a relationship to a subnet).

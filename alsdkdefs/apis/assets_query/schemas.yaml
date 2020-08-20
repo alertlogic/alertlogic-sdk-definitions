@@ -342,6 +342,25 @@ QueryTopologyResponse:
     extras:
       type: object
       description: Extra assets are returned here if `extras` query param was set and such assets were found.
+ConfigTopologyResponse:
+  title: Config topology response
+  type: object
+  properties:
+    topology:
+      type: object
+      title: The primary key of the API response.
+      properties:
+        assets:
+          type: array
+          description: An array of list of asset `keys` for each `subnet` in the deployment. Contains the keys for the `subnet` itself, its `vpc` and its `region`.
+          items:
+            type: string
+        data:
+          type: object
+          description: A map containing all referenced asset objects in `assets` keyed by asset key.
+        rows:
+          type: integer
+          description: Number of assets.
 QueryTopologyOverviewResponse:
   title: Query topology overview response
   type: object
