@@ -95,6 +95,214 @@ QueryAssetsAssetTypesRegionAnyExample:
           account_id: "12345678"
           declared: true
     rows: 2
+QueryAssetsAssetTypesRegionSameCreatedOnExample:
+  value:
+    assets:
+    - - version: 2
+        type: region
+        threatiness: 0
+        threat_level: 0
+        tags: {}
+        tag_keys: {}
+        scope_aws_region_name: us-east-1
+        scope_aws_region_endpoint: ec2.us-east-1.amazonaws.com
+        scope_aws_native_id: us-east-1
+        region_name: us-east-1
+        path:
+        - deployment:844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        - region:/aws/us-east-1
+        native_type: region
+        name: us-east-1
+        modified_on: 1573565512189
+        key: "/aws/us-east-1"
+        in_scope: false
+        deployment_id: 844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        deleted_on: 0
+        declared: true
+        created_on: 1447260845785
+        account_id: '12345678'
+    - - version: 2
+        type: region
+        threatiness: 0
+        threat_level: 0
+        tags: {}
+        tag_keys: {}
+        scope_aws_region_name: us-west-1
+        scope_aws_region_endpoint: ec2.us-west-1.amazonaws.com
+        scope_aws_native_id: us-west-1
+        region_name: us-west-1
+        path:
+        - deployment:844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        - region:/aws/us-west-1
+        native_type: region
+        name: us-west-1
+        modified_on: 1573565512189
+        key: "/aws/us-west-1"
+        in_scope: false
+        deployment_id: 844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        deleted_on: 0
+        declared: true
+        created_on: 1447260845785
+        account_id: '12345678'
+    rows: 2
+QueryAssetsAssetTypesVPCSubnetHostInRegionExample:
+  value:
+    assets:
+    - - key: "/aws/us-west-1/host/i-55555555"
+        type: host
+        account_id: '12345678'
+        deployment_id: aws1
+        native_type: host
+        deleted_on: 0
+        declared: true
+        created_on: 1447322773497
+        modified_on: 1447322836174
+        instance_id: i-55555555
+        path:
+        - deployment:844581E6-4018-4DA8-8CF9-0D7C49EF171
+        - region:/aws/us-west-1
+        - vpc:/aws/us-west-1/vpc/i-1234abcd1234abcd
+        - subnet:/aws/us-west-1/subnet/subnet-55667788
+        scope_scan_instance_id: i-55555555
+      - key: "/aws/us-west-1/subnet/subnet-55667788"
+        type: subnet
+        account_id: '12345678'
+        deployment_id: aws1
+        native_type: subnet
+        deleted_on: 0
+        declared: true
+        created_on: 1447262582798
+        modified_on: 1447322836187
+        path:
+        - deployment:844581E6-4018-4DA8-8CF9-0D7C49EF171
+        - region:/aws/us-west-1
+        - vpc:/aws/us-west-1/vpc/i-1234abcd1234abcd
+        - subnet:/aws/us-west-1/subnet/subnet-55667788
+        subnet_id: s-55667788
+        scope_scan_subnet_id: s-55667788
+      - deployment_id: 844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        type: vpc
+        key: "/aws/us-west-1/vpc/i-1234abcd1234abcd"
+        path:
+        - deployment:844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        - region:/aws/us-west-1
+        - vpc:/aws/us-west-1/vpc/i-1234abcd1234abcd
+        account_id: '12345678'
+        declared: true
+      - version: 2
+        type: region
+        threatiness: 0
+        threat_level: 0
+        tags: {}
+        tag_keys: {}
+        scope_aws_region_name: us-west-1
+        scope_aws_region_endpoint: ec2.us-west-1.amazonaws.com
+        scope_aws_native_id: us-west-1
+        region_name: us-west-1
+        path:
+        - deployment:844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        - region:/aws/us-west-1
+        native_type: region
+        name: us-west-1
+        modified_on: 1573565512189
+        key: "/aws/us-west-1"
+        in_scope: false
+        deployment_id: 844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        deleted_on: 0
+        declared: true
+        created_on: 1573565512189
+        account_id: '12345678'
+    rows: 1
+QueryAssetsAssetVPCsAndSubnetsInRegionExample:
+  value:
+    assets:
+    - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+        type: vpc
+        key: "/aws/us-east-1/vpc/i-1234abcd1234abcd"
+        account_id: '12345678'
+        declared: true
+      - key: "/aws/us-east-1/subnet/subnet-11223344"
+        type: subnet
+        account_id: '12345678'
+        deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+        name: AlertLogic Security Subnet
+        native_type: subnet
+        declared: true
+        created_on: 1484342742171
+        modified_on: 1487249047201
+        deleted_on: 0
+        scope_aws_etag: 3C2D209A599F79EBA61BDF60763C9363
+        cidr_block: 10.254.0.96/28
+        scope_aws_cidr_block: 10.254.0.96/28
+        scope_aws_state: available
+        scope_aws_vpc_id: vpc-aabbccdd
+        subnet_id: subnet-10203040
+        subnet_name: AlertLogic Security Subnet
+        scope_aws_availability_zone: us-east-1a
+        scope_aws_subnet_id: subnet-10203040
+        scope_aws_map_public_ip_on_launch: []
+        scope_aws_subnet_name: AlertLogic Security Subnet
+        state: available
+    rows: 1
+QueryAssetsAssetTypesRegionNotRelatedToAVpcExample:
+  value:
+    assets:
+    - - version: 2
+        type: region
+        threatiness: 0
+        threat_level: 0
+        tags: {}
+        tag_keys: {}
+        scope_aws_region_name: sa-east-1
+        scope_aws_region_endpoint: ec2.sa-east-1.amazonaws.com
+        scope_aws_native_id: sa-east-1
+        region_name: sa-east-1
+        path:
+        - deployment:844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        - region:/aws/sa-east-1
+        native_type: region
+        name: sa-east-1
+        modified_on: 1573565512189
+        key: "/aws/sa-east-1"
+        in_scope: false
+        deployment_id: 844581E6-4018-4DA8-8CF9-0D7C49EF171B
+        deleted_on: 0
+        declared: true
+        created_on: 1573565512189
+        account_id: '12345678'
+    rows: 1
+QueryAssetsTopoChainFalseExample:
+  value:
+    assets:
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: host
+          key: /aws/us-east-1/host/i-no-relationship-host-1
+          account_id: "12345678"
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: host
+          key: /aws/us-east-1/host/i-no-relationship-host-2
+          account_id: "12345678"
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: host
+          key: /aws/us-east-1/host/i-1234abcd1234abcd
+          account_id: "12345678"
+      - - deployment_id: 9E4B8AAB-5E07-4B46-8E07-AA16D3CA1D03
+          type: subnet
+          key: /aws/us-east-1/subnet/subnet-abcd1234
+          account_id: "12345678"
+      - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+          type: sg
+          key: /aws/us-east-1/sg/sg-1234abcd
+          account_id: "12345678"
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: image
+          key: /aws/us-east-1/image/ami-abcdef01
+          account_id: "12345678"
+      - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+          type: subnet
+          key: /aws/us-east-1/subnet/subnet-01020304
+          account_id: "12345678"
+    rows: 7
 FindAssetAgentByUuidExample:
   value:
     type: agent
@@ -2564,6 +2772,76 @@ QueryTopologyExample:
             created_on: 1427317669928
             type: host
         rows: 1
+ConfigTopologyExample:
+  value:
+    topology:
+      rows: 2
+      data:
+        subnet:/aws/us-west-2/subnet/subnet-0c153ca78821727ca:
+          type: subnet
+          tags: {}
+          subnet_uuid: F4A1ECF8-D201-DDF4-CDEC-C11F9A183657
+          subnet_name: subnet-example-1
+          subnet_id: subnet-0c153ca78821727ca
+          state: available
+          native_type: subnet
+          name: subnet-example-1
+          modified_on: 1595982510037
+          key: "/aws/us-west-2/subnet/subnet-0c153ca78821727ca"
+          deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+          created_on: 1573565552068
+          cidr_block: 10.0.0.0/24
+          account_id: '19000001'
+        subnet:/aws/us-west-2/subnet/subnet-0f7decb2adce2a900:
+          type: subnet
+          tags: {}
+          subnet_uuid: F4A1ECF8-D201-DDF4-CDEC-C11F9A183657
+          subnet_name: subnet-example-2
+          subnet_id: subnet-0f7decb2adce2a900
+          state: available
+          native_type: subnet
+          name: subnet-example-2
+          modified_on: 1595982510037
+          key: "/aws/us-west-2/subnet/subnet-0f7decb2adce2a900"
+          deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+          created_on: 1573565552068
+          cidr_block: 10.0.0.0/24
+          account_id: '19000001'
+        vpc:/aws/us-west-2/vpc/vpc-0b419ba952d87fec0:
+          vpc_name: vpc-example
+          vpc_id: vpc-0b419ba952d87fec0
+          type: vpc
+          tags: {}
+          state: available
+          network_uuid: 88738351-E4B1-99D7-BAD0-EAAD25228707
+          native_type: vpc
+          name: vpc-example
+          modified_on: 1594856872900
+          key: "/aws/us-west-2/vpc/vpc-0b419ba952d87fec0"
+          deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+          created_on: 1573565545720
+          cidr_ranges:
+          - 10.0.0.0/16
+          cidr_block: 10.0.0.0/16
+          account_id: '19000001'
+        region:/aws/us-west-2:
+          type: region
+          tags: {}
+          region_name: us-west-2
+          native_type: region
+          name: us-west-2
+          modified_on: 1595966247328
+          key: "/aws/us-west-2"
+          deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+          created_on: 1573565512429
+          account_id: '19000001'
+      assets:
+      - - region:/aws/us-west-2
+        - vpc:/aws/us-west-2/vpc/vpc-0b419ba952d87fec0
+        - subnet:/aws/us-west-2/subnet/subnet-0c153ca78821727ca
+      - - region:/aws/us-west-2
+        - vpc:/aws/us-west-2/vpc/vpc-0b419ba952d87fec0
+        - subnet:/aws/us-west-2/subnet/subnet-0f7decb2adce2a900
 QueryTopologyOverviewExample:
   value:
     topology:
