@@ -1002,7 +1002,97 @@ paths:
             $ref: '#/components/schemas/IncidentId'
           name: incident_id
           in: path
-          required: true  
+          required: true
+  /iris/v3/incident_filters:
+    get:
+      summary: Get incident filters
+      tags:
+        - Console
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: Incident Filters
+                type: object
+                properties:
+                  class:
+                    type: array
+                    items:
+                      type: string
+                  detection_source:
+                    type: array
+                    items:
+                      type: string
+                  escalated:
+                    type: array
+                    items:
+                      type: boolean
+                  threat_level:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - class
+                  - detection_source
+                  - escalated
+                  - threat_level
+              examples:
+                200 OK:
+                  value:
+                    class:
+                      - web-log-analytics
+                      - suspicious-activity
+                      - brute-force
+                      - application-attack
+                      - recon
+                      - trojan-activity
+                      - policy-violation
+                      - info-leak
+                      - test
+                      - base
+                      - worm-activity
+                      - defensive-action
+                      - containment-action
+                      - denial-of-service
+                      - log-policy
+                      - pending
+                      - misconfiguration
+                      - log-review
+                      - 'authentication:activity'
+                      - 'admin:activity'
+                    detection_source:
+                      - Network IDS
+                      - GuardDuty
+                      - Log Mgmt
+                      - Web App IDS
+                      - Web Log Analytics
+                      - Log Review
+                      - Correlated Log
+                      - Firewall
+                      - Manual
+                      - N/A
+                    escalated:
+                      - true
+                      - false
+                    threat_level:
+                      - Info
+                      - Low
+                      - Medium
+                      - High
+                      - Critical
+        '401':
+          description: Unauthorized
+      operationId: get_incident_filters
+      description: Fetch the fields and values used to filter incidents
+      security:
+        - X-AIMS-Auth-Token: []
+      x-code-samples:
+        - lang: Request Sample
+          source: |
+            curl -H "x-aims-auth-token: ${TOKEN}" -X GET https://api.cloudinsight.alertlogic.com/iris/v3/incident_filters
+      parameters: []
 components:
   schemas:
     IncidentId:
@@ -1260,3 +1350,5 @@ tags:
     description: Multiple account operations
   - name: UI operations
     description: IRIS operations available through the console
+  - name: Console
+    description: null
