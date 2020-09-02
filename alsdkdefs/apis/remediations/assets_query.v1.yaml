@@ -235,6 +235,7 @@ info:
     |---------------------|-------------------|-------------------|----------|------|
     | `acl`               | `key`             | I       | `"acl:/aws/us-east-1/acl/acl-7ada4a1c"` | |
     | `application`       | `type`            | A, R    | `"application:any"`, `"application:Apache"` | |
+    | `asset-group`       | `key`             | I       | `"asset-group:PCI Assets"` | |
     | `cloud-trail`       | `key`             | I       | `"cloud-trail:/aws/us-west-2/cloud-trail/trail/Rackspace"` | |
     | `cve`               | `key`             | A, N, R | `"cve:any"`, `"cve:none"`, `"cve:CVE-2013-1937"` | |
     | `cwe`               | `key`             | A, N, R | `"cwe:any"`, `"cwe:none"`, `"cwe:CWE-121"` | |
