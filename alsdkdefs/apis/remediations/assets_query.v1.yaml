@@ -104,18 +104,19 @@ info:
     Assets supports queries with filters more complex than equality. The operator (special
     character(s)) is placed immediately after the equals sign in the query string parameter.
 
-    | Operation             | Character(s) | Format               | Example                      |
-    |-----------------------|--------------|----------------------|------------------------------|
-    | Greater than          | `>`          | String or number     | `x.y=>5`, `x.y=>Gryffindor`  |
-    | Less than             | `<`          | String or number     | `x.y=<5`, `x.y=<Slytherin`   |
-    | Not equal             | `!`          | Scalar               | `x.name=!Draco`              |
-    | Is not                | `!!`         | Scalar               | `x.name=!!Draco`             |
-    | Is null               | `$null`      | None                 | `x.name=$null`               |
-    | Is one of             | `@` or `<<`  | Comma separated list | `x.name=@Harry,Ron,Hermione` |
-    | List contains         | `>>`         | Scalar               | `x.parents=>>Lilly`          |
-    | List does not contain | `!>>`        | Scalar               | `x.parents=!>>Lilly`         |
-    | String contains       | `%`          | String               | `x.name=%Percival`           |
-    | Regex Match           | `~`          | String               | `x.name=~neighbou?r`         |
+    | Operation             | Character(s)   | Format               | Example                          |
+    |-----------------------|----------------|----------------------|----------------------------------|
+    | Greater than          | `>`            | String or number     | `x.y=>5`, `x.y=>Gryffindor`      |
+    | Less than             | `<`            | String or number     | `x.y=<5`, `x.y=<Slytherin`       |
+    | Not equal             | `!`            | Scalar               | `x.name=!Draco`                  |
+    | Is not                | `!!`           | Scalar               | `x.name=!!Draco`                 |
+    | Is null               | `$null`        | None                 | `x.name=$null`                   |
+    | Is one of             | `@` or `<<`    | Comma separated list | `x.name=@Harry,Ron,Hermione`     |
+    | List contains         | `>>`           | Scalar               | `x.parents=>>Lilly`              |
+    | List does not contain | `!>>`          | Scalar               | `x.parents=!>>Lilly`             |
+    | String contains       | `%`            | String               | `x.name=%Percival`               |
+    | Regex Match           | `~`            | String               | `x.name=~neighbou?r`             |
+    | CIDR IP matching      | `:cidr_match:` | String               | `x.ip=:cidr_match:192.168.0.0/16`|
 
     There is no way to escape these special characters.
 
@@ -325,6 +326,11 @@ paths:
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?asset_types=r:region&r..vpc=false" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get account hosts that private IP address match given CIDR block
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?asset_types=h:host&h.private_ip_addresses=:cidr_match:192.168.0.0/16" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       responses:
         "200":
           description: OK
@@ -347,6 +353,8 @@ paths:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesVPCSubnetHostInRegionExample'
                 asset_types=region & not related to a vpc:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionNotRelatedToAVpcExample'
+                asset_types=host & ip_addresses match CIDR 192.168.0.0/16:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesHostCIDRMatchExample'
                 topo_chain=false:
                   $ref: 'examples.yaml#/QueryAssetsTopoChainFalseExample'
         "400":
@@ -419,6 +427,11 @@ paths:
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/844581E6-4018-4DA8-8CF9-0D7C49EF171B/assets?asset_types=r:region&r..vpc=false" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get account hosts that private IP address match given CIDR block
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/deployments/844581E6-4018-4DA8-8CF9-0D7C49EF171B/assets?asset_types=h:host&h.private_ip_addresses=:cidr_match:192.168.0.0/16" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       responses:
         "200":
           description: OK
@@ -441,6 +454,8 @@ paths:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesVPCSubnetHostInRegionExample'
                 asset_types=region & not related to a vpc:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesRegionNotRelatedToAVpcExample'
+                asset_types=host & ip_addresses match CIDR 192.168.0.0/16:
+                  $ref: 'examples.yaml#/QueryAssetsAssetTypesHostCIDRMatchExample'
                 topo_chain=false:
                   $ref: 'examples.yaml#/QueryAssetsTopoChainFalseExample'
         "400":

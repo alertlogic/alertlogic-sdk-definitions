@@ -271,6 +271,17 @@ QueryAssetsAssetTypesRegionNotRelatedToAVpcExample:
         created_on: 1573565512189
         account_id: '12345678'
     rows: 1
+QueryAssetsAssetTypesHostCIDRMatchExample:
+  value:
+    assets:
+    - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+        type: host
+        key: "/aws/us-east-1/host/i-1234abcd1234abcd"
+        account_id: '12345678'
+        declared: true
+        private_ip_addresses:
+        - 192.168.1.1
+    rows: 1
 QueryAssetsTopoChainFalseExample:
   value:
     assets:
