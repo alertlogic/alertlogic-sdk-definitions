@@ -189,7 +189,7 @@ paths:
         Tags requested for a specific customer id are **composed** tuning tagset which uses the definition to decide
         from where, what and how to merge tagsets together. The 'etag' header is set and may be used to cache the
         response by the caller. Global tags are not composed.
-      requestBody: &crudBody
+      requestBody: crudBody
         required: true
         content:
           application/json:
@@ -257,7 +257,24 @@ paths:
         Tags requested for a specific customer id are **composed** tuning tagset which uses the definition to decide
         from where, what and how to merge tagsets together. The 'etag' header is set and may be used to cache the
         response by the caller. Global tags are not composed.
-      requestBody: *crudBody
+      requestBody: crudBody
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                oneOf:
+                - $ref: '#/components/schemas/CrudKeyWrite'
+                - $ref: '#/components/schemas/CrudKeyRead'
+                - $ref: '#/components/schemas/CrudKeyDelete'
+                - $ref: '#/components/schemas/CrudKeyAdd'
+                - $ref: '#/components/schemas/CrudKeySubtract'
+            x-alertlogic-schema:
+              name: crud_list
+              encoding:
+                explode: true
+        description: JSON array of crud operations to perform.
   /aetag/v1/tags:
     parameters: []
     post:
