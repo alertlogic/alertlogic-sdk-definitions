@@ -1298,7 +1298,10 @@ components:
         key:
           type: string
         value:
-          type: object
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
         expiration_ts:
           type: integer
       required:
@@ -1315,7 +1318,10 @@ components:
         key:
           type: string
         value:
-          type: object
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
         expiration_ts:
           type: integer
       required:
@@ -1332,7 +1338,10 @@ components:
         key:
           type: string
         value:
-          type: object
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
       required:
       - operation
       - key
