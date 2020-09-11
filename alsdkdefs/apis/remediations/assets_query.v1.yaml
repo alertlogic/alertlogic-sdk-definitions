@@ -819,6 +819,11 @@ paths:
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?deployment=aws:1234567890&ip_address=10.2.3.17&network=/aws/us-east-1/vpc/vpc-12345678" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Remote Source
+          source: |-
+            curl "ttps://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?uuid=8EB3C34C-4889-4BA1-B615-BAC3FD5138FC&type=remote-source" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       parameters:
         - $ref: 'parameters.yaml#/UrlParamAccountId'
         - schema:
@@ -923,6 +928,8 @@ paths:
                   $ref: 'examples.yaml#/AssetDetailsDeploymentExample'
                 Host by Deployment, IP, Network Success Response:
                   $ref: 'examples.yaml#/AssetDetailsHostByDeploymentIPNetworkExample'
+                Remote Source Details Success Response:
+                  $ref: 'examples.yaml#/AssetDetailsRemoteSource'
         "400":
           $ref: 'responses.yaml#/AssetDetailsBadRequest'
         "401":
