@@ -991,6 +991,297 @@ AssetDetailsHostByDeploymentIPNetworkExample:
                           related: {}
     key: /aws/us-east-1/host/i-1234567890abcdef0
     type: host
+AssetDetailsRemoteSource:
+  value:
+    type: remote-source
+    remote-source:
+      "/remote-source/8EB3C34C-4889-4BA1-B615-BAC3FD5138FC":
+        related:
+          host:
+            "/aws/us-east-2/host/i-9999":
+              related:
+                subnet:
+                  subnet1:
+                    related:
+                      vpc:
+                        vpc1:
+                          related:
+                            region:
+                              "/aws/us-east-2":
+                                related: {}
+                                asset:
+                                  version: 1
+                                  type: region
+                                  threatiness: 0
+                                  threat_level: 0
+                                  tags: {}
+                                  tag_keys: {}
+                                  scope_aws_region_name: foo
+                                  region_name: foo
+                                  path:
+                                  - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                  - region:/aws/us-east-2
+                                  native_type: region
+                                  name: foo
+                                  modified_on: 1599744832019
+                                  key: "/aws/us-east-2"
+                                  in_scope: false
+                                  deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                  deleted_on: 0
+                                  declared: true
+                                  created_on: 1599744832019
+                                  account_id: '12345678'
+                          asset:
+                            version: 1
+                            type: vpc
+                            threatiness: 0
+                            threat_level: 0
+                            tags: {}
+                            tag_keys: {}
+                            scope_aws_cidr_ranges:
+                            - 10.0.1.0/24
+                            scope_aws_cidr_block: 10.0.1.0/24
+                            path:
+                            - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                            - region:/aws/us-east-2
+                            - vpc:vpc1
+                            network_uuid: B276227B-1372-9030-6803-A560F554404D
+                            native_type: vpc
+                            name: B276227B-1372-9030-6803-A560F554404D
+                            modified_on: 1599744831496
+                            key: vpc1
+                            in_scope: false
+                            deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                            deleted_on: 0
+                            declared: true
+                            created_on: 1599744831496
+                            cidr_ranges:
+                            - 10.0.1.0/24
+                            cidr_block: 10.0.1.0/24
+                            account_id: '12345678'
+                    asset:
+                      version: 1
+                      type: subnet
+                      threatiness: 0
+                      threat_level: 0
+                      tags: {}
+                      tag_keys: {}
+                      subnet_uuid: 7A1B0D91-7DCD-8546-842C-6B96EA10C4B7
+                      scope_aws_cidr_block: 10.0.1.0/24
+                      native_type: subnet
+                      name: 10.0.1.0/24
+                      modified_on: 1599744831003
+                      key: subnet1
+                      in_scope: false
+                      deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                      deleted_on: 0
+                      declared: true
+                      created_on: 1599744831003
+                      cidr_block: 10.0.1.0/24
+                      account_id: '12345678'
+              asset:
+                version: 1
+                type: host
+                threatiness: 0
+                threat_level: 0
+                tags: {}
+                tag_keys: {}
+                state: running
+                scope_aws_host_uuid: 8EB3C34C-4889-4BA1-B615-BAC3FD5138FC
+                public_ipv6_addresses: []
+                public_ipv4_addresses: []
+                public_ip_addresses: []
+                private_ipv6_addresses: []
+                private_ipv4_addresses: []
+                private_ip_addresses: []
+                native_type: host
+                modified_on: 1599744832527
+                key: "/aws/us-east-2/host/i-9999"
+                in_scope: false
+                host_uuid: 8EB3C34C-4889-4BA1-B615-BAC3FD5138FC
+                deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                deleted_on: 0
+                declared: true
+                created_on: 1599744832527
+                alertlogic_appliance: false
+                account_id: '12345678'
+          appliance:
+            "/appliance/A00D84F6-59A7-4AD9-B4FB-8B0397356FBD":
+              related:
+                host:
+                  "/aws/us-east-2/host/i-8888":
+                    related:
+                      subnet:
+                        subnet1:
+                          related:
+                            vpc:
+                              vpc1:
+                                related:
+                                  region:
+                                    "/aws/us-east-2":
+                                      related: {}
+                                      asset:
+                                        version: 1
+                                        type: region
+                                        threatiness: 0
+                                        threat_level: 0
+                                        tags: {}
+                                        tag_keys: {}
+                                        scope_aws_region_name: foo
+                                        region_name: foo
+                                        path:
+                                        - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                        - region:/aws/us-east-2
+                                        native_type: region
+                                        name: foo
+                                        modified_on: 1599744832019
+                                        key: "/aws/us-east-2"
+                                        in_scope: false
+                                        deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                        deleted_on: 0
+                                        declared: true
+                                        created_on: 1599744832019
+                                        account_id: '12345678'
+                                asset:
+                                  version: 1
+                                  type: vpc
+                                  threatiness: 0
+                                  threat_level: 0
+                                  tags: {}
+                                  tag_keys: {}
+                                  scope_aws_cidr_ranges:
+                                  - 10.0.1.0/24
+                                  scope_aws_cidr_block: 10.0.1.0/24
+                                  path:
+                                  - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                  - region:/aws/us-east-2
+                                  - vpc:vpc1
+                                  network_uuid: B276227B-1372-9030-6803-A560F554404D
+                                  native_type: vpc
+                                  name: B276227B-1372-9030-6803-A560F554404D
+                                  modified_on: 1599744831496
+                                  key: vpc1
+                                  in_scope: false
+                                  deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                                  deleted_on: 0
+                                  declared: true
+                                  created_on: 1599744831496
+                                  cidr_ranges:
+                                  - 10.0.1.0/24
+                                  cidr_block: 10.0.1.0/24
+                                  account_id: '12345678'
+                          asset:
+                            version: 1
+                            type: subnet
+                            threatiness: 0
+                            threat_level: 0
+                            tags: {}
+                            tag_keys: {}
+                            subnet_uuid: 7A1B0D91-7DCD-8546-842C-6B96EA10C4B7
+                            scope_aws_cidr_block: 10.0.1.0/24
+                            native_type: subnet
+                            name: 10.0.1.0/24
+                            modified_on: 1599744831003
+                            key: subnet1
+                            in_scope: false
+                            deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                            deleted_on: 0
+                            declared: true
+                            created_on: 1599744831003
+                            cidr_block: 10.0.1.0/24
+                            account_id: '12345678'
+                    asset:
+                      version: 1
+                      type: host
+                      threatiness: 0
+                      threat_level: 0
+                      tags: {}
+                      tag_keys: {}
+                      state: running
+                      scope_aws_host_uuid: A00D84F6-59A7-4AD9-B4FB-8B0397356FBD
+                      public_ipv6_addresses: []
+                      public_ipv4_addresses: []
+                      public_ip_addresses: []
+                      private_ipv6_addresses: []
+                      private_ipv4_addresses: []
+                      private_ip_addresses: []
+                      path:
+                      - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                      - region:/aws/us-east-2
+                      - vpc:vpc1
+                      - subnet:subnet1
+                      native_type: host
+                      modified_on: 1599744830602
+                      key: "/aws/us-east-2/host/i-8888"
+                      in_scope: false
+                      host_uuid: A00D84F6-59A7-4AD9-B4FB-8B0397356FBD
+                      deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                      deleted_on: 0
+                      declared: true
+                      created_on: 1599744830602
+                      alertlogic_appliance: false
+                      account_id: '12345678'
+              asset:
+                version: 1
+                type: appliance
+                threatiness: 0
+                threat_level: 0
+                tags: {}
+                tag_keys: {}
+                scope_aws_host_uuid: A00D84F6-59A7-4AD9-B4FB-8B0397356FBD
+                native_type: appliance
+                name: A00D84F6-59A7-4AD9-B4FB-8B0397356FBD
+                modified_on: 1599744830813
+                key: "/appliance/A00D84F6-59A7-4AD9-B4FB-8B0397356FBD"
+                host_uuid: A00D84F6-59A7-4AD9-B4FB-8B0397356FBD
+                deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+                deleted_on: 0
+                declared: true
+                created_on: 1599744830813
+                account_id: '12345678'
+        asset:
+          version: 1
+          type: remote-source
+          threatiness: 0
+          threat_level: 0
+          tags: {}
+          tag_keys: {}
+          scope_aws_remote_source_uuid: 8EB3C34C-4889-4BA1-B615-BAC3FD5138FC
+          remote_source_uuid: 8EB3C34C-4889-4BA1-B615-BAC3FD5138FC
+          native_type: remote-source
+          name: 8EB3C34C-4889-4BA1-B615-BAC3FD5138FC
+          modified_on: 1599744832833
+          key: "/remote-source/8EB3C34C-4889-4BA1-B615-BAC3FD5138FC"
+          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          deleted_on: 0
+          declared: true
+          created_on: 1599744832833
+          account_id: '12345678'
+    key: "/remote-source/8EB3C34C-4889-4BA1-B615-BAC3FD5138FC"
+    deployment:
+      version: 1
+      type: deployment
+      threatiness: 0
+      threat_level: 0
+      tags: {}
+      tag_keys: {}
+      scope_aws_native_account_id: '01000002'
+      scope_aws_deployment_type: aws
+      path:
+      - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+      native_type: deployment
+      native_account_id: '01000002'
+      modified_on: 1599744832188
+      key: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+      in_scope: false
+      deployment_type: aws
+      deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+      deleted_on: 0
+      declared: true
+      created_on: 1599744832188
+      account_id: '12345678'
+
+
 AgentCollectionHealthNoDeploymentExample:
   value:
     assets:
