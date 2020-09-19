@@ -3238,76 +3238,99 @@ TopologyPreviewExample:
   value:
     topology:
       assets:
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-east-1
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-west-2
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-east-1
-        - "/aws/us-east-1/vpc/vpc-1"
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-east-1
-        - "/aws/us-east-1/vpc/vpc-1"
-        - subnet:/aws/us-east-1/subnet/subnet-1a-web
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-east-1
-        - "/aws/us-east-1/vpc/vpc-1"
-        - subnet:/aws/us-east-1/subnet/subnet-1a-web
-        - host:/aws/us-east-1/host/alertlogic-ids-1
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-east-1
-        - "/aws/us-east-1/vpc/vpc-1"
-        - host:/aws/us-east-1/host/alertlogic-ids-1
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-east-1
-        - "/aws/us-east-1/image/ami-1"
-      - - deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
-        - region/aws/us-east-1
-        - "/aws/us-west-2/image/ami-2"
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-west-2
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/eu-west-1
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:vpc:/aws/us-east-1/vpc/vpc-1
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/eu-west-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:vpc:/aws/eu-west-1/vpc/vpc-1
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:vpc:/aws/us-east-1/vpc/vpc-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:subnet:/aws/us-east-1/subnet/subnet-1a-web
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:vpc:/aws/us-east-1/vpc/vpc-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:subnet:/aws/us-east-1/subnet/subnet-1a-web
+        - 814C2911-09BB-1005-9916-7831C1BAC182:host:/aws/us-east-1/host/web-1a-1
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:vpc:/aws/us-east-1/vpc/vpc-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:host:/aws/us-east-1/host/web-1a-1
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:/aws/us-east-1/image/ami-1
+      - - 814C2911-09BB-1005-9916-7831C1BAC182:deployment:/al/19000001/aws/814C2911-09BB-1005-9916-7831C1BAC182
+        - 814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1
+        - 814C2911-09BB-1005-9916-7831C1BAC182:/aws/us-west-2/image/ami-2
       data:
-        host:/aws/us-east-1/host/alertlogic-ids-1:
+        814C2911-09BB-1005-9916-7831C1BAC182:host:/aws/us-east-1/host/web-1a-1:
           alertlogic_agent: false
           alertlogic_appliance: true
           created_on: 1427317669928
+          group_membership: IN
           key: "/aws/us-east-1/host/web-1a-1"
           state: running
           threat_level: 2
           threatiness: 2
           type: host
-        image:/aws/us-east-1/image/ami-1:
+        814C2911-09BB-1005-9916-7831C1BAC182:image:/aws/us-east-1/image/ami-1:
           created_on: 1427317669792
+          group_membership: IN
           key: "/aws/us-east-1/image/ami-1"
           threat_level: 3
           threatiness: 14
           type: image
-        image:/aws/us-west-2/image/ami-2:
+        814C2911-09BB-1005-9916-7831C1BAC182:image:/aws/us-west-2/image/ami-2:
           created_on: 1427317669792
+          group_membership: IN
           key: "/aws/us-west-2/image/ami-2"
           threat_level: 3
           threatiness: 14
           type: image
-        region/aws/us-east-1:
+        814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1:
           created_on: 1427317669194
+          group_membership: IN
           key: "/aws/us-east-1"
           threat_level: 3
           threatiness: 22
           type: region
-        region/aws/us-west-2:
+        814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-west-2:
           created_on: 1589381951438
+          group_membership: NOT_IN
           key: "/aws/us-west-2"
           threat_level: 0
           threatiness: 0
           type: region
-        subnet:/aws/us-east-1/subnet/subnet-1a-web:
+        814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/eu-west-1:
+          created_on: 1589381951438
+          group_membership: EXCLUDED
+          key: "/aws/eu-west-1"
+          threat_level: 0
+          threatiness: 0
+          type: region
+        814C2911-09BB-1005-9916-7831C1BAC182:subnet:/aws/us-east-1/subnet/subnet-1a-web:
           created_on: 1427317669627
+          group_membership: IN
           key: "/aws/us-east-1/subnet/subnet-1a-web"
           threat_level: 2
           threatiness: 8
           type: subnet
-        vpc:/aws/us-east-1/vpc/vpc-1:
+        814C2911-09BB-1005-9916-7831C1BAC182:vpc:/aws/us-east-1/vpc/vpc-1:
           created_on: 1427317669270
+          group_membership: IN
           key: "/aws/us-east-1/vpc/vpc-1"
+          threat_level: 3
+          threatiness: 22
+          type: vpc
+        814C2911-09BB-1005-9916-7831C1BAC182:vpc:/aws/eu-west-1/vpc/vpc-2:
+          created_on: 1427317669270
+          group_membership: EXCLUDED
+          key: "/aws/eu-west-1/vpc/vpc-2"
           threat_level: 3
           threatiness: 22
           type: vpc

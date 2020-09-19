@@ -449,14 +449,29 @@ TopologyPreviewResponse:
           description: |-
             An array of arrays of asset references. Each element in the array is an array of asset
             references (that can be resolved by looking up the reference in the `topology.data`
-            object) that describe topological relationship sequences.
+            object) that describe topological relationship sequences. Note that all groupable assets
+            are returned in the rows, but the `topology.data` object must be consulted for each asset to determine
+            its inclusion or exclusion from the group. Intermediate topology assets do not have their own row in
+            the result (a VPC with subnets would not have an entry, but a VPC without subnets would have an entry).
         data:
           type: object
           description: |-
             An object containing all of the asset details for asset references in the
             `topology.assets`. The object keys are asset
             references produced by colon-joining deployment ID, asset type and asset key, e.g.,
-            `814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1`.
+            `814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1`. All assets are decorated with a
+            `group_membership` property that must be consulted to determine membership in the group. Possible values are described below:
+
+            `IN` - The asset is included in the group by scope definition.
+
+            `CONTAINS` - The asset does not meet the full criteria for inclusion in the group, but contains at least one successor asset in the group.
+
+            `CAN_CONTAIN` - The asset does not meet the full criteria for inclusion in the group. The scope definition does allow this asset to
+            potentially include future successors in the group.
+
+            `EXCLUDED` - The asset is excluded from the group by scope definition.
+
+            `NOT_IN` - The asset does not meet all criteria for inclusion in the group by scope definition, but is not explicitly excluded.
         rows:
           type: integer
           description: The count of rows in the `topology.assets` array.
