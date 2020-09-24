@@ -32,6 +32,7 @@ paths:
         description: Entity ID
     get:
       summary: Get account integrations for the specified account
+      deprecated: true
       tags:
         - Integrations
       responses:
@@ -68,6 +69,7 @@ paths:
         - X-AIMS-Auth-Token: []
   '/herald/v2/{account_id}/integrations':
     get:
+      deprecated: true
       summary: List account integrations for the specified account
       tags:
         - Integrations
@@ -115,6 +117,7 @@ paths:
         description: AIMS Account ID
   /herald/v2/integration_types:
     get:
+      deprecated: true
       summary: List available integration types
       tags:
         - Integrations
