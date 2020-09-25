@@ -1086,6 +1086,7 @@ paths:
         - $ref: 'parameters.yaml#/ParamIncludeExposuresQRI'
         - $ref: 'parameters.yaml#/ParamIncludeFilters'
         - $ref: 'parameters.yaml#/ParamQueryRemediationItemsDetails'
+        - $ref: 'parameters.yaml#/ParamQueryRemediationItemsGroupByAuditId'
       responses:
         "200":
           description: OK
@@ -1104,6 +1105,8 @@ paths:
                   $ref: 'examples.yaml#/QueryRemediationItemsMultipleDeploymentsDetailsExample'
                 Default Response (single deployment, detailed_filters=true):
                   $ref: 'examples.yaml#/QueryRemediationItemsSingleDeploymentsDetailedFiltersExample'
+                Default Response (multiple deployments, group_by_audit_id=true):
+                    $ref: 'examples.yaml#/QueryRemediationItemsMultipleDeploymentsGroupByAuditIdExample'
         "401":
           $ref: 'responses.yaml#/Unauthorized'
         "403":
@@ -1502,10 +1505,14 @@ paths:
               examples:
                 Dispose a single remediation:
                   $ref: 'examples.yaml#/DisposeSingleRemediationExample'
+                Dispose a single remediation for 2 hosts with a filters set:
+                  $ref: 'examples.yaml#/DisposeSingleRemediationFiltersSetExample'
                 Dispose a single vulnerability:
                   $ref: 'examples.yaml#/DisposeSingleVulnerabilityExample'
                 Conclude a single remediation:
                   $ref: 'examples.yaml#/ConcludeSingleRemediationExample'
+                Conclude a single remediation for 2 hosts with a filters set:
+                  $ref: 'examples.yaml#/ConcludeSingleRemediationFiltersSetExample'
                 Conclude a single vulnerability:
                   $ref: 'examples.yaml#/ConcludeSingleVulnerabilityExample'  
         "400":
@@ -1553,6 +1560,28 @@ paths:
               "filters": [
                 "application:Apache",
                 "image:/aws/us-east-1/image/ami-1"
+              ],
+              "reason": "acceptable_risk",
+              "remediation_ids": [
+                "45af6dc636774a4d822b9eff57b99ae8"
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: Dispose a single remediation for 2 hosts with a filters set (all deployments)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
+                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "operation": "dispose_remediations",
+              "comment": "Vulnerable database contains automated test data, not customer records.",
+              "filters": [
+                [
+                  "host:host:/aws/us-west-2/host/i-1e272a96c803bf6e1"
+                ],
+                [
+                  "host:host:/aws/us-west-2/host/i-03bf219df1d75f14a"
+                ]
               ],
               "reason": "acceptable_risk",
               "remediation_ids": [
@@ -1615,6 +1644,29 @@ paths:
             }
             EOF
         - lang: Shell
+          label: Conclude a single remediation for 2 hosts with a filters set (all deployments)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
+                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "operation": "conclude_remediations",
+              "deployment_ids": [
+                "AF044FD4-5A6E-4EAE-B7A1-0B304034CC34"
+              ],
+              "filters": [
+                [
+                  "host:host:/aws/us-west-2/host/i-1e272a96c803bf6e1"
+                ],
+                [
+                  "host:host:/aws/us-west-2/host/i-03bf219df1d75f14a"
+                ]
+              ],
+              "remediation_ids": [
+                "45af6dc636774a4d822b9eff57b99ae8"
+              ]
+            }
+            EOF
+        - lang: Shell
           label: Conclude a single vulnerability (all deployments)
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
@@ -1644,9 +1696,18 @@ paths:
         (that is, their `concluded` and `disposed` properties will be set to `false`).
         *Note* that if `deployment_ids` query parameter is not set, the remediation item(s) will be removed
         from all deployments where they exist.
+
+        Note that exactly one of `remediation_item_ids` or `audit_ids` may be provided. If `audit_ids` is passed,
+        all `remediation-item`s with any of the given `audit_id`s will be undisposed/unconcluded. Additionally, if
+        `audit_ids` is passed, either `remediation_ids` or `vulnerability_ids` may be passed. If one of those is also
+        given, `remediation-item`s with one of the given `audit_id`s and one of the given `remediation_id`s or
+        `vulnerability_id`s will be undisposed/unconcluded.
       parameters:
+        - $ref: 'parameters.yaml#/ParamAuditIds'
         - $ref: 'parameters.yaml#/ParamDeploymentIds'
+        - $ref: 'parameters.yaml#/ParamRemediationIds'
         - $ref: 'parameters.yaml#/ParamRemediationItemIds'
+        - $ref: 'parameters.yaml#/ParamVulnerabilityIds'
       x-codeSamples:
         - lang: Shell
           label: Undispose a single remediation-item
@@ -1658,6 +1719,11 @@ paths:
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations?remediation_item_ids=0536575B914C32C8A5D28415D02E4545&deployment_ids=AF044FD4-5A6E-4EAE-B7A1-0B304034CC34,FCCA4E48-598A-4946-B2A7-64DBF9E4CCAC" \
                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Undispose a remediation-item by audit_id/vulnerability_id
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations?audit_ids=37CA08E6-9CC7-4575-BA9B-B6F961976E8D&vulnerability_ids=b9890b5c62d542c4830b43b53dabcc15" \
+                -X DELETE -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       responses:
         "204":
           description: No Content
