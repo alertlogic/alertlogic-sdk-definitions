@@ -95,18 +95,38 @@ ParamFilterRelationship:
     `related_asset_type` will be returned. If set to `false`, only rows with an asset of the
     given `asset_type` that is **not** related to one or more assets of the `related_asset_type`
     will be returned.
+ParamAuditIds:
+  schema:
+    type: string
+  in: query
+  name: audit_ids
+  description: |-
+    A comma-separated list of `audit_id`s.
 ParamDeploymentIds:
   schema:
     type: string
   in: query
   name: deployment_ids
-  description: A comma-separated list of deployment IDs.
+  description: |-
+    A comma-separated list of deployment IDs.
+ParamRemediationIds:
+  schema:
+    type: string
+  in: query
+  name: remediation_ids
+  description: A comma-separated list of remediation IDs.
 ParamRemediationItemIds:
   schema:
     type: string
   in: query
   name: remediation_item_ids
   description: A comma-separated list of remediation-item IDs.
+ParamVulnerabilityIds:
+  schema:
+    type: string
+  in: query
+  name: remediation_ids
+  description: A comma-separated list of vulnerability IDs.
 ParamDisposed:
   schema:
     type: string
@@ -231,6 +251,28 @@ ParamQueryRemediationItemsDetails:
     Controls whether `vinstances` are returned in the response (inside each `exposure`
     in the `exposures` property of each `remediation-item`. In order to work,
     `include_exposures` must be set to `true`.
+ParamQueryRemediationItemsGroupByAuditId:
+  schema:
+    type: boolean
+    default: false
+  in: query
+  name: group_by_audit_id
+  description: |-
+    Group returned `remediation-item`s by their `audit_id` and unique
+    `vulnerability_id`/`remediation_id`. That is, if multiple `remediation-item`s were
+    disposed or concluded in a single request across distinct `deployment_id`s and
+    `filters sets`, display these as a single record. Note that when this option is set to
+    `true`, the following changes are applied to the response elements:
+      * All unique `deployment_id` attributes are stored in a `deployment_ids` array.
+      * All `item_id` attributes are stored in an `item_ids` array.
+      * All `key` attributes are stored in a `keys` array.
+      * `categories` is rendered as the union of all the categories for all the
+        `remediation-item`s in each group.
+      * `filters` is rendered as the union of all the filters for all the
+        `remediation-item`s in each group.
+      * `exposures` from all `remediation-items` are appended together.
+      * `asset_count`, `exposures_count`, `severities`, and `vinstances_count` are all
+        summed across all grouped `remediation-item`s.
 ParamQueryExposuresDetails:
   schema:
     type: boolean

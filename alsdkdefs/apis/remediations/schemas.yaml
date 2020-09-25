@@ -70,13 +70,17 @@ Asset:
     - type
     - key
 DisposeConcludeFilters:
-  type: string
+  type: array
   description: |-
-    The list of filters to which the `remediation-item` is being applied/created. Filters
-    are specified as asset `type:key` pairs, except application, which is always
-    `application:product`. See the above description of [filters](#section/Remediation-filters).
-    Note that non-asset filters (`deployment_id`, `deployment_type`, `remediation`,
-    `vulnerability`, `category`, `severity`, `cve`, `cwe` and `asset_type`) will be ignored.
+    The list of filters (or a list of lists of filters, a `filters set`) to which the
+    `remediation-item` is being applied/created. Filters are specified as asset `type:key`
+    pairs, except application, which is always `application:product`. See the above
+    description of [filters](#section/Remediation-filters). Note that non-asset filters
+    (`deployment_id`, `deployment_type`, `remediation`, `vulnerability`, `category`,
+    `severity`, `cve`, `cwe` and `asset_type`) will be ignored. If a `filters set` is
+    provided, one `remediation-item` per unique `filters` in the `filters set` will be
+    created (note this is permuted with `deployment_ids` and
+    `remediation_ids`/`vulnerability_ids` as well).
 DeploymentIds:
   type: string
   description: |-
