@@ -630,3 +630,16 @@ ConcludeRemediationsRequestBody:
       $ref: '#/VulnerabilityIds'
   required:
     - operation
+ListAssetGroupsResponse:
+  title: List Asset Groups response
+  type: object
+  properties:
+    groups:
+      type: array
+      description: An array group objects. Each element in the array is an asset group.
+      items:
+        type: object
+        description: Group object.
+    count:
+      type: integer
+      description: The count of `groups` in the response.
