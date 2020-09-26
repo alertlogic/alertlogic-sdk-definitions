@@ -367,6 +367,43 @@ paths:
           $ref: 'responses.yaml#/NotFound'
         "503":
           $ref: 'responses.yaml#/UnavailableError'
+  /assets_query/v1/{account_id}/asset_groups:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+    get:
+      operationId: list_asset_groups
+      summary: List Asset Groups (Preview)
+      description: |-
+        **Disclaimer: This endpoint is currently under development. The request parameters, response format
+        or the endpoint itself may be changed or removed at any time without notice.**
+        
+        List asset groups for given account.
+      tags:
+        - Queries
+      x-codeSamples:
+        - lang: Shell
+          label: List Asset Groups
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/asset_groups" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/ListAssetGroupsResponse'
+              examples:
+                Topology Preview Example:
+                  $ref: 'examples.yaml#/ListAssetGroupsExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "503":
+          $ref: 'responses.yaml#/UnavailableError'
+      security:
+        - x-aims-auth-token: []
   /assets_query/v1/{account_id}/deployments/{deployment_id}/assets:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
