@@ -1,0 +1,171 @@
+openapi: 3.0.2
+info:
+  title: Notify Service
+  version: '3.0.0'
+  description: The notification service facilitates sending emails to users
+  contact:
+    name: Alert Logic Support
+    email: support@alertlogic.com
+  x-alertlogic-iws-service:
+    type: private
+servers:
+  - url: 'https://api.product.dev.alertlogic.com'
+    description: Integration
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.cloudinsight.alertlogic.com'
+    description: Production
+    x-alertlogic-session-endpoint: true
+tags:
+  - name: email
+    description: Email Resources
+paths:
+  '/notify/v3/{account_id}/email':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Send an email to a user or to an arbitrary email address
+      tags:
+        - email
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SentEmail'
+              examples: {}
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: send_email
+      description: Sends an email to a specific user or email using a template
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account_id:
+                  type: string
+                  description: 'The Account ID of the user_id. If present, it must match the one in the URL.'
+                user_id:
+                  type: string
+                  description: "The ID of the user to send the email to. If specified, the email will be sent to the user's email_address. Either user_id or to_email_address is required"
+                to_email_address:
+                  type: string
+                  description: The address to send the email to. Either user_id or to_email_address is required
+                subject:
+                  type: string
+                  description: 'The subject to use for the email. If absent, the default subject will be used.'
+                from_email_address:
+                  type: string
+                  description: 'The email address to use in the from field of the email. This email must be verified with Amazon SES. If absent, the service default will be used.'
+                template_name:
+                  type: string
+                  description: The name of the template to use to send the email.
+                template_variables:
+                  type: object
+                  description: 'An object containing the required template (and optional, if desired) variables needed to render the template. These will vary depending on the selected template.'
+                attachments:
+                  type: array
+                  description: 'List of attachment objects'
+                  items:
+                    type: object
+              required:
+                - template_name
+                - template_variables
+            examples:
+              Password Reset Email:
+                value:
+                  template_name: password_reset
+                  user_id: 364BFBAC-0E4D-1005-AFF9-B8E85645178C
+                  template_variables:
+                    reset_token: abc123
+      security:
+        - X-Aims-Auth-Token: []
+components:
+  securitySchemes:
+    X-Aims-Auth-Token:
+      name: AuthenticationToken returned by AIMS service
+      type: apiKey
+      in: header
+  schemas:
+    SentEmail:
+      type: object
+      title: SentEmail
+      additionalProperties: false
+      description: ''
+      properties:
+        account_id:
+          type: string
+          description: The Account ID
+          example: '01000001'
+        user_id:
+          type: string
+          description: The ID of the userthe email was sent to
+          example: 364BFBAC-0E4D-1005-AFF9-B8E85645178C
+        to_email_address:
+          type: string
+          description: The address the email was sent to
+          example: user@client.com
+        subject:
+          type: string
+          description: The subject to use for the email
+          example: Alert Logic Password Reset Request
+        from_email_address:
+          type: string
+          description: The email address to use in the from field of the email. This email must be verified with Amazon SES.
+          example: 'Alert Logic No-Reply <no-reply@cloudinsight.alertlogic.com>'
+        template_name:
+          type: string
+          description: The name of the template the email was send using which.
+          example: password_reset
+        template_variables:
+          type: object
+          description: Template variables used to render the template
+        message_id:
+          type: string
+          example: 0000014e7aeea1b1-51dc78fd-5e48-4b1b-b066-0032700c9cd4-000000
+          description: Message ID of the SES email
+        body:
+          type: object
+          required:
+            - text
+          properties:
+            text:
+              type: string
+              description: Rendered template
+        attachments:
+          type: array
+          description: "List of attachment objects"
+          items:
+            type: object
+      required:
+        - to_email_address
+        - subject
+        - from_email_address
+        - template_name
+        - template_variables
+        - body
+      x-examples:
+        Password Reset Email:
+          to_email_address: user@client.com
+          from_email_address: 'Alert Logic No-Reply <no-reply@cloudinsight.alertlogic.com>'
+          subject: Alert Logic Password Reset Request
+          template_name: password_reset
+          template_variables:
+            reset_token: abc123
+          body:
+            text: ...
+          message_id: 0000014e7aeea1b1-51dc78fd-5e48-4b1b-b066-0032700c9cd4-000000
