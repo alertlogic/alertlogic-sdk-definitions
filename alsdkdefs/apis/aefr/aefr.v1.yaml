@@ -13,6 +13,43 @@ servers:
     description: integration
     x-alertlogic-session-endpoint: true
 paths:
+  /aefr/v1/audit':
+    get:
+      summary: Get aefr audit
+      tags:
+        - Audit
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_aefr_audit
+      description: >
+        Return the set of active content items at the give timestamp (or at
+        current time if no timestamp given).  For each item, metadata is
+        provided (about upload user & upload channel; creation, deletion,
+        expiration times; content id, path & type) as well as the content
+        itself.  Providing a data_type parameter narrows the audit to the
+        given data type.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+            default: 'now'
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: string
+            default: 'all'
+          in: query
+          name: data_type
+          description: >-
+            Which data type to return in the audit.
+            Choices: 'filter', 'trigger'
   /aefr/v1/triggers:
     get:
       summary: List Global Triggers
