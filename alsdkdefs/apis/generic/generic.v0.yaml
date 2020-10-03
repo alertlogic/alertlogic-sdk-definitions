@@ -1,0 +1,105 @@
+openapi: 3.0.2
+info:
+  title: generic service
+  summary: Generic Alert Logic service wrapper
+  description: |-
+    This service implements methods corresponding to the generic 
+    Alert Logic service REST schema. Using the generic "service," you
+    can call Alert Logic APIs without a formal definition. 
+
+    Use the real service definitions if they are available, since
+    they will provide proper data type validation, responses, etc.
+
+    The generic URI format looks like
+      HTTP_VERB :svc/:version/:account_id/:svc_path
+    for example
+      GET aims/v1/2/account
+
+    APIs that act without an account context omit the /:account_id, for example
+      POST aims/v1/authenticate
+
+    The advantage to using the "generic" service over cURL, Postman, etc.
+    is that the SDK/CLI will take care of authentication and picking the 
+    correct API endpoint, based on service name and account ID.
+  version: '1.0'
+servers:
+  - url: 'https://api.cloudinsight.alertlogic.com'
+    description: production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.cloudinsight.product.dev.alertlogic.com'
+    description: integration
+    x-alertlogic-session-endpoint: true
+paths:
+  '/{svc}/{version}/{account_id}/{svc_path}':
+    get:
+      summary: Generic versioned service GET
+      tags: []
+      operationId: get
+      responses:
+        '200':
+          description: OK         
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Generic al_service call
+    post:
+      summary: Generic versioned service POST
+      tags: []
+      operationId: post_json
+      requestBody:
+        required: false
+        description: POST data
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true         
+      responses:
+        '200':
+          description: OK         
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Generic al_service call
+    parameters:
+      - name: svc
+        description: The service to call, for example "aims"
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: version
+        description: |-
+          The service version. By convention, "v1", "v2", etc.
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: account_id
+        description: Acting account ID
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: svc_path 
+        description: |-
+          Additional URL elements, usually the method or object types
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: qparams
+        description: Query parameters, specified as an object/dictionary
+        in: query
+        schema:
+          type: object
+        style: form
+        explode: true
+        required: false 
+        allowReserved: true       
+components:
+  schemas:
+securitySchemes:
+  X-AIMS-Auth-Token:
+    name: X-AIMS-Auth-Token
+    type: apiKey
+    in: header
+    description: AIMS Authentication Token
