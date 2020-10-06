@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Notify Service
-  version: '3.0.0'
+  version: 3.0.0
   description: The notification service facilitates sending emails to users
   contact:
     name: Alert Logic Support
@@ -79,10 +79,90 @@ paths:
                   description: 'An object containing the required template (and optional, if desired) variables needed to render the template. These will vary depending on the selected template.'
                 attachments:
                   type: array
-                  description: 'List of attachment objects'
+                  description: List of attachment objects
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      url:
+                        type: string
+                      '':
+                        type: string
+                    required:
+                      - name
+                      - url
+              required:
+                - template_name
+                - template_variables
+            examples:
+              Password Reset Email:
+                value:
+                  template_name: password_reset
+                  user_id: 364BFBAC-0E4D-1005-AFF9-B8E85645178C
+                  template_variables:
+                    reset_token: abc123
+      security:
+        - X-Aims-Auth-Token: []
+  '/notify/v3/{account_id}/emails':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Send a message to a list of arbitrary email addresses
+      tags:
+        - email
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SentEmails'
+              examples: {}
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: send_emails
+      description: Send a message to a list of arbitrary email addresses
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to_email_addresses:
+                  type: array
+                  description: The list of email addresses to which the message should be sent to.
+                subject:
+                  type: string
+                  description: 'The subject to use for the email. If absent, the default subject will be used.'
+                from_email_address:
+                  type: string
+                  description: 'The email address to use in the from field of the email. This email must be verified with Amazon SES. If absent, the service default will be used.'
+                template_name:
+                  type: string
+                  description: The name of the template to use to send the email.
+                template_variables:
+                  type: object
+                  description: 'An object containing the required template (and optional, if desired) variables needed to render the template. These will vary depending on the selected template.'
+                attachments:
+                  type: array
+                  description: List of attachment objects
                   items:
                     type: object
               required:
+                - to_email_addresses
                 - template_name
                 - template_variables
             examples:
@@ -148,7 +228,7 @@ components:
               description: Rendered template
         attachments:
           type: array
-          description: "List of attachment objects"
+          description: List of attachment objects
           items:
             type: object
       required:
@@ -169,3 +249,64 @@ components:
           body:
             text: ...
           message_id: 0000014e7aeea1b1-51dc78fd-5e48-4b1b-b066-0032700c9cd4-000000
+    SentEmails:
+      type: object
+      title: SentEmails
+      additionalProperties: false
+      description: ''
+      properties:
+        account_id:
+          type: string
+          description: The Account ID
+          example: '01000001'
+        to_email_addresses:
+          type: array
+          description: The addresses the email was sent to
+          example:
+            - user1@client.com
+            - user2@client.com
+        subject:
+          type: string
+          description: The subject to use for the email
+          example: Alert Logic Password Reset Request
+        from_email_address:
+          type: string
+          description: The email address to use in the from field of the email. This email must be verified with Amazon SES.
+          example: 'Alert Logic No-Reply <no-reply@cloudinsight.alertlogic.com>'
+        template_name:
+          type: string
+          description: The name of the template the email was send using which.
+          example: password_reset
+        template_variables:
+          type: object
+          description: Template variables used to render the template
+        message_ids:
+          type: array
+          example:
+            - 6E15DC4A-DB44-438B-9DE3-87021E61E38A
+            - 28FEFAB9-5F7D-4C19-B14F-A3803E6C1923
+          description: Message IDs of the sent emails
+        attachments:
+          type: array
+          description: List of attachment objects
+          items:
+            type: object
+      required:
+        - to_email_addresses
+        - subject
+        - from_email_address
+        - template_name
+        - template_variables
+      x-examples:
+        Password Reset Email:
+          to_email_addresses:
+            - user1@client.com
+            - user2@client.com
+          from_email_address: 'Alert Logic No-Reply <no-reply@cloudinsight.alertlogic.com>'
+          subject: Alert Logic Password Reset Request
+          template_name: password_reset
+          template_variables:
+            reset_token: abc123
+          message_ids:
+            - 6E15DC4A-DB44-438B-9DE3-87021E61E38A
+            - 28FEFAB9-5F7D-4C19-B14F-A3803E6C1923
