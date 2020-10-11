@@ -1113,11 +1113,27 @@ paths:
         those remediation items. Filters similar to those in the Query Assets endpoint can be used with
         an item named `remediation-item`. The `filters` field in the output is the union of all `filters`
         fields in all the returned remediation items.
+
+        Note that the returned `remediation-item` can also be filtered by various direct properties:
+
+        * `audit_id`: If the `audit_ids` param is passed, return only `remediation-items` that match
+          one of the given `audit_id`s.
+        * `deployment_id`: If the `deployment_ids` param is passed, return only `remediation-items`
+          that match one of the given `deployment_id`s.
+        * `remediation_id`: If the `remediation_ids` param is passed, return only `remediation-items`
+          that match one of the given `remediation_id`s.
+        * `item_id`: If the `remediation_item_ids` param is passed, return only `remediation-items`
+          that match one of the given `item_id`s.
+        * `vulnerability_id`: If the `vulnerability_ids` param is passed, return only `remediation-items`
+          that match one of the given `vulnerability_id`s.
       tags:
         - Exposures and Remediations
       parameters:
+        - $ref: 'parameters.yaml#/ParamAuditIds'
         - $ref: 'parameters.yaml#/ParamDeploymentIds'
+        - $ref: 'parameters.yaml#/ParamRemediationIds'
         - $ref: 'parameters.yaml#/ParamRemediationItemIds'
+        - $ref: 'parameters.yaml#/ParamVulnerabilityIds'
         - $ref: 'parameters.yaml#/ParamState'
         - $ref: 'parameters.yaml#/ParamQueryRemediationItemsFilter'
         - $ref: 'parameters.yaml#/ParamIncludeExposuresQRI'
@@ -1516,11 +1532,12 @@ paths:
         vulnerability instances associated to that `"remediation_id"` or `"vulnerability_id"` on
         assets described by the given `"filters"` have their `"concluded"` property set to `true`.
 
-        Note that, once all associated vulnerabilities are resolved, `"concluded"` remediation-items will
-        be cleared from the system (resolved). If a matching vulnerability instance is created/updated
-        *after* the `"concluded"` remediation-item is created, then the remediation-item will be cleared,
-        and all associated vulnerability instances will have their `"concluded"` property set back to
-        `false`.
+        Note that once all associated vulnerabilities are resolved, `"concluded"` `remediation-item`s
+        will be cleared from the system (resolved). Any matching vulnerability instance that is
+        created or modified *after* the `"concluded"` `remediation-item`'s `modified_on` timestamp
+        *will be* unconcluded (their `"concluded"` property will be set to `false`). If *all*
+        existing vulnerability instances are newer than the `remediation-item`, then the
+        `remediation-item` will be cleared (deleted).
       tags:
         - Exposures and Remediations
       requestBody:
