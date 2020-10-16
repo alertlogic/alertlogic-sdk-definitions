@@ -137,6 +137,41 @@ paths:
         name: query_execution_id
         in: path
         required: true
+  '/search/v1/{account_id}/messages/{datatype}':
+    post:
+      summary: Read Messages
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+      operationId: read_messages
+      description: |-
+        Read a set of messages from storage by ID
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          name: account_id
+          in: path
+          required: true
+        - schema:
+            type: string
+            enum:
+              - logmsgs
+          name: datatype
+          in: path
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessagesParams'
+        description: Read Messages Input Parameters
 components:
   schemas:
     SearchCreated:
@@ -212,6 +247,52 @@ components:
           type: integer
         sorts_executed:
           type: integer
+    MessagesParams:
+      title: MessagesParams
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+          required: true
+        fields:
+          type: array
+          items:
+            type: string
+        tokens_offsets:
+          type: string
+          enum:
+            - 'true'
+            - 'false'
+          default: 'false'
+        properties:
+          type: string
+          enum:
+            - 'true'
+            - 'false'
+          default: 'false'
+    MessagesResponse:
+      title: Messages
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: object
+            properties:
+              msgid:
+                type: string
+              aid:
+                type: integer
+              account:
+                type: integer
+            required: true
+          fields:
+            type: object
+            required: true
+          error:
+            type: object
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
