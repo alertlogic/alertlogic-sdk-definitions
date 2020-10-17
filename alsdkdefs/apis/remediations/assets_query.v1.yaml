@@ -979,6 +979,331 @@ paths:
           $ref: 'responses.yaml#/AssetDetailsConflict'
         "503":
           $ref: 'responses.yaml#/UnavailableError'
+    post:
+      operationId: get_asset_details_post
+      summary: Get Asset Details
+      description: |-
+        Fetches details and elaborations about individual assets and their surroundings, such as
+        complete asset details or an asset's network neighborhood or connectivity. The request body json
+        for different details operations are grouped together:
+
+        To get details of an asset by `type`, `key`, `deployment`, and `region`, specify the
+        following request body fields:
+
+        * `type` (must be `host`)
+        * `key`
+        * `deployment`
+        * `region`
+
+        To get details of an asset by `type` and `deployment`, specify the following request body fields:
+
+        * `type` (must be `deployment`)
+        * `deployment`
+
+        To get details of an asset by `appliance_uuid` and `ip_address`, specify the following
+        request body fields:
+
+        * `appliance_uuid`
+        * `ip_address`
+        * `port` (optional, always provide if available)
+
+        To get details of an asset by `type` and `uuid`, specify the following request body fields:
+
+        * `type` (default: `any`)
+        * `uuid`
+
+        To get details of an asset by `deployment`, `ip address` and `network`, specify the following request body fields:
+
+        * `deployment`
+        * `ip_address`
+        * `network`
+
+        Note that when calling this endpoint with query options `deployment`, `network` and `ip_address` set, if a host is found,
+        any subnet that the host isn't related to but it could be (the IP address matches the subnet mask) the additional unrelated
+        subnet(s) will be returned under the `subnet` key in the response.
+      tags:
+        - Queries
+      x-codeSamples:
+        - lang: Shell
+          label: 'Type, Key, Deployment, Region'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "type": "host",
+              "key": "id:i-0fa67ce21528409bc",
+              "deployment": "aws:1234567890",
+              "region": "id:us-east-2"
+            }
+            EOF
+        - lang: Shell
+          label: 'Type, Deployment'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "type": "deployment",
+              "deployment": "aws:1234567890"
+            }
+            EOF
+        - lang: Shell
+          label: Collector UUID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "type": "collector",
+              "uuid": "35DCF858-A0EE-4C95-B992-E268DB22FDE8"
+            }
+            EOF
+        - lang: Shell
+          label: Host UUID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "type": "host",
+              "uuid": "CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327"
+            }
+            EOF
+        - lang: Shell
+          label: 'Appliance UUID, IP address'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "appliance_uuid": "CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327",
+              "ip_address": "10.2.3.17"
+            }
+            EOF
+        - lang: Shell
+          label: 'Appliance UUID, IP address, Port'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "appliance_uuid": "CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327",
+              "ip_address": "10.2.3.17",
+              "port": "80"
+            }
+            EOF
+        - lang: Shell
+          label: 'Deployment, IP address, Network'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "deployment": "aws:1234567890",
+              "ip_address": "10.2.3.17",
+              "network": "/aws/us-east-1/vpc/vpc-12345678"
+            }
+            EOF
+        - lang: Shell
+          label: 'Deployment, Multiple IP addresses, Network'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "deployment": "aws:1234567890",
+              "ip_address": ["10.2.3.17", "10.2.4.18"],
+              "network": "/aws/us-east-1/vpc/vpc-12345678"
+            }
+            EOF
+        - lang: Shell
+          label: Remote Source
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "uuid": "8EB3C34C-4889-4BA1-B615-BAC3FD5138FC",
+              "type": "remote-source"
+            }
+            EOF
+      parameters:
+        - $ref: parameters.yaml#/UrlParamAccountId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: schemas.yaml#/AssetDetailsResponse
+              examples:
+                Collector UUID Success Response:
+                  $ref: examples.yaml#/AssetDetailsCollectorExample
+                Host UUID Success Response:
+                  $ref: examples.yaml#/AssetDetailsHostExample
+                Deployment Success Response:
+                  $ref: examples.yaml#/AssetDetailsDeploymentExample
+                'Host by Deployment, IP, Network Success Response':
+                  $ref: examples.yaml#/AssetDetailsHostByDeploymentIPNetworkExample
+                Remote Source Details Success Response:
+                  $ref: examples.yaml#/AssetDetailsRemoteSource
+        '400':
+          $ref: responses.yaml#/AssetDetailsBadRequest
+        '401':
+          $ref: responses.yaml#/Unauthorized
+        '403':
+          $ref: responses.yaml#/Forbidden
+        '404':
+          $ref: responses.yaml#/NotFound
+        '409':
+          $ref: responses.yaml#/AssetDetailsConflict
+        '503':
+          $ref: responses.yaml#/UnavailableError
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - description: 'Get details of an asset by `type`, `key`, `deployment`, and `region`.'
+                  title: 'Type, Key, Deployment, and Region'
+                  properties:
+                    type:
+                      type: string
+                      description: The asset type to look up. Only `host` is supported for this flavor of get details.
+                      default: host
+                    key:
+                      type: string
+                      description: |-
+                        The native AWS ID (prefixed by kind) or the full asset key of the target asset. Key is
+                        either a full asset key, or must be prefixed by `id:`, followed by the asset's native
+                        ID (e.g. instance ID of a host in AWS). Initially, the expected value is
+                        `id:AWSInstanceId`. *Note: If you use `id:AWSInstanceId`
+                        then `region` must be defined as region ID `id:AWSRegionId`*
+                      example: 'id:i-0fa67ce21528409bc'
+                    deployment:
+                      type: string
+                      description: |-
+                        The native AWS account ID or Azure subscription ID (prefixed by kind), or the internal
+                        deployment UUID. Deployment is either the deployment's Alert Logic UUID,
+                        or the native deployment ID prefixed by kind (either `aws:` or `azure:`). The expected
+                        value is either `aws:{AWSAccountId}` or `azure:{AzureSubscriptionId}` (e.g.,
+                        `aws:1234567890` or `azure:713CEFBB-E37E-4119-A1AA-458840BFD878`).
+                      example: 'aws:1234567890 or azure:713CEFBB-E37E-4119-A1AA-458840BFD878'
+                    region:
+                      type: string
+                      description: |-
+                        The AWS region ID (prefixed by kind) or the full asset key. Region is either a full
+                        asset key, or must be prefixed by `id:`, followed by the asset's native `ID` (e.g.,
+                        region ID in AWS). Initially, the expected value is id:AWSRegionId, e.g.,
+                        `id:us-east-2`.
+                      example: 'id:us-east-2'
+                  required:
+                    - type
+                    - key
+                    - deployment
+                    - region
+                - description: Get details of an asset by `type` and `deployment`
+                  title: 'Type and Deployment'
+                  properties:
+                    type:
+                      type: string
+                      default: deployment
+                      description: must be `deployment`
+                    deployment:
+                      type: string
+                      description: |-
+                        The native AWS account ID or Azure subscription ID (prefixed by kind), or the internal
+                        deployment UUID. Deployment is either the deployment's Alert Logic UUID,
+                        or the native deployment ID prefixed by kind (either `aws:` or `azure:`). The expected
+                        value is either `aws:{AWSAccountId}` or `azure:{AzureSubscriptionId}` (e.g.,
+                        `aws:1234567890` or `azure:713CEFBB-E37E-4119-A1AA-458840BFD878`).
+                  required:
+                    - type
+                    - deployment
+                - description: To get details of an asset by `appliance_uuid` and `ip_address`.  Port is optional bu t should be provided if available.
+                  title: 'Appliance UUID, IP Address, and Port (Optional)'
+                  properties:
+                    appliance_uuid:
+                      type: string
+                      description: |-
+                        The UUID of the appliance protecting the host to elaborate, which will be the source
+                        of any IDS events generated for the host. The appliance UUID is the UUID issued to the
+                        appliance agent and contained in its agent certificate.
+                    ip_address:
+                      description: |-
+                        A CSV or array of the IP address(es) of the target protected host. The IP address is the target
+                        IP, i.e. the IP of a protected asset (being defined as any IP address in the set of
+                        protected subnets, itself known as "home net"). If more than one IP address is given,
+                        all of them must be target IPs of the protected asset.
+                      oneOf:
+                        - type: array
+                          items:
+                            type: string
+                        - type: string
+                    port:
+                      type: string
+                      description: The TCP or UDP port on the target protected host
+                  required:
+                    - appliance_uuid
+                    - ip_address
+                - description: Get details of an asset by `type` and `uuid`
+                  title: 'Type and UUID'
+                  properties:
+                    type:
+                      type: string
+                      default: any
+                      enum:
+                        - any
+                        - deployment
+                        - agent
+                        - appliance
+                        - collector
+                        - host
+                        - remote-source
+                      description: |-
+                        The asset type(s) to look up, separated by commas. Note that multiple values are only
+                        supported by some flavors (see description) — sometimes only `host` or `deployment` are
+                        acceptable.
+
+                        When passing the `uuid` parameter, the order provided is the order that the types will
+                        be looked up; if you set `agent`/`appliance` prior to `host`, the host will be detailed
+                        as a `related` asset to the associated `agent`/`appliance` asset.
+                    uuid:
+                      type: string
+                      description: |-
+                        The UUID of the asset `type` being elaborated. The host UUID for a `host` is the UUID
+                        issued to its associated agent or appliance, and contained in its agent certificate.
+                  required:
+                    - type
+                    - uuid
+                - description: |-
+                    Get details of an asset by `deployment`, `ip address` and `network`.
+
+                    Note - that when calling this endpoint with query options `deployment`, `network` and `ip_address` set, if a host is found,
+                    any subnet that the host isn't related to but it could be (the IP address matches the subnet mask) the additional unrelated
+                    subnet(s) will be returned under the `subnet` key in the response.
+                  title: 'Deployment, IP Address, and Network'
+                  properties:
+                    deployment:
+                      type: string
+                      description: |-
+                        The native AWS account ID or Azure subscription ID (prefixed by kind), or the internal
+                        deployment UUID. Deployment is either the deployment's Alert Logic UUID,
+                        or the native deployment ID prefixed by kind (either `aws:` or `azure:`). The expected
+                        value is either `aws:{AWSAccountId}` or `azure:{AzureSubscriptionId}` (e.g.,
+                        `aws:1234567890` or `azure:713CEFBB-E37E-4119-A1AA-458840BFD878`).
+                    ip_address:
+                      oneOf:
+                        - type: array
+                          items:
+                            type: string
+                        - type: string
+                          properties: { }
+                      description: |-
+                        A CSV of the IP address(es) of the target protected host. The IP address is the target
+                        IP, i.e. the IP of a protected asset (being defined as any IP address in the set of
+                        protected subnets, itself known as "home net"). If more than one IP address is given,
+                        all of them must be target IPs of the protected asset.
+                    network:
+                      type: string
+                      description: 'The network asset key, e.g. a vpc key: `/aws/us-east-1/vpc/vpc-12345678`.'
+                  required:
+                    - deployment
+                    - ip_address
+                    - network
+              type: object
   /assets_query/v2/{account_id}/exposures:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
@@ -1113,11 +1438,27 @@ paths:
         those remediation items. Filters similar to those in the Query Assets endpoint can be used with
         an item named `remediation-item`. The `filters` field in the output is the union of all `filters`
         fields in all the returned remediation items.
+
+        Note that the returned `remediation-item` can also be filtered by various direct properties:
+
+        * `audit_id`: If the `audit_ids` param is passed, return only `remediation-items` that match
+          one of the given `audit_id`s.
+        * `deployment_id`: If the `deployment_ids` param is passed, return only `remediation-items`
+          that match one of the given `deployment_id`s.
+        * `remediation_id`: If the `remediation_ids` param is passed, return only `remediation-items`
+          that match one of the given `remediation_id`s.
+        * `item_id`: If the `remediation_item_ids` param is passed, return only `remediation-items`
+          that match one of the given `item_id`s.
+        * `vulnerability_id`: If the `vulnerability_ids` param is passed, return only `remediation-items`
+          that match one of the given `vulnerability_id`s.
       tags:
         - Exposures and Remediations
       parameters:
+        - $ref: 'parameters.yaml#/ParamAuditIds'
         - $ref: 'parameters.yaml#/ParamDeploymentIds'
+        - $ref: 'parameters.yaml#/ParamRemediationIds'
         - $ref: 'parameters.yaml#/ParamRemediationItemIds'
+        - $ref: 'parameters.yaml#/ParamVulnerabilityIds'
         - $ref: 'parameters.yaml#/ParamState'
         - $ref: 'parameters.yaml#/ParamQueryRemediationItemsFilter'
         - $ref: 'parameters.yaml#/ParamIncludeExposuresQRI'
@@ -1516,11 +1857,12 @@ paths:
         vulnerability instances associated to that `"remediation_id"` or `"vulnerability_id"` on
         assets described by the given `"filters"` have their `"concluded"` property set to `true`.
 
-        Note that, once all associated vulnerabilities are resolved, `"concluded"` remediation-items will
-        be cleared from the system (resolved). If a matching vulnerability instance is created/updated
-        *after* the `"concluded"` remediation-item is created, then the remediation-item will be cleared,
-        and all associated vulnerability instances will have their `"concluded"` property set back to
-        `false`.
+        Note that once all associated vulnerabilities are resolved, `"concluded"` `remediation-item`s
+        will be cleared from the system (resolved). Any matching vulnerability instance that is
+        created or modified *after* the `"concluded"` `remediation-item`'s `modified_on` timestamp
+        *will be* unconcluded (their `"concluded"` property will be set to `false`). If *all*
+        existing vulnerability instances are newer than the `remediation-item`, then the
+        `remediation-item` will be cleared (deleted).
       tags:
         - Exposures and Remediations
       requestBody:
