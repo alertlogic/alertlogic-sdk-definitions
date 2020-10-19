@@ -877,9 +877,9 @@ paths:
         - X-AIMS-Auth-Token: []
       parameters:
         - schema:
-            type: string
+            type: number
           in: query
-          name: epcoh
+          name: epoch
           description: A positive integer representing an epoch
         - schema:
             type: string
@@ -1287,6 +1287,75 @@ paths:
               type: array
               items:
                 type: string
+  '/aetag/v1/tags/review/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: url-encoded path
+    post:
+      summary: Review Path Overwrites by CIDs
+      operationId: review_path_overwrites_by_cids
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      description: Return the path overwrites for given account ids
+      security:
+        - X-AIMS-Auth-Token: []
+      tags:
+        - Tags Resources
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: number
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+    get:
+      summary: Review Path Overwrites
+      operationId: review_path_overwrites
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      description: Return the path overwrites for all account ids
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+      tags:
+        - Tags Resources
 components:
   schemas:
     Definitions:
@@ -1380,9 +1449,9 @@ components:
             - type: number
             - type: boolean
       required:
-      - operation
-      - key
-      - value
+        - operation
+        - key
+        - value
       additionalProperties: false
     CrudKeyDelete:
       type: object
@@ -1393,8 +1462,8 @@ components:
         key:
           type: string
       required:
-      - operation
-      - key
+        - operation
+        - key
       additionalProperties: false
     CrudKeyRead:
       type: object
@@ -1405,8 +1474,8 @@ components:
         key:
           type: string
       required:
-      - operation
-      - key
+        - operation
+        - key
       additionalProperties: false
   securitySchemes:
     X-AIMS-Auth-Token:
