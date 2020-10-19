@@ -75,17 +75,20 @@ DisposeConcludeFilters:
     The list of filters (or a list of lists of filters, a `filters set`) to which the
     `remediation-item` is being applied/created. Filters are specified as asset `type:key`
     pairs, except application, which is always `application:product`. See the above
-    description of [filters](#section/Remediation-filters). Note that non-asset filters
-    (`deployment_id`, `deployment_type`, `remediation`, `vulnerability`, `category`,
-    `severity`, `cve`, `cwe` and `asset_type`) will be ignored. If a `filters set` is
-    provided, one `remediation-item` per unique `filters` in the `filters set` will be
-    created (note this is permuted with `deployment_ids` and
-    `remediation_ids`/`vulnerability_ids` as well).
+    description of [filters](#api-_-remediation-filters). Note that non-asset filters
+    (`deployment_type`, `remediation`, `vulnerability`, `category`,
+    `severity`, `cve`, `cwe` and `asset_type`) will be ignored with the exception of `deployment_id`.
+    If a `filters set` is provided, one `remediation-item` per unique `filters` in the `filters set` will be
+    created. Note that this is permuted with `deployment_ids` (only if a set does not include
+    `deployment_id`) and `remediation_ids`/`vulnerability_ids` as well.
 DeploymentIds:
   type: string
   description: |-
-    A list of deployment IDs in which to dispose the given remediation(s). If not given, all
-    deployments where the remediation exists will have a remediation item created.
+    A list of deployment IDs in which to conclude/dispose the given remediation(s). If not given, all
+    deployments where the remediation exists will have a remediation item created, except if
+    the `filters` specify a `deployment_id` for each filter set. **Note** that, if an element
+    of any the `filters set` specifies a specific `deployment_id` filter, only that one is
+    used, **only** for that element in the filters set.
 RemediationIds:
   type: string
   description: |-
