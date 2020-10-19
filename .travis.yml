@@ -19,17 +19,17 @@ jobs:
     install:
       - pip install ./
     script: python scripts/validate_my_definition.py -d alsdkdefs/apis/assets_query/
-  - stage: test_other_os
-    language: sh
-    python: 3
-    before_install:
-      - choco install python3
-      - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
-      - python -m pip install --upgrade pip wheel
-      - python -m pip install -r requirements.txt
-    name: 'Run python tests on windows'
-    script: python -m unittest
-    os: windows
+#  - stage: test_other_os
+#    language: sh
+#    python: 3
+#    before_install:
+#      - choco install python3
+#      - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+#      - python -m pip install --upgrade pip wheel
+#      - python -m pip install -r requirements.txt
+#    name: 'Run python tests on windows'
+#    script: python -m unittest
+#    os: windows
   - stage: merge-automated-prs
     name: "(Pipeline Stage 1)Merge pull request produced by automation"
     if: "(fork = false) AND (head_branch =~ /^auto-update-\\d*/) AND (type = pull_request)"
