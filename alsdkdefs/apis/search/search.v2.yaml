@@ -43,18 +43,18 @@ paths:
               examples:
                 Bad SQL Response Example:
                   value:
-                    error: "Unknow keyword 'SELECTA'"
+                    error: "Unknown keyword 'SELECTA'"
       operationId: start_query_execution
       description: |-
         Request the execution of a new search.
 
         Use the text/plain media type with an SQL statement to execute http request.
-        Details on how the SQL statements look will be given in a separate document.
-        Old style search in JSON form can be passed as media type application/json.
+        The documentation for AL SQL statements will be coming soon.
       security:
         - X-AIMS-Auth-Token: []
       parameters:
-        - schema:
+        - name: search_type
+          schema:
             type: string
             enum:
               - auto
@@ -62,15 +62,6 @@ paths:
               - report
             default: auto
           in: query
-          name: search_type
-        - schema:
-            type: boolean
-            default: 'false'
-            enum:
-              - 'true'
-              - 'false'
-          in: query
-          name: dry_run
       requestBody:
         content:
           text/plain:
@@ -81,11 +72,7 @@ paths:
               name: query_string
         description: ''
     parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
+      - $ref: '#/components/parameters/AccountId'
   '/search/v2/{account_id}/searches/{query_execution_id}':
     get:
       summary: Get Search Results
@@ -99,45 +86,80 @@ paths:
       security:
         - X-AIMS-Auth-Token: []
       parameters:
-        - schema:
+        - name: details
+          schema:
             type: boolean
             enum:
               - 'true'
               - 'false'
             default: 'false'
           in: query
-          name: details
           description: Return search execution details
-        - schema:
+        - name: offest
+          schema:
             type: integer
           in: query
-          name: offest
-          description: offset within a results page
-        - schema:
+          description: offset within a set of results
+        - name: limit
+          schema:
             type: integer
             default: '100'
           in: query
-          name: limit
-          description: Limit the number of elements on the response
-        - schema:
+          description: Limit the number of elements in the response
+        - name: next_token
+          schema:
             type: string
           in: query
-          name: next_token
-          description: A next_token from a previous request to continue paging results
+          description: A `next_token` from a previous request to continue paging results
       description: 'Returns the results of a query execution specified by {search_uuid}'
     parameters:
-      - schema:
+      - $ref: '#/components/parameters/AccountId'
+      - name: query_execution_id
+        schema:
           type: string
-        name: account_id
         in: path
         required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: query_execution_id
-        in: path
+  '/search/v1/{account_id}/messages/{datatype}':
+    post:
+      summary: Read Messages
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+      operationId: read_messages
+      description: |-
+        Read a set of messages from storage by ID
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - name: datatype
+          schema:
+            type: string
+            enum:
+              - logmsgs
+          in: path
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessagesParams'
+        description: Read Messages Input Parameters
         required: true
 components:
+  parameters:
+    AccountId:
+      name: account_id
+      schema:
+        type: string
+      in: path
+      required: true
+      description: AIMS Account Id
   schemas:
     SearchCreated:
       title: SearchCreated
@@ -212,10 +234,55 @@ components:
           type: integer
         sorts_executed:
           type: integer
+    MessagesParams:
+      title: MessagesParams
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+        fields:
+          type: string
+        tokens_offsets:
+          type: string
+          enum:
+            - 'true'
+            - 'false'
+          default: 'false'
+        properties:
+          type: string
+          enum:
+            - 'true'
+            - 'false'
+          default: 'false'
+    MessagesResponse:
+      title: Messages
+      type: array
+      required:
+        - id
+        - fields
+      items:
+        type: object
+        properties:
+          id:
+            type: object
+            properties:
+              msgid:
+                type: string
+              aid:
+                type: integer
+              account:
+                type: integer
+          fields:
+            type: object
+          error:
+            type: object
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
       type: apiKey
       in: header
       description: AIMS Authentication Token
-
