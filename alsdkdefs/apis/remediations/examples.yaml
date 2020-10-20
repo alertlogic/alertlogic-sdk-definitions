@@ -4118,6 +4118,87 @@ QueryRemediationItemsMultipleDeploymentsGroupByAuditIdExample:
         info: 0
         low: 0
         medium: 0
+QueryRemediationItemsMultipleDeploymentsGroupByAuditIdDetailsExample:
+  value:
+    filters:
+      - region:/aws/us-east-1
+    remediation-items:
+      assets:
+        - account_id: '12345678'
+          audit_id: 37CA08E6-9CC7-4575-BA9B-B6F961976E8D
+          asset_count: 2
+          comment: Example of a remediation-item disposed by remediation ID
+          created_on: 1428707198110
+          deployment_ids:
+            - 347203EF-134C-1005-8499-1289DB15AB31
+            - DE6DF90C-EE08-4E49-8B0E-63972B91789B
+          expires: 0
+          exposures:
+            - asset_count: 1
+              categories:
+                - security
+              name: ELB Listener Security (1 of 4)
+              severity: high
+              threat_score: 10
+              threatiness: 24
+              vinstances:
+                - categories:
+                    - security
+                  concluded: false
+                  details: '{"evidence":{}}'
+                  disposed: true
+                  key: "/aws/us-east-1/load-balancer/my-test-elb/vulnerability/eca86a6ac47cb34a554ab76a714d847f"
+                  modified_on: 1560954506756
+                  remediation_item_id: "6A74878A5BBC9DCE29289258D11D0937"
+                  target:
+                    account_id: '12345678'
+                    deployment_id: 347203EF-134C-1005-8499-1289DB15AB31
+                    dns_name: my-test-elb-1864329672.us-east-1.elb.amazonaws.com
+                    key: "/aws/us-east-1/load-balancer/my-test-elb"
+                    name: my-test-elb
+                    scheme: internet-facing
+                    tags: { }
+                    threat_level: 3
+                    threatiness: 12.0347
+                    type: load-balancer
+                  threatiness: 8
+              vinstances_count: 1
+              vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
+          exposures_count: 1
+          filters:
+            - - region:/aws/us-east-1
+          item_ids:
+            - 6A74878A5BBC9DCE29289258D11D0937
+          keys:
+            - /al/12345678:347203EF-134C-1005-8499-1289DB15AB31/remediation-item/6A74878A5BBC9DCE29289258D11D0937
+            - /al/12345678:DE6DF90C-EE08-4E49-8B0E-63972B91789B/remediation-item/6A74878A5BBC9DCE29289258D11D0937
+          modified_on: 1428707198879
+          reason: acceptable_risk
+          remediation:
+            account_id: '12345678'
+            categories:
+              - security
+            deployment_id: 347203EF-134C-1005-8499-1289DB15AB31
+            key: /al/12345678:347203EF-134C-1005-8499-1289DB15AB31/remediation/9bccdb1d7ee02c690638e5932d387155
+            name: It is recommended that users use the most current predefined security
+              policy.
+            remediation_id: 9bccdb1d7ee02c690638e5932d387155
+            threat_level: 1
+            threatiness: 24
+            type: remediation
+          remediation_id: 9bccdb1d7ee02c690638e5932d387155
+          state: disposed
+          type: remediation-item
+          user_id: E33F8C23-1321-1005-84D9-0E96AE6DBD5E
+          vinstances_count: 2
+      rows: 1
+    summary:
+      severities:
+        all: 2
+        high: 2
+        info: 0
+        low: 0
+        medium: 0
 ListAssetGroupsExample:
   value:
     groups:

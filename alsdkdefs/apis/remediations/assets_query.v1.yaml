@@ -1451,6 +1451,8 @@ paths:
           that match one of the given `item_id`s.
         * `vulnerability_id`: If the `vulnerability_ids` param is passed, return only `remediation-items`
           that match one of the given `vulnerability_id`s.
+        * The associated `remediation_item_id` is rendered on vinstances. Note: `details=true`
+          is required to see vinstances on exposures.
       tags:
         - Exposures and Remediations
       parameters:
@@ -1485,6 +1487,8 @@ paths:
                   $ref: 'examples.yaml#/QueryRemediationItemsSingleDeploymentsDetailedFiltersExample'
                 Default Response (multiple deployments, group_by_audit_id=true):
                     $ref: 'examples.yaml#/QueryRemediationItemsMultipleDeploymentsGroupByAuditIdExample'
+                Default Response (multiple deployments, group_by_audit_id=true, details=true):
+                  $ref: 'examples.yaml#/QueryRemediationItemsMultipleDeploymentsGroupByAuditIdDetailsExample'
         "401":
           $ref: 'responses.yaml#/Unauthorized'
         "403":
