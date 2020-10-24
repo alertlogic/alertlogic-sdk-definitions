@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Alert Logic Universal Search Service
   version: '2.0'
-  description: "Service for submitting searches and getting their results.\nThis API is datatype agnostic as the selection of which datatype to search over is now done in the SQL via the FROM part of the query. "
+  description: "Service for submitting searches and getting their results.\nThis API is datatype-agnostic as the selection of which datatype to search over is now done in the SQL via the FROM part of the query. "
 servers:
   - url: 'https://api.global-services.global.alertlogic.com'
     description: production
@@ -17,7 +17,7 @@ paths:
       tags: []
       responses:
         '201':
-          description: Created
+          description: The search has been created and is executing.
           content:
             application/json:
               schema:
@@ -62,6 +62,24 @@ paths:
               - report
             default: auto
           in: query
+        - name: timeframe
+          in: query
+          description: 'A number of seconds back from the current time to query.  I.e. a value of 3600 indicates that the
+                        query should start from 1 hour ago (3600 seconds ago) until now.'
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31622400   # NOTE: This comes from MAX_TIMEFRAME in search_lib
+        - name: start
+          in: query
+          description: 'The start of the time period to search as a Unix epoch timestamp.'
+          schema:
+            $ref: '#/components/schemas/EpochTimestamp'
+        - name: end
+          in: query
+          description: 'The end of the time period to search as a Unix epoch timestamp.'
+          schema:
+            $ref: '#/components/schemas/EpochTimestamp'
       requestBody:
         content:
           text/plain:
@@ -95,7 +113,7 @@ paths:
             default: 'false'
           in: query
           description: Return search execution details
-        - name: offest
+        - name: offset
           schema:
             type: integer
           in: query
@@ -161,79 +179,9 @@ components:
       required: true
       description: AIMS Account Id
   schemas:
-    SearchCreated:
-      title: SearchCreated
-      type: object
-      properties:
-        search_uuid:
-          type: string
-          description: The unique id for the search request
-    SearchFailed:
-      title: SearchFailed
-      type: object
-      properties:
-        search_status:
-          type: string
-          enum:
-            - failed
-        status_details:
-          type: string
-          description: 'User friendly status '
-        details:
-          $ref: '#/components/schemas/SearchDetails'
-    SearchDetails:
-      title: SearchDetails
-      type: object
-      properties:
-        query:
-          type: string
-          description: Search requested query after applying of defaults
-        search_type:
-          type: string
-          enum:
-            - batch
-            - interactive
-            - report
-        start_ts:
-          type: integer
-          description: Start time of the search in Epoch
-        update_ts:
-          type: integer
-          description: Last update to the search in Epoch
-        stats:
-          $ref: '#/components/schemas/SearchStats'
-    SearchStats:
-      title: SearchStats
-      type: object
-      properties:
-        fetchers_executed:
-          type: integer
-        filtered_batches:
-          type: integer
-        filtered_bytes:
-          type: integer
-        filtered_compressed_bytes:
-          type: integer
-        filtered_records:
-          type: integer
-        filters_executed:
-          type: integer
-        filters_scheduled:
-          type: integer
-        input_scanned_bytes:
-          type: integer
-        input_scanned_packets:
-          type: integer
-        input_scanned_records:
-          type: integer
-        output_records:
-          type: integer
-        recurse_sorts:
-          type: integer
-        sort_recurse_time:
-          type: integer
-        sorts_executed:
-          type: integer
+    EpochTimestamp:
+      type: integer
+      minimum: 0
     MessagesParams:
       title: MessagesParams
       type: object
@@ -280,6 +228,79 @@ components:
             type: object
           error:
             type: object
+    SearchCreated:
+      title: SearchCreated
+      type: object
+      properties:
+        search_uuid:
+          type: string
+          description: The unique id for the search request
+    SearchDetails:
+      title: SearchDetails
+      type: object
+      properties:
+        query:
+          type: string
+          description: Search requested query after applying of defaults
+        search_type:
+          type: string
+          enum:
+            - batch
+            - interactive
+            - report
+        start_ts:
+          type: integer
+          description: Start time of the search in Epoch
+        update_ts:
+          type: integer
+          description: Last update to the search in Epoch
+        stats:
+          $ref: '#/components/schemas/SearchStats'
+    SearchFailed:
+      title: SearchFailed
+      type: object
+      properties:
+        search_status:
+          type: string
+          enum:
+            - failed
+        status_details:
+          type: string
+          description: 'User friendly status '
+        details:
+          $ref: '#/components/schemas/SearchDetails'
+    SearchStats:
+      title: SearchStats
+      type: object
+      properties:
+        fetchers_executed:
+          type: integer
+        filtered_batches:
+          type: integer
+        filtered_bytes:
+          type: integer
+        filtered_compressed_bytes:
+          type: integer
+        filtered_records:
+          type: integer
+        filters_executed:
+          type: integer
+        filters_scheduled:
+          type: integer
+        input_scanned_bytes:
+          type: integer
+        input_scanned_packets:
+          type: integer
+        input_scanned_records:
+          type: integer
+        output_records:
+          type: integer
+        recurse_sorts:
+          type: integer
+        sort_recurse_time:
+          type: integer
+        sorts_executed:
+          type: integer
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
