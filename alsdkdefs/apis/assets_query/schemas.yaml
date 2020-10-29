@@ -521,6 +521,25 @@ TagsSummaryResponse:
           tags:
             type: object
             description: Object containing the tag name as keys and their descriptions as values.
+TagsSummaryDeprecatedResponse:
+  title: Tags summary response
+  type: object
+  properties:
+    tags:
+      type: array
+      description: Array of summarized tags objects.
+      items:
+        type: object
+        properties:
+          key:
+            $ref: '#/AssetKey'
+          type:
+            $ref: '#/AssetType'
+          deployment_id:
+            $ref: '#/DeploymentId'
+          tags:
+            type: object
+            description: Object containing the tag name as keys and their descriptions as values.
 DisposeRemediationsResponse:
   title: Dispose remediations response
   type: object

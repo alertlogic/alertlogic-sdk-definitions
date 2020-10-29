@@ -2015,7 +2015,82 @@ ExposuresSummaryForDeploymentExample:
       info: 19
       low: 5
       medium: 6
-TagsSummaryExample:
+TagsSummaryTagsOnlyExample:
+  value:
+    tags:
+      assets:
+        - - tag:/tag/key/base-stack-name/value/integration
+        - - tag:/tag/key/department/value/engineering
+      rows: 2
+      data:
+        tag:/tag/key/base-stack-name/value/integration:
+          type: tag
+          tag_value: integration
+          tag_key: base-stack-name
+          name: 'base-stack-name: integration'
+          key: tag:/tag/key/base-stack-name/value/integration
+          deployment_ids:
+            - CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+        tag:/tag/key/department/value/Engineering:
+          type: tag
+          tag_value: engineering
+          tag_key: department
+          name: 'department: Engineering'
+          key: tag:/tag/key/department/value/Engineering
+          deployment_ids:
+            - B8CB762A-7675-42FC-9C47-4A7ADF27D3D1
+            - CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+TagsSummaryAssetsIncludedExample:
+  value:
+    tags:
+      assets:
+        - - tag:/tag/key/base-stack-name/value/integration
+          - CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327:vpc:vpc-123
+        - - tag:/tag/key/department/value/engineering
+          - B8CB762A-7675-42FC-9C47-4A7ADF27D3D1:vpc:vpc-123
+        - - tag:/tag/key/department/value/engineering
+          - CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327:vpc:vpc-456
+      rows: 3
+      data:
+        tag:/tag/key/base-stack-name/value/integration:
+          type: tag
+          tag_value: integration
+          tag_key: base-stack-name
+          name: 'base-stack-name: integration'
+          key: tag:/tag/key/base-stack-name/value/integration
+          deployment_ids:
+            - CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+        tag:/tag/key/department/value/Engineering:
+          type: tag
+          tag_value: engineering
+          tag_key: department
+          name: 'department: Engineering'
+          key: tag:/tag/key/department/value/Engineering
+          deployment_ids:
+            - B8CB762A-7675-42FC-9C47-4A7ADF27D3D1
+            - CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+        B8CB762A-7675-42FC-9C47-4A7ADF27D3D1:vpc:vpc-123:
+          vpc_id: vpc-123
+          type: vpc
+          network_uuid: 30A8FE2B-120E-4FA7-B0F8-4709E8910BF5
+          name: integration
+          modified_on: 1603391219899
+          key: vpc-123
+          created_on: 1603391219899
+          cidr_ranges:
+            - 10.0.0.0/8
+        CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327:vpc:vpc-456:
+          vpc_id: vpc-456
+          type: vpc
+          network_uuid: 7CE7A439-B86E-434E-8C3C-CA3314BDE6DF
+          name: production
+          modified_on: 1603391219899
+          key: vpc-456
+          vpc_name: production
+          created_on: 1603391219899
+          cidr_ranges:
+            - 172.16.0.0/12
+TagsSummaryDeprecatedExample:
   value:
     tags:
     - key: "/aws/us-west-2"
