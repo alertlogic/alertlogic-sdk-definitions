@@ -411,3 +411,13 @@ ParamTopoChain:
     If set to `false`, it will retrieve all matching assets regardless of their topology path.
     Note that `topo_chain=false` may include assets with broken path to the response
     (e.g. a host without a relationship to a subnet).
+ParamIncludeTaggedAssets:
+  schema:
+    type: boolean
+    default: false
+  in: query
+  name: include_tagged_assets
+  description: |-
+    When true, causes the inclusion of tagged assets in the result.
+    The single-column rows become two-column rows and the data map includes
+    tagged assets with keys in the form `deployment_id:type:key`.
