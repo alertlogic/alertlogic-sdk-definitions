@@ -1719,13 +1719,58 @@ paths:
           $ref: 'responses.yaml#/UnavailableError'
       security:
         - x-aims-auth-token: []
+  /assets_query/v1/{account_id}/tags/summary:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/ParamIncludeTaggedAssets'
+    get:
+      operationId: get_tags_summary
+      summary: Get Tags Summary
+      description: |-
+        Get a summary of all tags, with normalized keys, across all deployments. This endpoint should be
+        preferred for use-cases that span deployments, like asset groups.
+      tags:
+        - Summaries
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/TagsSummaryResponse'
+              examples:
+                "Get tag summary (tags only)":
+                  $ref: 'examples.yaml#/TagsSummaryTagsOnlyExample'
+                "Get tag summary (with tagged assets)":
+                  $ref: 'examples.yaml#/TagsSummaryAssetsIncludedExample'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+        "503":
+          $ref: 'responses.yaml#/UnavailableError'
+      x-codeSamples:
+        - lang: Shell
+          label: Get tag summary (tags only)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/tags/summary" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get tag summary (with tagged assets)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/tags/summary?include_tagged_assets=true" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      security:
+        - x-aims-auth-token: [ ]
   /assets_query/v1/{account_id}/deployments/{deployment_id}/tags/summary:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
       - $ref: 'parameters.yaml#/UrlParamDeploymentId'
     get:
-      operationId: get_tags_summary
-      summary: Get Tags Summary
+      operationId: get_tags_summary_deprecated
+      summary: Get Tags Summary (Deprecated)
       description: |-
         Get a summary of all tags in a deployment. Returns a list of (minimal) assets with their
         tags.
@@ -1737,10 +1782,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'schemas.yaml#/TagsSummaryResponse'
+                $ref: 'schemas.yaml#/TagsSummaryDeprecatedResponse'
               examples:
                 Get Tags Summary Example:
-                  $ref: 'examples.yaml#/TagsSummaryExample'
+                  $ref: 'examples.yaml#/TagsSummaryDeprecatedExample'
         "401":
           $ref: 'responses.yaml#/Unauthorized'
         "403":
