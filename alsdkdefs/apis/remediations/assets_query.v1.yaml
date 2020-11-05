@@ -1683,6 +1683,15 @@ paths:
                       description: |-
                         A list of asset types that determines the assets included in the individual scope. If an asset would be included in
                         multiple scopes, the scopes' allowed asset types are unioned together.
+                return_asset_types:
+                  type: array
+                  description: |-
+                    A list of groupable asset types that limits the exploration of the asset model. The types specified in
+                    this list, as well as their topological ancestor types, are the only ones that will be returned in the
+                    resulting topology.assets rows.
+                  items:
+                    type: string
+                    minLength: 1
       x-codeSamples:
         - lang: Shell
           label: Topology Preview
@@ -1696,6 +1705,26 @@ paths:
                     "deployment:any",
                     "region.name:!eu-west-1"
                   ]
+                }
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: Topology Preview (return_asset_types=host)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/topology/asset_group" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "scopes": [
+                {
+                  "include": [
+                    "deployment:any",
+                    "region.name:!eu-west-1"
+                  ]
+                }
+              ],
+              "return_asset_types": [
+                "host"
               ]
             }
             EOF
@@ -1708,7 +1737,9 @@ paths:
                 $ref: 'schemas.yaml#/TopologyPreviewResponse'
               examples:
                 Topology Preview Example:
-                  $ref: 'examples.yaml#/TopologyPreviewExample'
+                  $ref: 'examples.yaml#/FullAssetGroupTopologyPreviewExample'
+                'Topology Preview Example (return_asset_types=host)':
+                  $ref: 'examples.yaml#/HostAssetGroupTopologyPreviewExample'
         "401":
           $ref: 'responses.yaml#/Unauthorized'
         "403":
