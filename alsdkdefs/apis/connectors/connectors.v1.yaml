@@ -562,11 +562,22 @@ components:
         auth_header:
           type: string
           description: HTTP Authorization header. Make sure to base64 encode authorization value if the target URL requires it.
+        method:
+          type: string
+          description: 'HTTP verbs, can have values POST, PUT GET, DELETE, PATCH, OPTIONS, HEAD by default is POST'
+          default: POST
+          enum:
+            - POST
+            - PUT
+            - GET
+            - DELETE
+            - PATCH
+            - OPTIONS
+            - HEAD
       required:
         - name
         - type
         - target_url
-        - payload_type
         - payload_conversion_type
         - payload_template
     CreateEmailConnection:
@@ -718,6 +729,8 @@ components:
               type: string
             code:
               type: integer
+            headers:
+              type: object
   securitySchemes:
     aims_request_authorizer:
       type: apiKey
