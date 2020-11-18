@@ -2196,6 +2196,66 @@ paths:
           $ref: 'responses.yaml#/UnavailableError'
       security:
         - x-aims-auth-token: []
+  /assets_query/v1/asset_types:
+    get:
+      summary: Get Asset Types Schema
+      tags:
+        - Queries
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: schemas.yaml#/AssetTypesSchemaResponse
+              examples:
+                Exposures Summary for Deployment Example:
+                  $ref: examples.yaml#/AssetTypesSchemaResponseExample
+      operationId: asset_types_schemas
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: filter
+          description: 'Filters that asset types must match to be included eg. `groupable`, `taggable`, `vulnerable`, etc...'
+        - schema:
+            type: string
+          in: query
+          name: fields
+          description: 'A csv string of the fields that should be returned for an asset type. Note: if the asset type does not contain that field it will not be in the return value.'
+        - schema:
+            type: string
+            enum:
+              - list
+              - topology
+          in: query
+          name: format
+          description: 'Returns the asset types as a list of schema objects (list) or as a list of topological schemas'
+      description: Fetches the `"schema"` for asset types. The schema describes the structure for asset types.
+    parameters: [ ]
+  '/assets_query/v1/asset_types/{asset_type}':
+    get:
+      summary: Get Asset Type Schema
+      tags:
+        - Queries
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: schemas.yaml#/AssetTypeSchemaResponse
+              examples:
+                Exposures Summary for Deployment Example:
+                  $ref: examples.yaml#/AssetTypeSchemaResponseExample
+      operationId: asset_type_schema
+      description: 'fetch the schema of an asset type'
+    parameters:
+      - schema:
+          type: string
+        name: asset_type
+        in: path
+        required: true
 components:
   securitySchemes:
     x-aims-auth-token:

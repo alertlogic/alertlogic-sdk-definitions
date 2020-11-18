@@ -4381,3 +4381,168 @@ ListAssetGroupsExample:
       criticality: 1
       created_on: 1600724524178
     count: 2
+AssetTypesSchemaResponseExample:
+  value:
+    count: 38
+    asset_types:
+      - groupable: true
+        asset_type: acl
+        aliases: [ ]
+      - groupable: false
+        asset_type: acl-entry
+        aliases: [ ]
+      - groupable: false
+        asset_type: application
+        aliases: [ ]
+      - groupable: false
+        asset_type: auto-scaling-group
+        aliases:
+          - vm-scale-set
+      - groupable: false
+        asset_type: cgw
+        aliases: [ ]
+      - groupable: true
+        asset_type: cloud-trail
+        aliases: [ ]
+      - groupable: false
+        asset_type: container
+        aliases: [ ]
+      - groupable: true
+        asset_type: db-instance
+        aliases: [ ]
+      - groupable: false
+        asset_type: db-subnet-group
+        aliases: [ ]
+      - groupable: true
+        asset_type: dns-zone
+        aliases: [ ]
+      - groupable: false
+        asset_type: group
+        aliases: [ ]
+      - groupable: true
+        asset_type: host
+        aliases:
+          - vm
+      - groupable: true
+        asset_type: igw
+        aliases: [ ]
+      - groupable: true
+        asset_type: image
+        aliases: [ ]
+      - groupable: true
+        asset_type: instance-profile
+        aliases: [ ]
+      - groupable: true
+        asset_type: key-vault-key
+        aliases: [ ]
+      - groupable: true
+        asset_type: kms-key
+        aliases: [ ]
+      - groupable: false
+        asset_type: launch-config
+        aliases: [ ]
+      - groupable: false
+        asset_type: listener
+        aliases: [ ]
+      - groupable: true
+        asset_type: load-balancer
+        aliases: [ ]
+      - groupable: false
+        asset_type: network-interface
+        aliases: [ ]
+      - groupable: true
+        asset_type: nsg
+        aliases: [ ]
+      - groupable: false
+        asset_type: policy
+        aliases: [ ]
+      - groupable: true
+        asset_type: redshift-cluster
+        aliases: [ ]
+      - groupable: false
+        asset_type: remediation
+        aliases: [ ]
+      - groupable: false
+        asset_type: remediation-item
+        aliases: [ ]
+      - groupable: true
+        asset_type: role
+        aliases: [ ]
+      - groupable: true
+        asset_type: route
+        aliases: [ ]
+      - groupable: true
+        asset_type: s3-bucket
+        aliases: [ ]
+      - groupable: true
+        asset_type: sg
+        aliases: [ ]
+      - groupable: true
+        asset_type: subnet
+        aliases: [ ]
+      - groupable: true
+        asset_type: user
+        aliases: [ ]
+      - groupable: false
+        asset_type: vgw
+        aliases: [ ]
+      - groupable: true
+        asset_type: volume
+        aliases:
+          - disk
+      - groupable: true
+        asset_type: vpc
+        aliases:
+          - vnet
+          - network
+      - groupable: false
+        asset_type: vpnconn
+        aliases: [ ]
+      - groupable: false
+        asset_type: vulnerability
+        aliases: [ ]
+      - groupable: false
+        asset_type: zone
+        aliases: [ ]
+
+AssetTypeSchemaResponseExample:
+  value:
+    aliases: [ ]
+    always_create: false
+    always_in_scope: false
+    asset_type: acl
+    custom_properties: [ ]
+    groupable: true
+    name_property:
+      - network_acl_id
+    notify_delta_properties: [ ]
+    promoted_properties:
+      scope_aws_:
+        network_acl_id: string
+        acl_name: string
+    relationships:
+      vulnerability:
+        - HAS_VULNERABILITY
+      vpc:
+        - CONTAINS
+      tag:
+        - HAS_TAG
+      region:
+        - IN_REGION
+      assessment-spec:
+        - HAS_ASSESSMENT_SPEC
+      acl-entry:
+        - HAS_ACL_ENTRY
+    scope_container: vpc
+    taggable: true
+    topological_ancestors:
+      - deployment
+      - region
+      - vpc
+    topological_children: [ ]
+    topological_parent: vpc
+    topological_successor_paths: [ ]
+    topological_successors: { }
+    topological_successors_list: [ ]
+    unscoped_properties: [ ]
+    vulnerable: true

@@ -665,3 +665,21 @@ ListAssetGroupsResponse:
     count:
       type: integer
       description: The count of `groups` in the response.
+AssetTypesSchemaResponse:
+  title: Asset Types Schema Response
+  type: object
+  properties:
+    assetTypes:
+      title: A list of schemas or a single schema
+      oneOf:
+        - type: array
+          items:
+            type: object
+        - type: object
+    count:
+      type: number
+
+AssetTypeSchemaResponse:
+  title: Asset Type Schema Response
+  type: object
+
