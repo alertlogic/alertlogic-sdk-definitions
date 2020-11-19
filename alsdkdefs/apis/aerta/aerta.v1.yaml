@@ -875,6 +875,12 @@ paths:
           description: >-
             Default to false. Returns sub-content if true (for internal use
             only)
+        - schema:
+            type: boolean
+          in: query
+          name: include_parents
+          description: >-
+            Default to false. Return global RTAs if true
     delete:
       summary: Delete RTA Model for a specific customer
       operationId: delete_rta
