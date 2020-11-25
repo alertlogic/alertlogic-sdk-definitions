@@ -4,7 +4,7 @@ from yaml import YAMLError
 from jsonschema.exceptions import ValidationError, RefResolutionError
 from argparse import ArgumentParser
 import glob
-from alsdkdefs import AlertLogicOpenApiValidationException
+from alsdkdefs import AlertLogicOpenApiValidationException, AlertLogicOpenApiValidationWarning
 import alsdkdefs
 import os
 
@@ -26,6 +26,8 @@ def validate_definition(definition_file):
     except AlertLogicOpenApiValidationException as e:
         print(f"Validation has failed - definition has failed AlertLogic specific check {e}")
         exit(1)
+    except AlertLogicOpenApiValidationWarning as e:
+        print(f"***WARNING***: Validation warning {e}")
     except TypeError:
         print(f"Validation has failed - json schema trips over integer keys, please "
               f"validate your response codes are not integers, check also other keys are not integers"
