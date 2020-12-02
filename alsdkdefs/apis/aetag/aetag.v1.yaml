@@ -338,35 +338,53 @@ paths:
         - Tags Resources
       responses:
         '200':
-          description: Combination of reads (if any) and modified tagset uuid (if any modification)
+          description: >-
+            Combination of reads (if any) and modified tagset uuid (if any
+            modification)
       operationId: crud_tagset_keys_by_path
       security:
         - X-AIMS-Auth-Token: []
       description: >-
-        Specific operations to be performed are specified through the call body. This body is of one or more objects
-        executed sequentially. Each objects have at least an "operation" key, which has a value being one of
-        "read", "write", "delete", "add", or "subtract":
+        Specific operations to be performed are specified through the call body.
+        This body is of one or more objects executed sequentially. Each objects
+        have at least an "operation" key, which has a value being one of "read",
+        "write", "delete", "add", or "subtract":
 
-        - read: returns the tuning tagset key identified in the object's key "key"
+        - read: returns the tuning tagset key identified in the object's key
+          "key"
 
-        - write: replaces the tuning tagset key identified in the object's key "key" with the object's key "value"; may
-          take an optional "expiration_ts" key
+        - write: replaces the tuning tagset key identified in the object's key
+          "key" with the object's key "value"; may take an optional
+          "expiration_ts" key
 
-        - delete: removes the tuning tagset key identified in the object's key "key"
+        - delete: removes the tuning tagset key identified in the object's key
+          "key"
 
-        - add: if the tuning tagset key identified in the object's key "key" is a list, adds the object's key "value"
-          provided it is not already in the list; may take an optional "expiration_ts" key
+        - add: if the tuning tagset key identified in the object's key "key" is
+          a list, adds the object's key "value" provided it is not already in
+          the list; may take an optional "expiration_ts" key and optional
+          "exclude" key.
 
-        - subtract: if the tuning tagset key identified in the object's key "key" is a list, removes all occurrences of
-          the object's key "value"
+        - subtract: if the tuning tagset key identified in the object's key
+          "key" is a list, removes all occurrences of the object's key "value"
 
         Operations are performed in the order they are specified.
 
-        Specifying an "expiration_ts" key (where allowed) causes the tagset key to expire at a given time. The value of
-        the key is an integer representing the expiration time as a Unix epoch.
 
-        Tags requested for a specific customer id are **composed** tuning tagset which uses the definition to decide
-        from where, what and how to merge tagsets together. The 'etag' header is set and may be used to cache the
+        Specifying an "expiration_ts" key (where allowed) causes the tagset key
+        to expire at a given time. The value of the key is an integer
+        representing the expiration time as a Unix epoch.
+
+
+        Specifying an "exclude" key for "add" operation causes the list value is
+        marked to be removed after the tagset composition. The value of the key
+        is an boolean representing if the value should be exclude or not during
+        tagset composition.
+
+
+        Tags requested for a specific customer id are **composed** tuning tagset
+        which uses the definition to decide from where, what and how to merge
+        tagsets together. The 'etag' header is set and may be used to cache the
         response by the caller. Global tags are not composed.
       requestBody:
         required: true
@@ -431,16 +449,23 @@ paths:
 
         - add: if the tuning tagset key identified in the object's key "key" is
           a list, adds the object's key "value" provided it is not already in
-          the list; may take an optional "expiration_ts" key
+          the list; may take an optional "expiration_ts" key and optional
+          "exclude" key.
 
         - subtract: if the tuning tagset key identified in the object's key
           "key" is a list, removes all occurrences of the object's key "value"
 
         Operations are performed in the order they are specified.
 
+
         Specifying an "expiration_ts" key (where allowed) causes the tagset key
         to expire at a given time. The value of the key is an integer
         representing the expiration time as a Unix epoch.
+
+        Specifying an "exclude" key for "add" operation causes the list value is
+        marked to be removed after the tagset composition. The value of the key
+        is an boolean representing if the value should be exclude or not during
+        tagset composition.
 
         Tags requested for a specific customer id are composed tuning tagset
         which uses the definition to decide from where, what and how to merge
@@ -1430,6 +1455,8 @@ components:
             - type: boolean
         expiration_ts:
           type: integer
+        exclude:
+          type: boolean
       required:
         - operation
         - key
