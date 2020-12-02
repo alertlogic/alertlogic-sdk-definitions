@@ -2106,115 +2106,280 @@ TagsSummaryDeprecatedExample:
         nickname: the one everyone uses
 AssessmentSpecsExample:
   value:
-    - version: 1
-      type: assessment-spec
-      threatiness: 0
-      threat_level: 0
-      tags: {}
-      tag_keys: {}
-      spec_id: 00000000-0000-0000-0000-777777770002
-      scope_aws_spec_name: Marsellus Wallace
-      scope_aws_spec_id: 00000000-0000-0000-0000-777777770002
-      native_type: assessment-spec
-      modified_on: 1518630689992
-      key: "/al/68560545:DEADBEEF-0000-0000-0000-000000000001/assessment-spec/00000000-0000-0000-0000-777777770002"
-      deployment_id: DEADBEEF-0000-0000-0000-000000000001
-      deleted_on: 0
-      declared: true
-      created_on: 1518630689992
-      assets:
-      - vulnerability_count: 1
-        vulnerabilities:
-        - version: 1
-          type: vulnerability
-          threatiness: 1
-          threat_score: 0
+    assessment-specs:
+      - version: 1
+        type: assessment-spec
+        threatiness: 0
+        threat_level: 0
+        tags: {}
+        tag_keys: {}
+        spec_id: /alertlogic/fusionvm/internal
+        scope_aws_spec_name: Marsellus Wallace
+        scope_aws_spec_id: /alertlogic/fusionvm/internal
+        native_type: assessment-spec
+        modified_on: 1518630689992
+        key: "/al/68560545:DEADBEEF-0000-0000-0000-000000000001/assessment-spec//alertlogic/fusionvm/internal"
+        deployment_id: DEADBEEF-0000-0000-0000-000000000001
+        deleted_on: 0
+        declared: true
+        created_on: 1518630689992
+        assets:
+        - vulnerability_count: 1
+          vulnerabilities:
+          - version: 1
+            type: vulnerability
+            threatiness: 1
+            threat_score: 0
+            threat_level: 0
+            tags: {}
+            tag_keys: {}
+            spec_ids:
+            - /alertlogic/fusionvm/internal
+            severity: info
+            scope_aws_spec_ids:
+            - /alertlogic/fusionvm/internal
+            scope_aws_remediation_id: 00000000-0000-0000-0000-999999999999
+            scope_aws_port: 8080
+            scope_aws_ip_protocol: http
+            scope_aws_description: something is wrong
+            remediation_id: 00000000-0000-0000-0000-999999999999
+            port: 8080
+            native_type: vulnerability
+            name: something is wrong
+            modified_on: 1518630689975
+            key: "/DEADBEEF-0000-0000-0000-000000000001/host/host2/vulnerability/00000000-0000-0000-0000-000000000002/http/8080"
+            ip_protocol: http
+            concluded: false
+            disposed: false
+            description: something is wrong
+            deployment_id: DEADBEEF-0000-0000-0000-000000000001
+            deleted_on: 0
+            declared: true
+            created_on: 1518630689975
+            categories:
+            - security
+            account_id: '68560545'
+          version: 3
+          type: host
+          threatiness: 0
           threat_level: 0
-          tags: {}
-          tag_keys: {}
-          spec_ids:
-          - 00000000-0000-0000-0000-777777770002
-          severity: info
-          scope_aws_spec_ids:
-          - 00000000-0000-0000-0000-777777770002
-          scope_aws_remediation_id: 00000000-0000-0000-0000-999999999999
-          scope_aws_port: 8080
-          scope_aws_ip_protocol: http
-          scope_aws_description: something is wrong
-          remediation_id: 00000000-0000-0000-0000-999999999999
-          port: 8080
-          native_type: vulnerability
-          name: something is wrong
-          modified_on: 1518630689975
-          key: "/DEADBEEF-0000-0000-0000-000000000001/host/host2/vulnerability/00000000-0000-0000-0000-000000000002/http/8080"
-          ip_protocol: http
-          concluded: false
-          disposed: false
-          description: something is wrong
+          tags:
+            foo: bar
+          tag_keys:
+            foo: "/aws/us-west-2/tag/key/foo/value/bar"
+          native_type: host
+          modified_on: 1518630690021
+          key: "/DEADBEEF-0000-0000-0000-000000000001/host/host2"
+          in_scope: false
           deployment_id: DEADBEEF-0000-0000-0000-000000000001
           deleted_on: 0
           declared: true
-          created_on: 1518630689975
-          categories:
-          - security
+          created_on: 1518630686632
           account_id: '68560545'
-        version: 3
-        type: host
+        asset_count: 1
+        account_id: '68560545'
+      - version: 1
+        type: assessment-spec
         threatiness: 0
         threat_level: 0
-        tags:
-          foo: bar
-        tag_keys:
-          foo: "/aws/us-west-2/tag/key/foo/value/bar"
-        native_type: host
-        modified_on: 1518630690021
-        key: "/DEADBEEF-0000-0000-0000-000000000001/host/host2"
-        in_scope: false
+        tags: {}
+        tag_keys: {}
+        spec_id: /cis/foundations/azure/v1.1.0
+        scope_aws_spec_name: Mia Wallace
+        scope_aws_spec_id: /cis/foundations/azure/v1.1.0
+        native_type: assessment-spec
+        modified_on: 1518630688035
+        key: "/al/68560545:DEADBEEF-0000-0000-0000-000000000001/assessment-spec//cis/foundations/azure/v1.1.0"
         deployment_id: DEADBEEF-0000-0000-0000-000000000001
         deleted_on: 0
         declared: true
-        created_on: 1518630686632
+        created_on: 1518630688035
+        assets:
+        - vulnerability_count: 0
+          vulnerabilities: []
+          version: 5
+          type: host
+          threatiness: 0
+          threat_level: 0
+          tags:
+            foo: bar
+          tag_keys:
+            foo: "/aws/us-west-2/tag/key/foo/value/bar"
+          native_type: host
+          modified_on: 1518630688917
+          key: "/DEADBEEF-0000-0000-0000-000000000001/host/host1"
+          in_scope: false
+          deployment_id: DEADBEEF-0000-0000-0000-000000000001
+          deleted_on: 0
+          declared: true
+          created_on: 1518630686608
+          account_id: '68560545'
+        asset_count: 1
         account_id: '68560545'
-      asset_count: 1
-      account_id: '68560545'
-    - version: 1
-      type: assessment-spec
-      threatiness: 0
-      threat_level: 0
-      tags: {}
-      tag_keys: {}
-      spec_id: 00000000-0000-0000-0000-777777770001
-      scope_aws_spec_name: Mia Wallace
-      scope_aws_spec_id: 00000000-0000-0000-0000-777777770001
-      native_type: assessment-spec
-      modified_on: 1518630688035
-      key: "/al/68560545:DEADBEEF-0000-0000-0000-000000000001/assessment-spec/00000000-0000-0000-0000-777777770001"
-      deployment_id: DEADBEEF-0000-0000-0000-000000000001
-      deleted_on: 0
-      declared: true
-      created_on: 1518630688035
-      assets:
-      - vulnerability_count: 0
-        vulnerabilities: []
-        version: 5
-        type: host
+    filters: []
+    summary: {}
+AssessmentSpecsBySpecIdExample:
+  value:
+    assessment-specs:
+      - version: 1
+        type: assessment-spec
         threatiness: 0
         threat_level: 0
-        tags:
-          foo: bar
-        tag_keys:
-          foo: "/aws/us-west-2/tag/key/foo/value/bar"
-        native_type: host
-        modified_on: 1518630688917
-        key: "/DEADBEEF-0000-0000-0000-000000000001/host/host1"
-        in_scope: false
+        tags: {}
+        tag_keys: {}
+        spec_id: /alertlogic/fusionvm/internal
+        scope_aws_spec_name: Marsellus Wallace
+        scope_aws_spec_id: /alertlogic/fusionvm/internal
+        native_type: assessment-spec
+        modified_on: 1518630689992
+        key: "/al/68560545:DEADBEEF-0000-0000-0000-000000000001/assessment-spec//alertlogic/fusionvm/internal"
         deployment_id: DEADBEEF-0000-0000-0000-000000000001
         deleted_on: 0
         declared: true
-        created_on: 1518630686608
+        created_on: 1518630689992
+        assets:
+        - vulnerability_count: 1
+          vulnerabilities:
+          - version: 1
+            type: vulnerability
+            threatiness: 1
+            threat_score: 0
+            threat_level: 0
+            tags: {}
+            tag_keys: {}
+            spec_ids:
+            - /alertlogic/fusionvm/internal
+            severity: info
+            scope_aws_spec_ids:
+            - /alertlogic/fusionvm/internal
+            scope_aws_remediation_id: 00000000-0000-0000-0000-999999999999
+            scope_aws_port: 8080
+            scope_aws_ip_protocol: http
+            scope_aws_description: something is wrong
+            remediation_id: 00000000-0000-0000-0000-999999999999
+            port: 8080
+            native_type: vulnerability
+            name: something is wrong
+            modified_on: 1518630689975
+            key: "/DEADBEEF-0000-0000-0000-000000000001/host/host2/vulnerability/00000000-0000-0000-0000-000000000002/http/8080"
+            ip_protocol: http
+            concluded: false
+            disposed: false
+            description: something is wrong
+            deployment_id: DEADBEEF-0000-0000-0000-000000000001
+            deleted_on: 0
+            declared: true
+            created_on: 1518630689975
+            categories:
+            - security
+            account_id: '68560545'
+          version: 3
+          type: host
+          threatiness: 0
+          threat_level: 0
+          tags:
+            foo: bar
+          tag_keys:
+            foo: "/aws/us-west-2/tag/key/foo/value/bar"
+          native_type: host
+          modified_on: 1518630690021
+          key: "/DEADBEEF-0000-0000-0000-000000000001/host/host2"
+          in_scope: false
+          deployment_id: DEADBEEF-0000-0000-0000-000000000001
+          deleted_on: 0
+          declared: true
+          created_on: 1518630686632
+          account_id: '68560545'
+        asset_count: 1
         account_id: '68560545'
-      asset_count: 1
-      account_id: '68560545'
+    filters: []
+    summary: {}
+AssessmentSpecsExcludingSpecIdExample:
+  value:
+    assessment-specs:
+      - version: 1
+        type: assessment-spec
+        threatiness: 0
+        threat_level: 0
+        tags: {}
+        tag_keys: {}
+        spec_id: /cis/foundations/azure/v1.1.0
+        scope_aws_spec_name: Mia Wallace
+        scope_aws_spec_id: /cis/foundations/azure/v1.1.0
+        native_type: assessment-spec
+        modified_on: 1518630688035
+        key: "/al/68560545:DEADBEEF-0000-0000-0000-000000000001/assessment-spec//cis/foundations/azure/v1.1.0"
+        deployment_id: DEADBEEF-0000-0000-0000-000000000001
+        deleted_on: 0
+        declared: true
+        created_on: 1518630688035
+        assets:
+        - vulnerability_count: 0
+          vulnerabilities: []
+          version: 5
+          type: host
+          threatiness: 0
+          threat_level: 0
+          tags:
+            foo: bar
+          tag_keys:
+            foo: "/aws/us-west-2/tag/key/foo/value/bar"
+          native_type: host
+          modified_on: 1518630688917
+          key: "/DEADBEEF-0000-0000-0000-000000000001/host/host1"
+          in_scope: false
+          deployment_id: DEADBEEF-0000-0000-0000-000000000001
+          deleted_on: 0
+          declared: true
+          created_on: 1518630686608
+          account_id: '68560545'
+        asset_count: 1
+        account_id: '68560545'
+    filters: []
+    summary: {}
+AssessmentSpecsSpecIdRegexExample:
+  value:
+    assessment-specs:
+      - version: 1
+        type: assessment-spec
+        threatiness: 0
+        threat_level: 0
+        tags: {}
+        tag_keys: {}
+        spec_id: /cis/foundations/azure/v1.1.0
+        scope_aws_spec_name: Mia Wallace
+        scope_aws_spec_id: /cis/foundations/azure/v1.1.0
+        native_type: assessment-spec
+        modified_on: 1518630688035
+        key: "/al/68560545:DEADBEEF-0000-0000-0000-000000000001/assessment-spec//cis/foundations/azure/v1.1.0"
+        deployment_id: DEADBEEF-0000-0000-0000-000000000001
+        deleted_on: 0
+        declared: true
+        created_on: 1518630688035
+        assets:
+        - vulnerability_count: 0
+          vulnerabilities: []
+          version: 5
+          type: host
+          threatiness: 0
+          threat_level: 0
+          tags:
+            foo: bar
+          tag_keys:
+            foo: "/aws/us-west-2/tag/key/foo/value/bar"
+          native_type: host
+          modified_on: 1518630688917
+          key: "/DEADBEEF-0000-0000-0000-000000000001/host/host1"
+          in_scope: false
+          deployment_id: DEADBEEF-0000-0000-0000-000000000001
+          deleted_on: 0
+          declared: true
+          created_on: 1518630686608
+          account_id: '68560545'
+        asset_count: 1
+        account_id: '68560545'
+    filters: []
+    summary: {}
 GetRiskSummaryExample:
   value:
     - type: overall

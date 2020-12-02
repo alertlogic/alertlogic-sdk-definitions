@@ -811,6 +811,7 @@ paths:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
       - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+      - $ref: 'parameters.yaml#/ParamAssessmentSpecsFilter'
     get:
       operationId: get_assessment_specs
       summary: Get Assessment Specs
@@ -827,15 +828,27 @@ paths:
               schema:
                 type: object
                 properties:
-                  version:
-                    type: string
-                  type:
-                    type: string
-                  threat_level:
-                    type: string
+                  assessment-specs:
+                    type: array
+                    items:
+                      type: object
+                  filters:
+                    type: array
+                    items:
+                      type: string
+                  summary:
+                    type: object
               examples:
-                Assessment Specs Example:
+                Get Assessment Specs Example:
                   $ref: 'examples.yaml#/AssessmentSpecsExample'
+                Get Assessment Specs By spec_id Example:
+                  $ref: 'examples.yaml#/AssessmentSpecsBySpecIdExample'
+                Get Assessment Specs Excluding spec_id Example:
+                  $ref: 'examples.yaml#/AssessmentSpecsExcludingSpecIdExample'
+                Get Assessment Specs By spec_id Regex Match Example:
+                  $ref: 'examples.yaml#/AssessmentSpecsSpecIdRegexExample'
+        "400":
+          $ref: 'responses.yaml#/InvalidValueError'
         "401":
           $ref: 'responses.yaml#/Unauthorized'
         "403":
@@ -849,6 +862,21 @@ paths:
           label: Get assessment-specs
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get assessment-specs by spec_id
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs?filter=assessment-specs.spec_id:/alertlogic/fusionvm/internal" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get assessment-specs excluding spec_id
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs?filter=assessment-specs.spec_id:!/alertlogic/fusionvm/internal" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get assessment-specs by spec_id regex match
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs?filter=assessment-specs.spec_id:~/cis/.*" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       security:
         - x-aims-auth-token: []
