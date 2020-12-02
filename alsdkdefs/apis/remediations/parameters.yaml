@@ -37,7 +37,21 @@ ParamAssetTypes:
   description: |-
     A query string parameter representing the types of assets to retrieve, as described in
     [Typed queries](#typed-queries). `tag` asset type is handled specially and, if used,
-    may only be the last asset type.
+    may only be the last asset type.]
+ParamAssessmentSpecsFilter:
+  schema:
+    type: array
+  style: form
+  explode: true
+  in: query
+  name: filter
+  description: |-
+    Filters assets must match to be included in the assessment specs result. `filter`s
+    can be chained together (applied using `AND`). Currently the only supported filter is
+    `assessment_spec.spec_id`. Each filter is a colon-separated pair of `type` (e.g., `assessment_spec.spec_id`) and `value` (e.g., `/alertlogic/fusionvm/internal`)
+    Since this filter supports negation (e.g. `assessment_spec.spec_id:!/alertlogic/fusionvm/internal`) you
+    can exclude a spec_id, or exclusively get one (e.g. `assessment_spec.spec_id:/alertlogic/fusionvm/internal`). 
+    You can also use a regex pattern (e.g. `assessment_spec.spec_id:~/cis/.*`).
 ParamQueryFormat:
   schema:
     type: string
