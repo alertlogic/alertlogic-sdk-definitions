@@ -143,14 +143,16 @@ ParamVulnerabilityIds:
   description: A comma-separated list of vulnerability IDs.
 ParamDisposed:
   schema:
-    type: string
-    enum:
-      - "true"
-      - "false"
-      - all
-    default: "false"
+    $ref: '#/ExposuresDisposed'
   in: query
   name: disposed
+ExposuresDisposed:
+  type: string
+  enum:
+    - "true"
+    - "false"
+    - all
+  default: "false"
   description: |-
     Filters remediations included in the summary based on the state of vulnerabilities.
     Possible values are:
@@ -160,14 +162,16 @@ ParamDisposed:
     * `all` - both
 ParamConcluded:
   schema:
-    type: string
-    enum:
-      - "true"
-      - "false"
-      - all
-    default: "false"
+    $ref: '#/ExposuresConcluded'
   in: query
   name: concluded
+ExposuresConcluded:
+  type: string
+  enum:
+    - "true"
+    - "false"
+    - all
+  default: "false"
   description: |-
     Filters remediations included in the summary based on the state of vulnerabilities.
     Possible values are:
@@ -206,10 +210,12 @@ ParamScope:
   description: Whether to apply scope when gathering assets with exposures to summarize.
 ParamScopeTrue:
   schema:
-    type: boolean
-    default: true
+    $ref: '#/ScopeTrue'
   in: query
   name: scope
+ScopeTrue:
+  type: boolean
+  default: true
   description: |-
     Whether to apply scope when gathering assets to include in the report.
 ParamExposuresSummaryFilter:
@@ -289,10 +295,12 @@ ParamQueryRemediationItemsGroupByAuditId:
         summed across all grouped `remediation-item`s.
 ParamQueryExposuresDetails:
   schema:
-    type: boolean
-    default: false
+    $ref: '#/ExposuresDetails'
   in: query
   name: details
+ExposuresDetails:
+  type: boolean
+  default: false
   description: |-
     Controls whether `vinstances` are returned in the response body. Only valid if
     `group` is **not** `asset`.
@@ -311,16 +319,30 @@ ParamQueryExposuresFilter:
     which will restrict the scope of the remediations return to just the single host key
     provided. However, hosts will not be returned as filters in remediations responses
     (returning all hosts as filters would be untenable in a deployment of significant size).
+ExposuresFilters:
+  type: array
+  items:
+    type: string
+  description: |-
+    A filter to apply to the assets for which remediations and vulnerabilities are
+    being requested. Multiple filter parameters may be supplied. The section on
+    [remediation filters](#section/Remediation-filters) above covers them in detail.
+    *Note*: hosts may be used as filters (e.g. `filter=host:/aws/us-east-1/host/i-1234567`),
+    which will restrict the scope of the remediations return to just the single host key
+    provided. However, hosts will not be returned as filters in remediations responses
+    (returning all hosts as filters would be untenable in a deployment of significant size).
 ParamQueryExposuresGroup:
   schema:
-    type: string
-    default: remediation
-    enum:
-      - asset
-      - exposure
-      - remediation
+    $ref: '#/ExposuresGroup'
   in: query
   name: group
+ExposuresGroup:
+  type: string
+  default: remediation
+  enum:
+    - asset
+    - exposure
+    - remediation
   description: |-
     The object type to arrange the vulnerabilities in the response by. Allowed values are:
     * `asset`: group vulnerabilities by vulnerable asset
@@ -328,31 +350,40 @@ ParamQueryExposuresGroup:
     * `remediation`: group vulnerabilities by remediation
 ParamIncludeFilters:
   schema:
-    type: boolean
-    default: true
+    $ref: '#/IncludeFilters'
   in: query
   name: include_filters
+IncludeFilters:
+  type: boolean
+  default: true
   description: Controls whether `filters` are returned.
 ParamIncludeRemediations:
   schema:
-    type: boolean
-    default: true
+    $ref: '#/IncludeRemediations'
   in: query
   name: include_remediations
+IncludeRemediations:
+  type: boolean
+  default: true
   description: Controls whether `remediations` are returned.
 ParamIncludeRemediationItems:
   schema:
-    type: boolean
-    default: false
+    $ref: '#/IncludeRemediationItems'
   in: query
   name: include_remediation_items
+IncludeRemediationItems:
+  type: boolean
+  default: false
   description: Controls whether `remediation_items` are returned in the response body.
 ParamIncludeExposures:
   schema:
-    type: boolean
-    default: true
+    $ref: '#/IncludeExposures'
   in: query
   name: include_exposures
+  description: Controls whether `exposures` are returned in the response body. Only valid if `group` is `exposure` or `asset`.
+IncludeExposures:
+  type: boolean
+  default: true
   description: Controls whether `exposures` are returned in the response body. Only valid if `group` is `exposure` or `asset`.
 ParamIncludeExposuresQRI:
   schema:
@@ -390,9 +421,11 @@ ParamExtras:
   description: A comma-delimited list of asset types to fetch in addition to the base topology.
 ParamLimit:
   schema:
-    type: integer
+    $ref: '#/ExposuresLimit'
   in: query
   name: limit
+ExposuresLimit:
+  type: integer
   description: |-
     If given, limit the returned results to the first N items. The summary and filters, if
     returned, will be computed exclusively from the limited results (not the full result
@@ -400,16 +433,18 @@ ParamLimit:
     summary counts are generated based on the full data set before applying the limit.
 ParamSort:
   schema:
-    type: string
-    default: severity,threatiness
-    enum:
-      - asset_count
-      - exposures_count
-      - severity
-      - threatiness
-      - vinstances_count
+    $ref: '#/ExposuresSort'
   in: query
   name: sort
+ExposuresSort:
+  type: string
+  default: severity,threatiness
+  enum:
+    - asset_count
+    - exposures_count
+    - severity
+    - threatiness
+    - vinstances_count
   description: |-
     Controls how to order the exposures/remediations. Must be a CSV of at least one of the
     allowed values. Note that `asset_count` will not work with `group=asset`.

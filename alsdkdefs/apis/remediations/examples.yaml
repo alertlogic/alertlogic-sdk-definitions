@@ -3665,6 +3665,7 @@ DisposeSingleRemediationExample:
   value:
     assets:
     - account_id: '12345678'
+      applies_to_specific_assets: false
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       comment: Vulnerable database contains automated test data, not customer records.
@@ -3679,6 +3680,7 @@ DisposeSingleRemediationExample:
       state: disposed
       user_id: 00001111-2222-3333-4444-555566667777
     - account_id: '12345678'
+      applies_to_specific_assets: false
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: FCCA4E48-598A-4946-B2A7-64DBF9E4CCAC
       comment: Vulnerable database contains automated test data, not customer records.
@@ -3697,6 +3699,7 @@ DisposeSingleRemediationFiltersSetExample:
   value:
     assets:
       - account_id: '12345678'
+        applies_to_specific_assets: false
         audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         comment: Vulnerable database contains automated test data, not customer records.
@@ -3710,6 +3713,7 @@ DisposeSingleRemediationFiltersSetExample:
         state: disposed
         user_id: 00001111-2222-3333-4444-555566667777
       - account_id: '12345678'
+        applies_to_specific_assets: false
         audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         comment: Vulnerable database contains automated test data, not customer records.
@@ -3727,6 +3731,7 @@ DisposeSingleVulnerabilityExample:
   value:
     assets:
     - account_id: '12345678'
+      applies_to_specific_assets: false
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       comment: Vulnerable database contains automated test data, not customer records.
@@ -3745,6 +3750,7 @@ ConcludeSingleRemediationExample:
   value:
     assets:
     - account_id: '12345678'
+      applies_to_specific_assets: false
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       expires: 0
@@ -3757,6 +3763,7 @@ ConcludeSingleRemediationExample:
       state: concluded
       user_id: 00001111-2222-3333-4444-555566667777
     - account_id: '12345678'
+      applies_to_specific_assets: false
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: FCCA4E48-598A-4946-B2A7-64DBF9E4CCAC
       expires: 0
@@ -3773,6 +3780,7 @@ ConcludeSingleRemediationFiltersSetExample:
   value:
     assets:
       - account_id: '12345678'
+        applies_to_specific_assets: false
         audit_id: 37CA08E6-9CC7-4575-BA9B-B6F961976E8D
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         expires: 0
@@ -3784,6 +3792,7 @@ ConcludeSingleRemediationFiltersSetExample:
         state: concluded
         user_id: 00001111-2222-3333-4444-555566667777
       - account_id: '12345678'
+        applies_to_specific_assets: false
         audit_id: 37CA08E6-9CC7-4575-BA9B-B6F961976E8D
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         expires: 0
@@ -3799,6 +3808,7 @@ ConcludeSingleVulnerabilityExample:
   value:
     assets:
     - account_id: '12345678'
+      applies_to_specific_assets: true
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       expires: 0
