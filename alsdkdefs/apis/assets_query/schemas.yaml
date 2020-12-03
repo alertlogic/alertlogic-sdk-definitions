@@ -631,6 +631,10 @@ DisposeRemediationsRequestBody:
       $ref: '#/RemediationIds'
     vulnerability_ids:
       $ref: '#/VulnerabilityIds'
+    applies_to_specific_assets:
+      type: boolean
+      default: false
+      description: Indicates when disposing remediation whether done through checkbox of specific assets.
   required:
     - operation
 ConcludeRemediationsRequestBody:
@@ -650,6 +654,10 @@ ConcludeRemediationsRequestBody:
       $ref: '#/RemediationIds'
     vulnerability_ids:
       $ref: '#/VulnerabilityIds'
+    applies_to_specific_assets:
+      type: boolean
+      default: false
+      description: Indicates when concluding remediation whether done through checkbox of specific assets.
   required:
     - operation
 ListAssetGroupsResponse:

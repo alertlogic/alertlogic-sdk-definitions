@@ -1427,6 +1427,205 @@ paths:
           $ref: 'responses.yaml#/UnavailableError'
       security:
         - x-aims-auth-token: []
+    post:
+      summary: Query Exposures
+      operationId: query_exposures_post
+      description: |-
+        Groups vulnerabilities for an account by exposure (by default), remediation, or vulnerable asset.
+        In combination with filtering, it's easy to view vulnerabilities across your account in the manner
+        most appropriate.
+
+        *Note*: exposures uses a `threatiness` property which is an internal measurement used for
+        relative comparison and is not considered useful for external purposes.
+
+        Vulnerabilities can be filtered using the `filter` parameter in the query string. The `filter` param
+        can be used multiple times. The [remediation filters](#section/Remediation-filters) documented above
+        are allowed.
+      tags:
+        - Exposures and Remediations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                concluded:
+                  $ref: parameters.yaml#/ExposuresConcluded
+                details:
+                  $ref: parameters.yaml#/ExposuresDetails
+                disposed:
+                  $ref: parameters.yaml#/ExposuresDisposed
+                filters:
+                  $ref: parameters.yaml#/ExposuresFilters
+                group:
+                  $ref: parameters.yaml#/ExposuresGroup
+                include_exposures:
+                  $ref: parameters.yaml#/IncludeExposures
+                included_filters:
+                  $ref: parameters.yaml#/IncludeFilters
+                included_remediations:
+                  $ref: parameters.yaml#/IncludeRemediations
+                include_remediation_items:
+                  $ref: parameters.yaml#/IncludeRemediationItems
+                limit:
+                  $ref: parameters.yaml#/ExposuresLimit
+                scope:
+                  $ref: parameters.yaml#/ScopeTrue
+                sort:
+                  $ref: parameters.yaml#/ExposuresSort
+      security:
+        - x-aims-auth-token: []
+      x-codeSamples:
+        - lang: Shell
+          label: Basic exposures query
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {}
+                 EOF
+        - lang: Shell
+          label: Exposures with filter by deployment ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": ["deployment_id:814C2911-09BB-1005-9916-7831C1BAC182"]
+                 }
+                 EOF
+        - lang: Shell
+          label: 'Exposures with filter on deployment ID, subnet, image, and application'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182",
+                     "subnet:/aws/us-east-1/subnet/subnet-1a-web",
+                     "image:/aws/us-east-1/image/ami-1",
+                     "application:Apache"
+                   ],
+                 }
+                 EOF
+        - lang: Shell
+          label: Basic remediations query
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "group": "remediation"
+                 }
+                 EOF
+        - lang: Shell
+          label: Remediations with filter by deployment ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": ["deployment_id:814C2911-09BB-1005-9916-7831C1BAC182"],
+                   "group": "remediation"
+                 }
+                 EOF
+        - lang: Shell
+          label: 'Remediations with filter on deployment ID, subnet, image, and application'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182",
+                     "subnet:/aws/us-east-1/subnet/subnet-1a-web",
+                     "image:/aws/us-east-1/image/ami-1",
+                     "application:Apache"
+                   ],
+                   "group": "remediation"
+                 }
+                 EOF
+        - lang: Shell
+          label: Basic vulnerable assets query
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "group": "asset"
+                 }
+                 EOF
+        - lang: Shell
+          label: Vulnerable assets with filter by deployment ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182"
+                   ],
+                   "group": "asset"
+                 }
+                 EOF
+        - lang: Shell
+          label: 'Vulnerable assets with filter on deployment ID, subnet, image, and application'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182",
+                     "subnet:/aws/us-east-1/subnet/subnet-1a-web",
+                     "image:/aws/us-east-1/image/ami-1",
+                     "application:Apache"
+                   ],
+                   "group": "asset"
+                 }
+                 EOF
+        - lang: Shell
+          label: Most vulnerable assets by type (host)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "asset_type:host"
+                   ],
+                   "group": "asset"
+                 }
+                 EOF
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: schemas.yaml#/QueryExposuresResponse
+              examples:
+                'Exposures (include_filters=false, include_exposures=false)':
+                  $ref: examples.yaml#/QueryExposuresExample
+                'Exposures for whole account (details=true, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresWholeAccountExample
+                'Exposures for specific deployment ID (details=false, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresSpecificDeploymentExample
+                'Remediations (include_filters=false, include_remediations=false)':
+                  $ref: examples.yaml#/QueryExposuresRemediationsExample
+                'Remediations for whole account (details=true, include_filters=true, include_remediation_items=true)':
+                  $ref: examples.yaml#/QueryExposuresRemediationsWholeAccountExample
+                'Remediations for specific deployment ID (details=false, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresRemediationsSpecificDeploymentExample
+                'Vulnerable assets (include_filters=false, include_exposures=false)':
+                  $ref: examples.yaml#/QueryExposuresVulnerableAssetsExample
+                'Vulnerable assets for whole account (details=true, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresVulnerableAssetsWholeAccountExample
+                'Vulnerable assets for specific deployment ID (details=false, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresVulnerableAssetsSpecificDeploymentExample
+                'Most vulnerable assets by type (group=asset, filter=asset_type:host, limit=2)':
+                  $ref: examples.yaml#/QueryExposuresMostVulnerableAssetsExample
+        '400':
+          $ref: responses.yaml#/InvalidValueError
+        '401':
+          $ref: responses.yaml#/Unauthorized
+        '403':
+          $ref: responses.yaml#/Forbidden
+        '404':
+          $ref: responses.yaml#/NotFound
+        '503':
+          $ref: responses.yaml#/UnavailableError
   /assets_query/v2/{account_id}/remediation-items:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
@@ -2137,6 +2336,7 @@ paths:
                  -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
             {
               "operation": "dispose_remediations",
+              "applies_to_specific_assets": true,
               "comment": "Vulnerable database contains automated test data, not customer records.",
               "filters": [
                 "application:Apache",
@@ -2155,6 +2355,7 @@ paths:
                  -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
             {
               "operation": "conclude_remediations",
+              "applies_to_specific_assets": true,
               "filters": [
                 "application:Apache",
                 "image:/aws/us-east-1/image/ami-1"
