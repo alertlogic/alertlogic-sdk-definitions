@@ -98,6 +98,8 @@ paths:
       responses:
         '200':
           description: OK
+        '301':
+          description: This search failed but successfully retried.  This response redirects to the successful retry of this search.
         '404':
           description: Not Found
       operationId: get_query_results
