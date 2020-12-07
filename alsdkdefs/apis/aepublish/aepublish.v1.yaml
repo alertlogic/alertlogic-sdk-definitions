@@ -1,0 +1,121 @@
+openapi: 3.0.2
+info:
+  title: aepublish.v1.yaml
+  version: '1.0'
+  contact:
+    email: support@alertlogic.com
+  description: Analytics Engine Observation Publishing Service API
+servers:
+  - url: 'https://api.global-services.global.alertlogic.com'
+    description: production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.global-integration.product.dev.alertlogic.com'
+    description: integration
+    x-alertlogic-session-endpoint: true
+paths:
+  /aepublish/v1/{account_id}/observation:
+    post:
+      summary: Publish Observations
+      operationId: publish_observations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  observations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        outcome:
+                          type: string
+                          enum:
+                            - success
+                            - retry
+                            - error
+                            - suppressed
+                            - throttled
+                            - duplicate
+                        ingest_id:
+                          type: string
+                        delay:
+                          type: integer
+                        chkpt:
+                          type: string
+                      required:
+                        - outcome
+      tags:
+        - Observations Resources
+      description: >
+        Publishes observations to Ingest subsystem, and returns the publication outcome of
+        each observation plus potentially various stats in an object.
+
+        This API expects the body to contain a JSON list of observations.
+
+        Outcomes are objects containing at least an `outcome` key.
+
+        Its value may be one of:
+
+          * `success`:
+            The publication succeeded.
+            The object also contain an `ingest_id` property with the observation ingest ID.
+            The object may contain an additional `chkpt` property containing the checkpoint
+            marker given to Ingest.
+
+          * `retry`:
+            The publication of the observation may be retried.
+            The object may contain an additional `delay` property with the recommended retry
+            interval in second as an integer value.
+
+          * `error`:
+            The publication of the observation failed due to a caller error.
+            The object may contain an additional `details` property.
+            The publication should not be retried.
+
+          * `suppressed`:
+            The publication of the observation was suppressed as a similar observation has
+            been published in recent past. See the observation definition's `unique` value.
+            The object may contain an additional `ingest_id` property with the ingest ID of
+            the previously published observation.
+            The publication should not be retried.
+
+          * `throttled`:
+            The publication of the observation was not sent as the allowed observation quota
+            with that definition is reached.
+            See the observation definition's `throttle_count` and `throttle_period` values.
+            The publication should not be retried.
+
+          * `duplicate`:
+            The observation's progress marker has already been processed.
+            The object may contain an additional `ingest_id` property with the ingest ID
+            issued the first time the progress marker was submitted.
+            The publication should not be retried.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+    parameters:
+      - name: account_id
+        description: AIMS Account ID
+        in: path
+        required: true
+        schema:
+          type: string
+components:
+  securitySchemes:
+    X-AIMS-Auth-Token:
+      name: X-AIMS-Auth-Token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+tags:
+  - name: Observations Resources
+    description: Analytics Engine Observations Resources
