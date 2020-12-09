@@ -577,7 +577,33 @@ paths:
                 output:
                   type: array
                   items:
-                    type: string
+                    oneOf:
+                      - type: string
+                        description: >-
+                          Name of an output kinesis stream within the local AWS
+                          account.
+                      - type: object
+                        properties:
+                          credential_id:
+                            type: string
+                          role_arn:
+                            type: string
+                          stream_arn:
+                            type: string
+                          type:
+                            type: string
+                            enum:
+                              - aws_kinesis
+                        required:
+                          - credential_id
+                          - role_arn
+                          - stream_arn
+                          - type
+                        description: >-
+                          Properties of the output kinesis streams.
+                          Credential_id is a credentials service credential id
+                          containing one secret key: external_id (the role
+                          external id).
                 format:
                   type: string
                   enum:
