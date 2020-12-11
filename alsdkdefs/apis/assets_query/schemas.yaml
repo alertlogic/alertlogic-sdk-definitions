@@ -466,8 +466,11 @@ TopologyPreviewResponse:
             An object containing all of the asset details for asset references in the
             `topology.assets`. The object keys are asset
             references produced by colon-joining deployment ID, asset type and asset key, e.g.,
-            `814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1`. All assets are decorated with a
-            `group_membership` property that must be consulted to determine membership in the group. Possible values are described below:
+            `814C2911-09BB-1005-9916-7831C1BAC182:region:/aws/us-east-1`.
+
+            All assets are decorated with a few additional properties:
+
+            1. A `group_membership` property that must be consulted to determine membership in the group. Possible values are described below:
 
             `IN` - The asset is included in the group by scope definition.
 
@@ -479,6 +482,11 @@ TopologyPreviewResponse:
             `EXCLUDED` - The asset is excluded from the group by scope definition.
 
             `NOT_IN` - The asset does not meet all criteria for inclusion in the group by scope definition, but is not explicitly excluded.
+
+            2. A `membership_counts` object containing keys of asset types and an object value of `in` and `not_in` counts for topological child types.
+            If an asset has no topological children but is of a type that could have topological children (e.g. a region that
+            currently does not have any declared vpcs yet), the membership_counts object may be an empty object `{}`.
+
         rows:
           type: integer
           description: The count of rows in the `topology.assets` array.
