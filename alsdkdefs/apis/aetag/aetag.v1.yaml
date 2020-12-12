@@ -1421,6 +1421,8 @@ components:
         - direction
         - expiration
     CrudKeyWrite:
+      description: 'Schema for write operation'
+      title: CrudKeyWrite
       type: object
       properties:
         operation:
@@ -1431,8 +1433,14 @@ components:
         value:
           oneOf:
             - type: string
+              description: 'A string'
+              title: 'A string'
             - type: number
+              description: 'A number'
+              title: 'A number'
             - type: boolean
+              description: 'true or false'
+              title: 'A boolean'
         expiration_ts:
           type: integer
       required:
@@ -1441,6 +1449,8 @@ components:
         - value
       additionalProperties: false
     CrudKeyAdd:
+      description: 'Schema for add operation'
+      title: CrudKeyAdd
       type: object
       properties:
         operation:
@@ -1451,8 +1461,14 @@ components:
         value:
           oneOf:
             - type: string
+              description: 'A string'
+              title: 'A string'
             - type: number
+              description: 'A number'
+              title: 'A number'
             - type: boolean
+              description: 'true or false'
+              title: 'A boolean'
         expiration_ts:
           type: integer
         exclude:
@@ -1463,6 +1479,8 @@ components:
         - value
       additionalProperties: false
     CrudKeySubtract:
+      description: 'Schema for subtract operation'
+      title: CrudKeySubtract
       type: object
       properties:
         operation:
@@ -1473,14 +1491,22 @@ components:
         value:
           oneOf:
             - type: string
+              description: 'A string'
+              title: 'A string'
             - type: number
+              description: 'A number'
+              title: 'A number'
             - type: boolean
+              description: 'true or false'
+              title: 'A boolean'
       required:
         - operation
         - key
         - value
       additionalProperties: false
     CrudKeyDelete:
+      description: 'Schema for delete operation'
+      title: CrudKeyDelete
       type: object
       properties:
         operation:
@@ -1493,6 +1519,8 @@ components:
         - key
       additionalProperties: false
     CrudKeyRead:
+      description: 'Schema for read operation'
+      title: CrudKeyRead
       type: object
       properties:
         operation:
