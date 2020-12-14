@@ -311,6 +311,137 @@ paths:
           in: query
           name: dry_run
           description: When present and set to `true` just tests the connection without creating a connection instance.
+  '/v1/{account_id}/connection_targets/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+          format: uuid
+        name: id
+        in: path
+        required: true
+        description: Connection Target ID
+    get:
+      summary: Get Existing Connection Target Information
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: {}
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_connection_target
+      description: Returns Connection Target Information
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTarget.Arn}/invocations'
+    delete:
+      summary: Delete existing connection target
+      operationId: delete_connection_target
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsDeleteConnectionTargetFunction.Arn}/invocations'
+      description: Deletes existing connection target
+    put:
+      summary: Update existing connection target
+      operationId: update_connection_target
+      responses:
+        '200':
+          description: "Existing Connection Target"
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsUpdateConnectionTarget.Arn}/invocations'
+      description: Updates existing connection target
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        description: Valid Connection Target Object
+  '/v1/{account_id}/connection_targets':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: "List all account's connection targets"
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: list_connection_targets
+      description: Returns a list of all connections targets for an account
+      security:
+        - aims_request_authorizer: []
+    post:
+      summary: Create connection target
+      operationId: create_connection_target
+      responses:
+        '201':
+          description: "New connection target object created"
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsCreateConnectionTarget.Arn}/invocations'
+      description: Create connection target
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Valid Connection Target object
+            examples: {}
+        description: Valid Integration Connection Objects
   '/v1/integration_types/{name}':
     parameters:
       - schema:
