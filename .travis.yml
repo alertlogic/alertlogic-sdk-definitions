@@ -19,6 +19,11 @@ jobs:
     install:
       - pip install ./
     script: python scripts/validate_my_definition.py -d alsdkdefs/apis/assets_query/
+# TODO test private defs
+#  - stage: test_private_defs
+#    name: "Test private definitions"
+#    install: pip install -U tox-travis
+#    script: git clone https://$GITHUB_SECRET_TOKEN@github.com/alertlogic/alertlogic-sdk-definitions-dev && pip install ./alertlogic-sdk-definitions-dev && tox
 #  - stage: test_other_os
 #    language: sh
 #    python: 3
