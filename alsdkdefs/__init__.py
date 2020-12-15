@@ -2,6 +2,7 @@ import os
 from os.path import join as pjoin
 import glob
 import collections
+from collections import OrderedDict
 import jsonschema
 from urllib.parse import urlparse, urlsplit, urlunsplit
 from urllib.request import urlopen, url2pathname
@@ -12,8 +13,41 @@ import requests
 import json
 import re
 
+try:
+    import alsdkdefs_dev
+    DEV_SDK_DEFS = True
+except ImportError:
+    DEV_SDK_DEFS = False
+
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
 URI_SCHEMES = ['file', 'http', 'https']
+
+
+class ServiceDefinition:
+    def __init__(self, name, filespath):
+        self.service_name = name
+        self.filespath = filespath
+
+    def __str__(self):
+        return self.service_name
+
+    def __repr__(self):
+        return f"ServiceDefinition({self.service_name})"
+
+    def __gt__(self, other):
+        return self.get_service_name() > other.get_service_name()
+
+    def __eq__(self, other):
+        return other.get_service_name() == self.get_service_name()
+
+    def __lt__(self, other):
+        return self.get_service_name() < other.get_service_name()
+
+    def get_service_name(self):
+        return self.service_name
+
+    def get_files_path(self):
+        return self.filespath
 
 
 class AlertLogicOpenApiValidationException(Exception):
@@ -116,7 +150,11 @@ def get_apis_dir():
 
 def load_service_spec(service_name, apis_dir=None, version=None):
     """Loads a version of service from library apis directory, if version is not specified, latest is loaded"""
-    service_api_dir = pjoin(apis_dir or get_apis_dir(), service_name)
+    services = list_services()
+    servicedef = services.get(service_name)
+    if not servicedef:
+        raise FileNotFoundError(f'Service {service_name} definition files has not been found')
+    service_api_dir = servicedef.get_files_path() or apis_dir
     if not version:
         # Find the latest version of the service api spes
         version = 0
@@ -152,16 +190,23 @@ def get_spec(uri):
             return json.loads(stream.read())
 
 
+@lru_cache()
 def list_services():
     """Lists services definitions available"""
     base_dir = get_apis_dir()
-    return sorted(next(os.walk(base_dir))[1])
+    dev_services = []
+    if DEV_SDK_DEFS:
+        dev_dirs = alsdkdefs_dev.get_apis_dir()
+        dev_services = [ServiceDefinition(s, pjoin(dev_dirs, s)) for s in next(os.walk(dev_dirs))[1]]
+    pub_services = [ServiceDefinition(s, pjoin(base_dir, s)) for s in next(os.walk(base_dir))[1]]
+    services_search = OrderedDict(sorted([(str(servicedef), servicedef) for servicedef in pub_services + dev_services]))
+    return services_search
 
 
 def get_service_defs(service_name):
     """Lists a service's definitions available"""
-    service_dir = pjoin(get_apis_dir(), service_name)
-    return glob.glob(f"{service_dir}/{service_name}.v*.yaml")
+    service = list_services()[service_name]
+    return glob.glob(pjoin(service.get_files_path(), f"{service_name}.v*.yaml"))
 
 
 @lru_cache()
