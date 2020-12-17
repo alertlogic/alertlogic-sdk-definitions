@@ -472,14 +472,25 @@ TopologyPreviewResponse:
 
             1. A `group_membership` property that must be consulted to determine membership in the group. Possible values are described below:
 
-            `IN` - The asset is included in the group by scope definition.
+            `EXPLICIT_IN` - The asset is included in the group by scope definition. This status is returned for the first assets
+            in the asset topology that match all of the inclusion filters for scope in scoped groups, and the only `IN` membership type for
+            groups with nested groups.
+
+            `INHERIT_IN` - The asset is included in the group by scope definition. This status is returned for any topological successor
+            asset of an asset with the `EXPLICIT_IN` group membership that meets the exclusion criteria. This membership type is not
+            returned for assets in a group with nested groups.
 
             `CONTAINS` - The asset does not meet the full criteria for inclusion in the group, but contains at least one successor asset in the group.
 
             `CAN_CONTAIN` - The asset does not meet the full criteria for inclusion in the group. The scope definition does allow this asset to
             potentially include future successors in the group.
 
-            `EXCLUDED` - The asset is excluded from the group by scope definition.
+            `EXPLICIT_EXCLUDED` - The asset is excluded from the group by scope definition. This status is returned for the first assets in
+            the asset topology that match any exclusion filters for scope in scoped groups.
+
+            `INHERIT_EXCLUDED` - The asset is excluded from the group by scope definition. This status is returned for any topological successor
+            asset of an asset with the `EXPLICIT_EXCLUDED` group membership. This membership type is not returned for assets in a group with nested
+            groups.
 
             `NOT_IN` - The asset does not meet all criteria for inclusion in the group by scope definition, but is not explicitly excluded.
 
