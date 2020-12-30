@@ -148,3 +148,26 @@ AssetDetailsConflict:
           value:
             error_type: conflict
             message: Multiple assets match
+AssetGroupsBadRequest:
+  description: 'Asset Groups `Bad Request`'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        InvalidOperation:
+          value:
+            error_type: bad_request
+            message: invalid operation
+        ExistingReference:
+          value:
+            error_type: bad_request
+            message: Asset Group is still reference in these groups
