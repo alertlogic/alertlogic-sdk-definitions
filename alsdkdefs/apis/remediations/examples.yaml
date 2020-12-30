@@ -4798,3 +4798,8 @@ AssetTypeSchemaResponseExample:
     topological_successors_list: [ ]
     unscoped_properties: [ ]
     vulnerable: true
+DeleteAssetGroupRequestBodyExample:
+  value:
+    operation: delete_asset_group
+    scope: user
+    name: PCI Assets

@@ -16,12 +16,25 @@ AssetName:
 Filters:
   type: array
   description: Filters
+GroupName:
+  type: string
+  description: |-
+    The unique name for the `asset-group` asset, such as `my-group`. This will be the same
+    as the asset `key`.
 ItemId:
   type: string
   description: Item ID
 RemediationId:
   type: string
   description: Remediation ID
+Scope:
+  type: string
+  description: |-
+    The declaring software's authority or area of function. For example, the scan subsystem
+    declaring vulnerabilities passes scope `"scan"`, and the UI declaring a credential for
+    an asset passes scope `"config"`. `cloud_explorer`, responsible for discovering
+    deployments (environments), passes `"aws"`. The scope must match the regex pattern
+    `[0-9A-Za-z-]`.
 State:
   type: string
   description: The remediation-item state.
@@ -705,8 +718,23 @@ AssetTypesSchemaResponse:
         - type: object
     count:
       type: number
-
 AssetTypeSchemaResponse:
   title: Asset Type Schema Response
   type: object
-
+DeleteAssetGroupRequestBody:
+  title: Delete Asset Group Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `delete_asset_group`.
+      enum:
+        - delete_asset_group
+    name:
+      $ref: '#/GroupName'
+    scope:
+      $ref: '#/Scope'
+  required:
+    - operation
+    - name
+    - scope
