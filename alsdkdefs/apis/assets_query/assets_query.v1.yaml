@@ -408,6 +408,29 @@ paths:
           $ref: 'responses.yaml#/UnavailableError'
       security:
         - x-aims-auth-token: []
+    put:
+      operationId: asset_group
+      summary: Asset Group (Delete)
+      description: |-
+        ### Delete Asset Group (operation:delete_asset_group)
+        Delete an existing `asset-group` asset.
+      tags:
+        - Asset Groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: 'schemas.yaml#/DeleteAssetGroupRequestBody'
+            examples:
+              Delete Asset Group Request Body Example:
+                $ref: 'examples.yaml#/DeleteAssetGroupRequestBodyExample'
+      responses:
+        "204":
+          description: No Content (Delete Asset Group successful response)
+        "400":
+          $ref: 'responses.yaml#/AssetGroupsBadRequest'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
   /assets_query/v1/{account_id}/deployments/{deployment_id}/assets:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
