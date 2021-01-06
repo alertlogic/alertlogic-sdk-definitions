@@ -1,0 +1,156 @@
+openapi: 3.0.2
+info:
+  title: aemanual
+  version: '1.0'
+  description: AEMANUAL
+  contact:
+    email: support@alertlogic.com
+servers:
+  - url: 'https://aemanual.mdr.global.alertlogic.com'
+    x-alertlogic-global-endpoint: production
+    description: production
+  - url: 'https://aemanual.mdr.product.dev.alertlogic.com'
+    x-alertlogic-global-endpoint: integration
+    description: integration
+paths:
+  /healthcheck:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - healthcheck
+      responses:
+        '200':
+          description: OK
+      operationId: get_healthcheck
+      description: Check health status of the service.
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AEManualGetHealthcheckFunction.Arn}/invocations'
+  '/aemanual/v1/{account_id}/create':
+    post:
+      summary: Post a manual incident
+      operationId: create_observation
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+      tags:
+        - aemanual
+      description: POSTS an observable to AEPUBLISH to have it create a manual incident for the SoC
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AEManualCreateObservationFunction.Arn}/invocations'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customer_id:
+                  type: integer
+                  description: The Account (customer) Id
+                summary:
+                  type: string
+                  description: The Incident Summary
+                description:
+                  type: string
+                  description: The Incident Description
+                classification:
+                  type: string
+                  description: The Incident Classification
+                time_frame:
+                  type: integer
+                  description: The duration (in minutes)
+                facts:
+                  type: array
+                  description: A list of message_id and type (associated events or logs)
+                  items:
+                    $ref: '#/components/schemas/FactModel'
+                correlation:
+                  type: array
+                  description: Only for MANI
+                  items:
+                    type: string
+                datacenter:
+                  type: string
+                  description: 'The datacenter that facts are coming from (Ashburn, Denver, Integration, Newport, etc)'
+                sources:
+                  type: array
+                  description: 'The Incident Source (MANL for log, MANI for IDS)'
+                  items:
+                    type: string
+                    enum:
+                      - MANL
+                      - MANI
+                keyedon_value:
+                  type: string
+                  description: The base_incident_keyedon_value
+                gen_type:
+                  type: string
+                  description: 'The generator type (analytic, guardduty, log_correlation, etc)'
+                threat_rating:
+                  type: string
+                  description: 'The threat rating for the incident (Low, Medium, High, Critical)'
+                  enum:
+                    - Low
+                    - Medium
+                    - Hihg
+                    - Critical
+              required:
+                - customer_id
+                - summary
+                - description
+                - classification
+                - time_frame
+                - facts
+                - correlation
+                - datacenter
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        description: AIMS Account ID
+        required: true
+components:
+  securitySchemes:
+    aims_request_authorizer:
+      type: apiKey
+      name: X-AIMS-Auth-Token
+      in: header
+      x-amazon-apigateway-authtype: custom
+      x-amazon-apigateway-authorizer:
+        authorizerUri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AIMSTokenAuthorizerFunction.Arn}/invocations'
+        authorizerResultTtlInSeconds: 300
+        identitySource: 'method.request.header.X-AIMS-Auth-Token, context.path'
+        type: request
+  schemas:
+    FactModel:
+      title: FactModel
+      type: object
+      properties:
+        message:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+tags:
+  - name: aemanual
+    description: aemanual operations
+  - name: healthcheck
+    description: healthcheck operations
