@@ -103,12 +103,12 @@ DeploymentIds:
     of any the `filters set` specifies a specific `deployment_id` filter, only that one is
     used, **only** for that element in the filters set.
 RemediationIds:
-  type: string
+  type: array
   description: |-
     A list of remediation IDs. Note that this parameter is *mutually exclusive* with
     `"vulnerability_ids"`, and any operation that includes both will be rejected.
 VulnerabilityIds:
-  type: string
+  type: array
   description: |-
     A list of vulnerability IDs. Note that this parameter is *mutually exclusive* with
     `"remediation_ids"`, and any operation that includes both will be rejected.
