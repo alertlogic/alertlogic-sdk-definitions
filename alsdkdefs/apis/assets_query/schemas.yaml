@@ -95,7 +95,7 @@ DisposeConcludeFilters:
     created. Note that this is permuted with `deployment_ids` (only if a set does not include
     `deployment_id`) and `remediation_ids`/`vulnerability_ids` as well.
 DeploymentIds:
-  type: string
+  type: array
   description: |-
     A list of deployment IDs in which to conclude/dispose the given remediation(s). If not given, all
     deployments where the remediation exists will have a remediation item created, except if
@@ -108,7 +108,7 @@ RemediationIds:
     A list of remediation IDs. Note that this parameter is *mutually exclusive* with
     `"vulnerability_ids"`, and any operation that includes both will be rejected.
 VulnerabilityIds:
-  type: array
+  type: string
   description: |-
     A list of vulnerability IDs. Note that this parameter is *mutually exclusive* with
     `"remediation_ids"`, and any operation that includes both will be rejected.
