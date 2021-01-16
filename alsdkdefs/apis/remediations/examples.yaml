@@ -4615,12 +4615,18 @@ ListAssetGroupsExample:
       scopes:
       - include:
         - deployment.name:US Production
-        asset_types:
-        - host
       key: Production assets
       description: Production assets
       criticality: 1
       created_on: 1600724524156
+      membership_counts:
+        deployment: 1
+        region: 1
+        vpc: 1
+        subnet: 1
+        host: 3
+        cloud-trail: 1
+        all: 8
     - type: asset-group
       scopes:
       - include:
@@ -4632,6 +4638,9 @@ ListAssetGroupsExample:
       description: Hosts in 192.168.0.0/16
       criticality: 1
       created_on: 1600724524178
+      membership_counts:
+        host: 3
+        all: 3
     count: 2
 AssetTypesSchemaResponseExample:
   value:
@@ -4803,3 +4812,24 @@ DeleteAssetGroupRequestBodyExample:
     operation: delete_asset_group
     scope: user
     name: PCI Assets
+DeleteAssetGroupsDryRunResponse:
+  value:
+    dry_run: true
+    operations:
+      - operation: delete_asset_group
+        name: PCI Assets
+        scope: user
+      - operation: update_asset_group
+        name: Parent of PCI Assets
+        scope: user
+DeleteAssetGroupsResponse:
+  value:
+    dry_run: false
+    operations:
+      - code: 204
+        operation: delete_asset_group
+        name: PCI Assets
+      - code: 201
+        operation: update_asset_group
+        name: Parent of PCI Assets
+
