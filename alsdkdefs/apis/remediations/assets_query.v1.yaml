@@ -413,7 +413,8 @@ paths:
       summary: Asset Group (Delete)
       description: |-
         ### Delete Asset Group (operation:delete_asset_group)
-        Delete an existing `asset-group` asset.
+        Delete an existing `asset-group` asset and any references. If a referencing group
+        has only a single reference in it, and would be emptied as a result it will also be deleted.
       tags:
         - Asset Groups
       requestBody:
@@ -425,8 +426,17 @@ paths:
               Delete Asset Group Request Body Example:
                 $ref: 'examples.yaml#/DeleteAssetGroupRequestBodyExample'
       responses:
-        "204":
-          description: No Content (Delete Asset Group successful response)
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/AssetGroupDeleteResponse'
+              examples:
+                dry_run=true:
+                  $ref: 'examples.yaml#/DeleteAssetGroupsDryRunResponse'
+                dry_run=false:
+                  $ref: 'examples.yaml#/DeleteAssetGroupsResponse'
         "400":
           $ref: 'responses.yaml#/AssetGroupsBadRequest'
         "404":
@@ -1891,6 +1901,43 @@ paths:
         types in the list and all topological ancestor types of the listed types. Although the preview can be limited using
         the `return_asset_types` property, the actual asset group that is created using the other parameters will not have be
         limited to that list of types.
+
+        Note that some assets in the `topology.data` object contain references to non-topologically related assets in the
+        asset model that may be filtered on. For example, a `host` asset
+        `814C2911-09BB-1005-9916-7831C1BAC182:host:/aws/us-east-1/host/web-1a-1` might contain an `image` property with
+        an array of keys, like `/aws/us-east-1/image/ami-1`. These properties indicate that the assets can be filtered (via
+        `include`/`exclude` in `scopes`), for example, placing the filter `host.image:/aws/us-east-1/image/ami-1` in the
+        `include` of an asset-group scope would result in all hosts related to that image being included in the
+        asset-group. These related assets are also included in the `topology.data` object, and can be found by constructing
+        their data key, e.g., `814C2911-09BB-1005-9916-7831C1BAC182:image:/aws/us-east-1/image/ami-1`. Here are the
+        non-topological filters by asset type:
+
+        | Asset Type        | Filter Label       | Note                                    |
+        |-------------------|--------------------|-----------------------------------------|
+        | cloud-trail       | s3-bucket          |                                         |
+        | external-dns-name | deployment         |                                         |
+        | external-dns-name | region             |                                         |
+        | external-dns-name | vpc                |                                         |
+        | external-dns-name | host               |                                         |
+        | external-dns-name | load-balancer      |                                         |
+        | external-ip       | deployment         |                                         |
+        | external-ip       | region             |                                         |
+        | external-ip       | vpc                |                                         |
+        | external-ip       | host               |                                         |
+        | external-ip       | load-balancer      |                                         |
+        | host              | application        | applications are not in the data object |
+        | host              | auto-scaling-group |                                         |
+        | host              | image              |                                         |
+        | host              | instance-profile   |                                         |
+        | host              | launch-config      |                                         |
+        | host              | load-balancer      |                                         |
+        | host              | sg                 |                                         |
+        | instance-profile  | role               |                                         |
+        | load-balancer     | subnet             |                                         |
+        | load-balancer     | sg                 |                                         |
+        | role              | s3-bucket          |                                         |
+        | user              | group              |                                         |
+        | volume            | host               |                                         |
       tags:
         - Topology
       requestBody:
