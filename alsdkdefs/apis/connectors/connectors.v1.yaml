@@ -388,7 +388,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
+              oneOf:
+                - $ref: '#/components/schemas/ConnectionTargetJira'
+                - $ref: '#/components/schemas/ConnectionTargetJsd'
+                - $ref: '#/components/schemas/ConnectionTargetSnow'
+                - $ref: '#/components/schemas/ConnectionTargetMsteams'
+                - $ref: '#/components/schemas/ConnectionTargetSlack'
+                - $ref: '#/components/schemas/ConnectionTargetPagerduty'
+                - $ref: '#/components/schemas/ConnectionTargetWebhook'
         description: Valid Connection Target Object
   '/v1/{account_id}/connection_targets':
     parameters:
@@ -398,6 +405,11 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+      - name: type
+        schema:
+          type: string
+        in: query
+        description: When present, list only connection target with specified type
     get:
       summary: "List all account's connection targets"
       tags: []
@@ -438,10 +450,54 @@ paths:
         content:
           application/json:
             schema:
-              type: object
               description: Valid Connection Target object
+              oneOf:
+                - $ref: '#/components/schemas/ConnectionTargetJira'
+                - $ref: '#/components/schemas/ConnectionTargetJsd'
+                - $ref: '#/components/schemas/ConnectionTargetSnow'
+                - $ref: '#/components/schemas/ConnectionTargetMsteams'
+                - $ref: '#/components/schemas/ConnectionTargetSlack'
+                - $ref: '#/components/schemas/ConnectionTargetPagerduty'
+                - $ref: '#/components/schemas/ConnectionTargetWebhook'
             examples: {}
         description: Valid Integration Connection Objects
+  '/v1/{account_id}/connection_targets_full/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+          format: uuid
+        name: id
+        in: path
+        required: true
+        description: Connection Target ID
+    get:
+      summary: Get Existing Connection Target Full Information
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+              examples: {}
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_connection_target_full
+      description: Returns Connection Target Full Information
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetFull.Arn}/invocations'
   '/v1/integration_types/{name}':
     parameters:
       - schema:
@@ -743,6 +799,183 @@ components:
         - email
         - subject_template
         - payload_type
+    ConnectionTargetJira:
+      title: ConnectionTargetJira
+      description: ConnectionTargetJira object schema
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - jira
+        instance_name:
+          type: string
+          minLength: 1
+          template: true
+        auth_header:
+          type: string
+          secret: true
+        headers:
+          type: string
+          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+      required:
+        - type
+        - name
+        - instance_name
+    ConnectionTargetJsd:
+      title: ConnectionTargetJsd
+      description: ConnectionTargetJsd object schema
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - jsd
+        instance_name:
+          type: string
+          minLength: 1
+          template: true
+        auth_header:
+          type: string
+          secret: true
+        headers:
+          type: string
+          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+      required:
+        - type
+        - name
+        - instance_name
+    ConnectionTargetSnow:
+      title: ConnectionTargetSnow
+      description: ConnectionTargetSnow object schema
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - snow
+        instance_name:
+          type: string
+          minLength: 1
+          template: true
+        auth_header:
+          type: string
+          secret: true
+        headers:
+          type: string
+          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+      required:
+        - name
+        - type
+        - instance_name
+        - auth_header
+        - headers
+    ConnectionTargetMsteams:
+      title: ConnectionTargetMsteams
+      description: ConnectionTargetMsteams object schema
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - msteams
+        base_url:
+          type: string
+          pattern: "^https?://\\S+"
+          template: true
+      required:
+        - type
+        - name
+        - base_url
+    ConnectionTargetSlack:
+      title: ConnectionTargetSlack
+      description: ConnectionTargetSlack object schema
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - slack
+        base_url:
+          type: string
+          pattern: "^https?://\\S+"
+          template: true
+      required:
+        - name
+        - type
+        - base_url
+    ConnectionTargetPagerduty:
+      title: ConnectionTargetPagerduty
+      description: ConnectionTargetPagerduty object schema
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - pagerduty
+        base_url:
+          type: string
+          pattern: "^https?://\\S+"
+          template: true
+        routing_key:
+          type: string
+          secret: true
+          template: true
+      required:
+        - type
+        - name
+        - routing_key
+    ConnectionTargetWebhook:
+      title: ConnectionTargetWebhook
+      description: ConnectionTargetWebhook object schema
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+          - webhook
+        base_url:
+          type: string
+          pattern: "^https?://\\S+"
+          template: true
+        auth_header:
+          type: string
+          secret: true
+        headers:
+          type: string
+          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+      required:
+        - name
+        - type
+        - base_url
     DefaultTemplates:
       type: object
       title: DefaultTemplates
