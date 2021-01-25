@@ -87,6 +87,25 @@ FindAssetBadRequest:
           value:
             error_type: missing_parameters
             message: Find endpoint parameters incorrect or missing
+TopologyPreviewBadRequest:
+  description: '`Bad Request` Topology preview endpoint parameters incorrect or missing.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: error
+            message: Invalid JSON
 FindAssetConflict:
   description: '`Conflict` Multiple assets match.'
   content:
