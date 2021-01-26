@@ -27,7 +27,7 @@ ItemId:
 RemediationId:
   type: string
   description: Remediation ID
-Scope:
+ScopeParam:
   type: string
   description: |-
     The declaring software's authority or area of function. For example, the scan subsystem
@@ -95,7 +95,7 @@ DisposeConcludeFilters:
     created. Note that this is permuted with `deployment_ids` (only if a set does not include
     `deployment_id`) and `remediation_ids`/`vulnerability_ids` as well.
 DeploymentIds:
-  type: string
+  type: array
   description: |-
     A list of deployment IDs in which to conclude/dispose the given remediation(s). If not given, all
     deployments where the remediation exists will have a remediation item created, except if
@@ -108,10 +108,84 @@ RemediationIds:
     A list of remediation IDs. Note that this parameter is *mutually exclusive* with
     `"vulnerability_ids"`, and any operation that includes both will be rejected.
 VulnerabilityIds:
-  type: array
+  type: string
   description: |-
     A list of vulnerability IDs. Note that this parameter is *mutually exclusive* with
     `"remediation_ids"`, and any operation that includes both will be rejected.
+GroupNameParam:
+  type: string
+  description: |-
+    The unique name for the `asset-group` asset, such as `my-group`. This will be the same
+    as the asset `key`.
+GroupPropertiesParam:
+  type: object
+  description: |-
+    An object of properties pertaining to the asset being created. Note that an asset group
+    can contain a `scopes` property, or `groups` and `groups_match` properties, but not
+    both.
+  properties:
+    groups:
+      description: |-
+        An array of asset group names that define the asset groups linked to this asset group.
+      type: array
+      items:
+        type: string
+        description: An asset-group name
+    groups_match:
+      description: |-
+        Controls the aggregation logic for the groups in the `groups` property.
+        * `all` - Include any asset that is present in all of the groups in `groups`.
+        * `any` - Include any asset that is present in any of the groups in `groups`.
+      enum:
+        - all
+        - any
+      type: string
+    scopes:
+      description: |-
+        An array of scope objects that define the asset membership in the group. Each `scope`
+        object represents distinct, independent criteria for group inclusion. If an asset meets
+        the criteria defined in **any** scope, it will be included in the group.
+      type: array
+      items:
+        type: object
+        properties:
+          include:
+            description: |-
+              An array of topological constraints on assets that define the asset membership in the
+              group. Examples: `deployment:any`, `tag:/tag/name/environment/value/production`,
+              `host:!/aws/us-east-1/i-1234`. Any groupable asset that meets the constraints on it
+              (and whose topological ancestor assets meet the constraints on them) will be included
+            type: array
+            items:
+              type: string
+          exclude:
+            description: |-
+              An array of topological constraints on assets that define the asset membership in the
+              group. Examples: `deployment:any`, `tag:/tag/name/environment/value/production`,
+              `host:!/aws/us-east-1/i-1234`. Any groupable asset that meets the constraints on it
+              (and whose topological ancestor assets meet the constraints on them) will be
+              **excluded** from the group, even if they meet the `includes` criteria.
+            type: array
+            items:
+              type: string
+          asset_types:
+            description: |-
+              An array of asset types strings that define what type(s) of assets can be in the group.
+              If set, only assets of the given type(s) will be included in the group. If not, all
+              groupable asset types are eligible to be included in the group.
+            type: array
+            items:
+              type: string
+WaitForOperationParam:
+  type: boolean
+  default: true
+  description: |-
+    Flag to specify whether assets_query should wait for the asynchronous operation to be
+    applied in the asset model. This flag exists to make the operation appear synchronous,
+    but does not affect whether the call succeeds or fails. For example, it may take a long time
+    to propagate the change to the asset model for an account under high load, but this endpoint will
+    still return the result of the database update after a finite time to prevent deadlock, regardless of
+    whether the change has propagated to the asset model.
 QueryAssetsResponse:
   title: General assets query response
   type: object
@@ -702,6 +776,14 @@ ListAssetGroupsResponse:
       items:
         type: object
         description: Group object.
+        properties:
+          membership_counts:
+            type: object
+            description: An object of counts keyed by asset type, as well as an `all` sum of the counts for all types.
+            properties:
+              all:
+                type: integer
+                description: A sum of all asset type counts.
     count:
       type: integer
       description: The count of `groups` in the response.
@@ -721,6 +803,28 @@ AssetTypesSchemaResponse:
 AssetTypeSchemaResponse:
   title: Asset Type Schema Response
   type: object
+CreateAssetGroupRequestBody:
+  title: Create Asset Group Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `create_asset_group`.
+      enum:
+        - create_asset_group
+    properties:
+      $ref: '#/GroupPropertiesParam'
+    name:
+      $ref: '#/GroupNameParam'
+    scope:
+      $ref: '#/ScopeParam'
+    wait_for_operation:
+      $ref: '#/WaitForOperationParam'
+  required:
+    - operation
+    - properties
+    - name
+    - scope
 DeleteAssetGroupRequestBody:
   title: Delete Asset Group Request Body
   type: object
@@ -731,10 +835,57 @@ DeleteAssetGroupRequestBody:
       enum:
         - delete_asset_group
     name:
-      $ref: '#/GroupName'
+      $ref: '#/GroupNameParam'
     scope:
-      $ref: '#/Scope'
+      $ref: '#/ScopeParam'
+    dry_run:
+      type: boolean
+      default: false
+      description: -|
+        Controls whether a delete operation will be executed. Use this to preview the deletion/updates.
+    wait_for_operation:
+      $ref: '#/WaitForOperationParam'
   required:
     - operation
     - name
     - scope
+UpdateAssetGroupRequestBody:
+  title: Update Asset Group Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `update_asset_group`.
+      enum:
+        - update_asset_group
+    properties:
+      $ref: '#/GroupPropertiesParam'
+      description: An object of properties pertaining to the asset updated.
+    name:
+      $ref: '#/GroupNameParam'
+    scope:
+      $ref: '#/ScopeParam'
+    wait_for_operation:
+      $ref: '#/WaitForOperationParam'
+  required:
+    - operation
+    - properties
+    - name
+    - scope
+AssetGroupDeleteResponse:
+  title: Delete Asset Group Response Body
+  type: object
+  properties:
+    operations:
+      type: array
+      items:
+        type: object
+        properties:
+          code:
+            type: integer
+          operation:
+            type: string
+          name:
+            type: string
+    dry_run:
+      type: boolean
