@@ -100,8 +100,8 @@ if __name__ == "__main__":
                                         "If micro version is not passed, "
                                         "version is incremented by --increment, default is 1")
     parser.add_argument("-t", "--token", dest="token",
-                        help="github api token, if not set taken from GITHUB_SECRET_TOKEN",
-                        default=os.getenv('GITHUB_SECRET_TOKEN'))
+                        help="github api token, if not set taken from GITHUB_TOKEN",
+                        default=os.getenv('GITHUB_TOKEN'))
     parser.add_argument("-c", "--create_release", action="store_true", default=False,
                         dest="do_release", help="create calculated new release")
     parser.add_argument("-b", "--branch", dest="branch", help="branch to tag", default="master")
