@@ -6,8 +6,8 @@
 : "${BRANCHES_TO_MERGE_REGEX?}" "${BRANCH_TO_MERGE_INTO?}"
 : "${GITHUB_TOKEN?}" "${GITHUB_REPO?}"
 
-export GIT_COMMITTER_EMAIL='support@alertlogic.com'
-export GIT_COMMITTER_NAME='CI bot'
+git config --global user.email "support@alertlogic.com"
+git config --global user.name "CI bot"
 
 if [ "$GITHUB_REPOSITORY" != "$GITHUB_REPO" ]; then
     printf "PR repo %s is not current %s, exiting\\n" \
