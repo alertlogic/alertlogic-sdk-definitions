@@ -8,7 +8,7 @@ on:
     tags-ignore:
       - 'v[0-9]+.[0-9]+.[0-9]+'
     branches-ignore:
-      - 'auto-update-*'
+      - '**auto-update-**'
   pull_request:
     
 jobs:
