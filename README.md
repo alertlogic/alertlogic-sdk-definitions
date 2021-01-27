@@ -59,7 +59,7 @@ in order to achieve quick validation:
 
 If no directory is specified, by default `doc/openapi/` directory will be used, if such behaviour is desired, use following line instead:
 
-`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash`
+`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash `
 
 It is recommended to invoke it via curl, since validation of the definitions might be extended with time.
 Script requires `python3` to be available in the system.

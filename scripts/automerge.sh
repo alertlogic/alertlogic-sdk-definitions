@@ -6,9 +6,6 @@
 : "${BRANCHES_TO_MERGE_REGEX?}" "${BRANCH_TO_MERGE_INTO?}"
 : "${GITHUB_TOKEN?}" "${GITHUB_REPO?}"
 
-BRANCH_NAME=$(awk -F'/' '{print $3}' "${GITHUB_HEAD_REF}")
-export BRANCH_NAME
-
 git config --global user.email "support@alertlogic.com"
 git config --global user.name "CI bot"
 
@@ -50,4 +47,4 @@ push_uri="https://$GITHUB_TOKEN@github.com/$GITHUB_REPO"
 #git push "$push_uri" "$BRANCH_TO_MERGE_INTO" >/dev/null 2>&1
 git push "$push_uri" "$BRANCH_TO_MERGE_INTO"
 #git push "$push_uri" :"$GITHUB_HEAD_REF" >/dev/null 2>&1
-git push "$push_uri" :"$BRANCH_NAME"
+git push "$push_uri" :"$GITHUB_HEAD_REF"
