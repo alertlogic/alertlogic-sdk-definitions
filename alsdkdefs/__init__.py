@@ -150,11 +150,11 @@ def get_apis_dir():
 
 def load_service_spec(service_name, apis_dir=None, version=None):
     """Loads a version of service from library apis directory, if version is not specified, latest is loaded"""
-    services = list_services()
+    services = list_services(apis_dir)
     servicedef = services.get(service_name)
     if not servicedef:
         raise FileNotFoundError(f'Service {service_name} definition files has not been found')
-    service_api_dir = servicedef.get_files_path() or apis_dir
+    service_api_dir = servicedef.get_files_path()
     if not version:
         # Find the latest version of the service api spes
         version = 0
@@ -191,9 +191,9 @@ def get_spec(uri):
 
 
 @lru_cache()
-def list_services():
+def list_services(apis_dir=None):
     """Lists services definitions available"""
-    base_dir = get_apis_dir()
+    base_dir = apis_dir or get_apis_dir()
     dev_services = []
     if DEV_SDK_DEFS:
         dev_dirs = alsdkdefs_dev.get_apis_dir()
