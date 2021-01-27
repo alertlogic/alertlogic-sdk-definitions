@@ -10,6 +10,7 @@ on:
 
 jobs:
   github_release:
+    if: contains(github.event.head_commit.message, 'Definitions Update')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
