@@ -47,4 +47,4 @@ push_uri="https://$GITHUB_TOKEN@github.com/$GITHUB_REPO"
 #git push "$push_uri" "$BRANCH_TO_MERGE_INTO" >/dev/null 2>&1
 git push "$push_uri" "$BRANCH_TO_MERGE_INTO"
 #git push "$push_uri" :"$GITHUB_HEAD_REF" >/dev/null 2>&1
-git push "$push_uri" :"$GITHUB_HEAD_REF"
+git push "$push_uri" :"$GITHUB_HEAD_REF" || true
