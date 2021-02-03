@@ -374,6 +374,7 @@ paths:
   /assets_query/v1/{account_id}/asset_groups:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/ParamReturnAllProperties'
     get:
       operationId: list_asset_groups
       summary: List Asset Groups (Preview)
@@ -410,12 +411,12 @@ paths:
         - x-aims-auth-token: []
     put:
       operationId: asset_group
-      summary: Create/Update/Delete Asset Group
+      summary: Create/Rename/Update/Delete Asset Group
       description: |-
-        ### Create/Update/Delete Asset Group
-        Creates, updates, or deletes an `asset-group` asset. On deletion, deletes any references in linked groups.
+        ### Create/Rename/Update/Delete Asset Group
+        Creates, renames, updates, or deletes an `asset-group` asset. On deletion, deletes any references in linked groups.
         If a linked group has only a single reference in it, and would be emptied as a result
-        it will also be deleted.
+        it will also be deleted. On rename, linked groups (that reference the renamed group) also have their reference updated.
       tags:
         - Asset Groups
       requestBody:
@@ -424,6 +425,7 @@ paths:
             schema:
               oneOf:
                 - $ref: 'schemas.yaml#/CreateAssetGroupRequestBody'
+                - $ref: 'schemas.yaml#/RenameAssetGroupRequestBody'
                 - $ref: 'schemas.yaml#/UpdateAssetGroupRequestBody'
                 - $ref: 'schemas.yaml#/DeleteAssetGroupRequestBody'
             examples:
@@ -431,6 +433,8 @@ paths:
                 $ref: 'examples.yaml#/CreateAssetGroupRequestBodyExample'
               Delete Asset Group Request Body Example:
                 $ref: 'examples.yaml#/DeleteAssetGroupRequestBodyExample'
+              Rename Asset Group Request Body Example:
+                $ref: 'examples.yaml#/RenameAssetGroupRequestBodyExample'
               Update Asset Group Request Body Example:
                 $ref: 'examples.yaml#/UpdateAssetGroupRequestBodyExample'
       responses:
@@ -446,9 +450,9 @@ paths:
                 dry_run=false:
                   $ref: 'examples.yaml#/DeleteAssetGroupsResponse'
         "201":
-          description: Create/Update Asset Group OK
+          description: Create/Rename/Update Asset Group OK
         "304":
-          description: Update Asset Group OK (Not Modified)
+          description: Rename/Update Asset Group OK (Not Modified)
         "400":
           $ref: 'responses.yaml#/AssetGroupsBadRequest'
         "404":
