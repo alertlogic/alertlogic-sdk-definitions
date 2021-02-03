@@ -470,3 +470,12 @@ ParamIncludeTaggedAssets:
     When true, causes the inclusion of tagged assets in the result.
     The single-column rows become two-column rows and the data map includes
     tagged assets with keys in the form `deployment_id:type:key`.
+ParamReturnAllProperties:
+  schema:
+    type: boolean
+    default: false
+  in: query
+  name: return_all_properties
+  description: |-
+    When true, causes the inclusion of all asset properties in the response.
+    By default, the assets in the response only includes summary properties.

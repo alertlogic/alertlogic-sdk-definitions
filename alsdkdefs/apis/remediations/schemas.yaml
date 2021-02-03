@@ -849,6 +849,35 @@ DeleteAssetGroupRequestBody:
     - operation
     - name
     - scope
+RenameAssetGroupRequestBody:
+  title: Rename Asset Group Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `rename_asset_group`.
+      enum:
+        - rename_asset_group
+    name:
+      $ref: '#/GroupNameParam'
+    scope:
+      $ref: '#/ScopeParam'
+    properties:
+      type: object
+      description: An object of properties pertaining to the rename_asset_group operation.
+      properties:
+        new_name:
+          type: string
+          description: The new name of the asset group. It must not conflict with an existing asset group.
+      required:
+        - new_name
+    wait_for_operation:
+      $ref: '#/WaitForOperationParam'
+  required:
+    - operation
+    - name
+    - scope
+    - properties
 UpdateAssetGroupRequestBody:
   title: Update Asset Group Request Body
   type: object

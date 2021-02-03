@@ -4862,6 +4862,13 @@ CreateAssetGroupRequestBodyExample:
     operation: delete_asset_group
     scope: user
     name: PCI Assets
+RenameAssetGroupRequestBodyExample:
+  value:
+    operation: rename_asset_group
+    scope: user
+    name: PCI Assets
+    properties:
+      new_name: SOC Assets
 UpdateAssetGroupRequestBodyExample:
   value:
     operation: delete_asset_group
