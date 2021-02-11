@@ -369,7 +369,7 @@ paths:
       operationId: update_connection_target
       responses:
         '200':
-          description: "Existing Connection Target"
+          description: Existing Connection Target
           content:
             application/json:
               schema:
@@ -409,7 +409,7 @@ paths:
         schema:
           type: string
         in: query
-        description: When present, list only connection target with specified type
+        description: 'When present, list only connection target with specified type'
     get:
       summary: "List all account's connection targets"
       tags: []
@@ -431,7 +431,7 @@ paths:
       operationId: create_connection_target
       responses:
         '201':
-          description: "New connection target object created"
+          description: New connection target object created
           content:
             application/json:
               schema:
@@ -540,29 +540,7 @@ paths:
                 type: array
                 description: List of IntegrationType objects
                 items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      description: Integration Type name
-                    display_name:
-                      type: string
-                      description: Integration Type display name
-                    description:
-                      type: string
-                      description: Integration Type description
-                    icon:
-                      type: string
-                      description: "An icon from Alert Logic's library of icons to use to display an integration"
-                    category:
-                      type: string
-                      description: Business category an integration type belongs to
-                  required:
-                    - name
-                    - display_name
-                    - description
-                    - icon
-                    - category
+                  $ref: '#/components/schemas/IntegrationType'
               examples:
                 Response Example:
                   value:
@@ -600,6 +578,29 @@ paths:
           name: category
           description: Filter by category
     parameters: []
+  /v1/connection_targets:
+    get:
+      summary: Get a list of supported connection targets
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of ConnectionTarget objects
+                items:
+                  $ref: '#/components/schemas/ConnectionTargetDef'
+        '403':
+          description: Forbidden
+      operationId: list_connection_targets_definitions
+      description: Returns definitions of supported connection targets
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsDefinitionsFunction.Arn}/invocations'
   /v1/payload_types:
     get:
       summary: Get a list of supported payload types
@@ -811,7 +812,7 @@ components:
         type:
           type: string
           enum:
-          - jira
+            - jira
         instance_name:
           type: string
           minLength: 1
@@ -836,7 +837,7 @@ components:
         type:
           type: string
           enum:
-          - jsd
+            - jsd
         instance_name:
           type: string
           minLength: 1
@@ -861,7 +862,7 @@ components:
         type:
           type: string
           enum:
-          - snow
+            - snow
         instance_name:
           type: string
           minLength: 1
@@ -888,7 +889,7 @@ components:
         type:
           type: string
           enum:
-          - msteams
+            - msteams
         base_url:
           type: string
           pattern: "^https?://\\S+"
@@ -908,7 +909,7 @@ components:
         type:
           type: string
           enum:
-          - slack
+            - slack
         base_url:
           type: string
           pattern: "^https?://\\S+"
@@ -928,7 +929,7 @@ components:
         type:
           type: string
           enum:
-          - pagerduty
+            - pagerduty
         base_url:
           type: string
           pattern: "^https?://\\S+"
@@ -950,7 +951,7 @@ components:
         type:
           type: string
           enum:
-          - webhook
+            - webhook
         base_url:
           type: string
           pattern: "^https?://\\S+"
@@ -1046,6 +1047,34 @@ components:
         - display_name
         - description
         - category
+        - icon
+        - form
+    ConnectionTargetDef:
+      title: ConnectionTargetDef
+      type: object
+      description: Connection Target Definition
+      properties:
+        name:
+          type: string
+          description: Connection target name
+        display_name:
+          type: string
+          description: Connection target isplay name
+        icon:
+          type: string
+          description: "An icon from Alert Logic's library of icons to use to display an integration"
+        form:
+          type: object
+          description: UI Rendering form
+          required:
+            - controls
+          properties:
+            controls:
+              type: object
+              description: UI Form Controls object
+      required:
+        - name
+        - display_name
         - icon
         - form
     ChangeRecord:
