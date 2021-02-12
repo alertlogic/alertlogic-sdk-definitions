@@ -145,7 +145,7 @@ paths:
       security:
         - X-AIMS-Auth-Token: []
       parameters: []
-  '/aecontent/v1/obserations/paths/{path}':
+  '/aecontent/v1/observations/paths/{path}':
     parameters:
       - schema:
           type: string
@@ -308,7 +308,7 @@ paths:
       security:
         - X-AIMS-Auth-Token: []
       parameters: []
-  '/aecontent/v1/{account_id}/obserations/paths/{path}':
+  '/aecontent/v1/{account_id}/observations/paths/{path}':
     parameters:
       - schema:
           type: string
