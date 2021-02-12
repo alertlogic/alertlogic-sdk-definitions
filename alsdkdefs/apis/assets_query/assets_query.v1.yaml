@@ -456,9 +456,9 @@ paths:
         "400":
           $ref: 'responses.yaml#/AssetGroupsBadRequest'
         "404":
-          $ref: 'responses.yaml#/NotFound'
+          $ref: 'responses.yaml#/AssetGroupNotFound'
         "409":
-          description: Asset Group Exists
+          $ref: 'responses.yaml#/AssetGroupConflict'
   /assets_query/v1/{account_id}/deployments/{deployment_id}/assets:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
