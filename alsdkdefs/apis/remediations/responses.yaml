@@ -167,6 +167,48 @@ AssetDetailsConflict:
           value:
             error_type: conflict
             message: Multiple assets match
+AssetGroupConflict:
+  description: '`Conflict` Multiple asset groups match.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+            enum:
+              - conflict
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: conflict
+            message: Asset group conflict
+AssetGroupNotFound:
+  description: '`404 Not Found` The requested asset group was not found.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+            enum:
+              - conflict
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: not_found
+            message: Asset group not found
 AssetGroupsBadRequest:
   description: 'Asset Groups `Bad Request`'
   content:
