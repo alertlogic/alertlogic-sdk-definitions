@@ -1441,6 +1441,10 @@ components:
             - type: boolean
               description: 'true or false'
               title: 'A boolean'
+            - type: object
+              additionalProperties: true
+              description: 'An object'
+              title: 'An object'
         expiration_ts:
           type: integer
       required:
@@ -1469,6 +1473,10 @@ components:
             - type: boolean
               description: 'true or false'
               title: 'A boolean'
+            - type: object
+              additionalProperties: true
+              description: 'An object'
+              title: 'An object'
         expiration_ts:
           type: integer
         exclude:
