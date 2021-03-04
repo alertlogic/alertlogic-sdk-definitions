@@ -228,7 +228,7 @@ def validate(spec, uri=None, schema=get_openapi_schema()):
             methods = _get_path_methods(path_obj)
             for method in methods:
                 operationid = path_obj[method].get(OpenAPIKeyWord.OPERATION_ID, None)
-                pattern = '^[a-z_]+$'
+                pattern = '^[a-z][a-z0-9_]*$'
                 base_msg = f"Path {path} method {method} operation {operationid}"
                 if not operationid:
                     raise AlertLogicOpenApiValidationException(f"{base_msg}: Missing operationId")
