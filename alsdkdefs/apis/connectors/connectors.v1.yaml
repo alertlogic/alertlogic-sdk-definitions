@@ -540,7 +540,7 @@ paths:
                 type: array
                 description: List of IntegrationType objects
                 items:
-                  $ref: '#/components/schemas/IntegrationType'
+                  $ref: '#/components/schemas/IntegrationTypeShort'
               examples:
                 Response Example:
                   value:
@@ -578,6 +578,41 @@ paths:
           name: category
           description: Filter by category
     parameters: []
+  '/v1/{account_id}/integration_types/{name}':
+    parameters:
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get Account Integration Type Configuration Information
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationType'
+              examples: {}
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_account_integration_type
+      description: Returns account-specific schema of parameters required to create a connection
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsGetAccountIntegrationTypeFunction.Arn}/invocations'
   /v1/connection_targets:
     get:
       summary: Get a list of supported connection targets
@@ -601,6 +636,32 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsDefinitionsFunction.Arn}/invocations'
+  '/v1/connection_targets/{name}':
+    parameters:
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    get:
+      summary: Get a connection target definition by its name
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionTargetDef'
+        '403':
+          description: Forbidden
+      operationId: get_connection_target_definition
+      description: Returns connection target definition
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetDefinitionFunction.Arn}/invocations'
   /v1/payload_types:
     get:
       summary: Get a list of supported payload types
@@ -1042,13 +1103,32 @@ components:
             controls:
               type: object
               description: UI Form Controls object
+    IntegrationTypeShort:
+      title: IntegrationTypeShort
+      type: object
+      description: 'IntegrationType just the fields important for listing '
+      properties:
+        name:
+          type: string
+          description: Integration type name.
+        display_name:
+          type: string
+          description: Integration type display name
+        description:
+          type: string
+          description: Integration type description
+        category:
+          type: string
+          description: Business category an integration type belongs to
+        icon:
+          type: string
+          description: "An icon from Alert Logic's library of icons to use to display an integration"
       required:
         - name
         - display_name
         - description
         - category
         - icon
-        - form
     ConnectionTargetDef:
       title: ConnectionTargetDef
       type: object
