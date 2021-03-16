@@ -882,6 +882,10 @@ components:
         headers:
           type: string
           pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - type
         - name
@@ -907,6 +911,10 @@ components:
         headers:
           type: string
           pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - type
         - name
@@ -932,6 +940,10 @@ components:
         headers:
           type: string
           pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - name
         - type
@@ -954,6 +966,10 @@ components:
         base_url:
           type: string
           pattern: "^https?://\\S+"
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - type
         - name
@@ -974,6 +990,10 @@ components:
         base_url:
           type: string
           pattern: "^https?://\\S+"
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - name
         - type
@@ -996,6 +1016,10 @@ components:
           pattern: "^https?://\\S+"
         routing_key:
           type: string
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - type
         - name
@@ -1021,6 +1045,10 @@ components:
         headers:
           type: string
           pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - name
         - type
@@ -1152,6 +1180,10 @@ components:
             controls:
               type: object
               description: UI Form Controls object
+        active:
+          type: boolean
+          description: Active status of the connection
+          default: true
       required:
         - name
         - display_name
