@@ -12,6 +12,9 @@ servers:
   - url: 'https://aetuner.mdr.product.dev.alertlogic.com'
     x-alertlogic-global-endpoint: integration
     description: integration
+  - url: 'http://localhost:3000'
+    x-alertlogic-global-endpoint: localhost3000
+    description: localhost on port 3000
 paths:
   '/v1/{account_id}/analytics':
     get:
@@ -107,6 +110,16 @@ paths:
         in: path
         required: true
         description: Analytic Fully Qualified Name
+      - schema:
+          type: string
+        in: query
+        name: severity_key
+        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
+      - schema:
+          type: string
+        in: query
+        name: visibility_key
+        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
     post:
       summary: Update Analytics
       operationId: update_analytic
@@ -123,8 +136,14 @@ paths:
               properties:
                 visibility:
                   $ref: '#/components/schemas/IncidentVisibility'
+                visibility_key:
+                  type: string
+                  description: Visibility tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `visibility` is updated.
                 severity:
                   $ref: '#/components/schemas/IncidentSeverity'
+                severity_key:
+                  type: string
+                  description: Severity tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `severity` is updated.
                 tuning:
                   type: object
                   description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
@@ -169,18 +188,17 @@ paths:
             schema:
               type: object
               properties:
-#                TODO -support partial reset?
-#                visibility:
-#                  $ref: '#/components/schemas/IncidentVisibility'
-#                severity:
-#                  $ref: '#/components/schemas/IncidentSeverity'
-#                tuning:
-#                  type: object
-#                  description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
-#                  additionalProperties: true
+                visibility:
+                  type: boolean
+                severity:
+                  type: boolean
                 reason:
                   type: string
                   description: Reason for the performing the reset. This information is used for auditing purposes.
+                tuning:
+                  type: array
+                  example: '["threshold", "whitelist"]'
+                  description: List of tunning keys to reset
               required:
                 - reason
         required: true
