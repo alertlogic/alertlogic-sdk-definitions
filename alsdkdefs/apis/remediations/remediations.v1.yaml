@@ -158,9 +158,11 @@ paths:
       summary: Get Collection Health
       description: |-
         This endpoint will return collection health information for the given asset type (agent, appliance,
-        collector, network, or vpc). By default, the endpoint summarizes the health of assets of
+        collector, host, subnet, network, or vpc). By default, the endpoint summarizes the health of assets of
         the given asset type across all deployments, but supports filtration by deployment ID, deployment type,
         protection level (`protection_policy_id`), and vulnerability category, as well as evaluating assets in scope (default) or not.
+
+        Note that `host` health only includes non-agent, non-appliance hosts in its results.
 
         Note that the protection level filter, `protection_policy_id`, requires a policy ID from the
         policies service. If given, only assets in the protection scope of that policy will be used to
@@ -238,7 +240,7 @@ paths:
                         full remediation details)
                       * `health_level`
                       * `unhealthiness`
-                      * `asset_count` (only included for the `network`/`vpc` asset types)
+                      * `asset_count` (only included for the `network`/`vpc`/`subnet` asset types)
                     items:
                       type: object
               examples:
@@ -305,9 +307,19 @@ paths:
             curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/collector" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
+          label: Get host (without agent) health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/host" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
           label: Get network health
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/network" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get subnet health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/subnet" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
           label: Get vpc health
