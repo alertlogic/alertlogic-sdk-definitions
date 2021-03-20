@@ -15,6 +15,9 @@ servers:
   - url: 'http://localhost:3000'
     x-alertlogic-global-endpoint: localhost3000
     description: localhost on port 3000
+  - url: 'http://localhost:3001'
+    x-alertlogic-global-endpoint: localhost3001
+    description: localhost on port 3001
 paths:
   '/v1/{account_id}/analytics':
     get:
