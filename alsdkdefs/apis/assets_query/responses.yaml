@@ -27,6 +27,18 @@ InvalidValueError:
         Invalid Type:
           value:
             invalid_value: 'not_true is not a valid value for scope (should be either true or false)'
+        Missing Required Field:
+          value:
+            error_type: bad_request
+            message: "'request_body' is missing required property: 'scope'"
+        Incorrect Type:
+          value:
+            error_type: bad_request
+            message: "'example.property' is incorrect type; required: integer"
+        Bad Range:
+          value:
+            error_type: bad_request
+            message: "'example.property' value must be between 0 and 10"
 QueryAssetsBadRequestError:
   description: '`400 Bad Request`: There was a problem with one or more of the request parameters'
   content:
@@ -224,11 +236,27 @@ AssetGroupsBadRequest:
           - error_type
           - message
       examples:
-        InvalidOperation:
+        Invalid Operation:
           value:
             error_type: bad_request
             message: invalid operation
-        ExistingReference:
+        Existing Reference:
           value:
             error_type: bad_request
             message: Asset Group is still reference in these groups
+        Missing Required Field:
+          value:
+            error_type: bad_request
+            message: "'properties.scopes.0' is missing required property: 'include'"
+        Incorrect Type:
+          value:
+            error_type: bad_request
+            message: "'properties.criticality' is incorrect type; required: integer"
+        Bad Range:
+          value:
+            error_type: bad_request
+            message: "'properties.criticality' value must be between 0 and 10"
+        Expected Values:
+          value:
+            error_type: bad_request
+            message: "'properties.groups_match' is not one of the following allowed values: 'any', 'all'"
