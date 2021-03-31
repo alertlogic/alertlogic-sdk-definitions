@@ -151,6 +151,16 @@ paths:
                   type: object
                   description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
                   additionalProperties: true
+                  type: object
+                  properties:
+                    threshold:
+                      type: integer
+                      description: Example of property name
+                  additionalProperties:
+                    true
+                tuning_list:
+                  $ref: '#/components/schemas/TuningList'
+                  description: List Tuning Parameters
                 reason:
                   type: string
                   description: Reason for the performing the update. This information is used for auditing purposes.
@@ -622,6 +632,36 @@ components:
         path:
           type: string
           description: Handling preferences path.
+    TuningList:
+      title: TuningList
+      type: object
+      description: Object to update a tuning with a list of values
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: Name of the tuning tagset
+          example: Authentication/UserLoginFailures/CountryWhitelist
+        key:
+          type: string
+          description: Key in the tuning tagset
+          example: CountryWhitelist
+        operation:
+          type: string
+          description: Name of the Operation
+          enum:
+            - add
+            - subtract
+        values:
+          type: array
+          description: Values to add or remove
+          items:
+            type: string
+      required:
+        - name
+        - key
+        - operation
+        - values
 tags:
   - name: aetuner
     description: aetuner operations
