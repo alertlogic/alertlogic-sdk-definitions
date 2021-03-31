@@ -8,8 +8,10 @@ info:
 servers:
   - url: 'https://api.global-services.global.alertlogic.com'
     description: production
+    x-alertlogic-session-endpoint: true
   - url: 'https://api.global-integration.product.dev.alertlogic.com'
     description: integration
+    x-alertlogic-session-endpoint: true
 paths:
   /aecontent/v1/audit:
     get:
@@ -69,6 +71,16 @@ paths:
         - X-AIMS-Auth-Token: []
       parameters:
         - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
+        - schema:
             type: integer
           in: query
           description: The epoch id to use for this request
@@ -82,6 +94,16 @@ paths:
             type: boolean
           in: query
           name: return_parents
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
     post:
       summary: Create Global Observation
       operationId: create_global_observation
@@ -171,6 +193,16 @@ paths:
         - X-AIMS-Auth-Token: []
       parameters:
         - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
+        - schema:
             type: integer
           in: query
           name: epoch
@@ -180,6 +212,16 @@ paths:
           in: query
           name: ts
           description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
     delete:
       summary: Delete Global Observation
       operationId: delete_global_observation
@@ -349,6 +391,16 @@ paths:
           in: query
           name: ts
           description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
     delete:
       summary: Delete Observation
       operationId: delete_observation
