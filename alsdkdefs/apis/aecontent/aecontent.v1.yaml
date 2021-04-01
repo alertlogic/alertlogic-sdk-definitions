@@ -8,8 +8,10 @@ info:
 servers:
   - url: 'https://api.global-services.global.alertlogic.com'
     description: production
+    x-alertlogic-session-endpoint: true
   - url: 'https://api.global-integration.product.dev.alertlogic.com'
     description: integration
+    x-alertlogic-session-endpoint: true
 paths:
   /aecontent/v1/audit:
     get:
@@ -68,6 +70,16 @@ paths:
       security:
         - X-AIMS-Auth-Token: []
       parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
         - schema:
             type: integer
           in: query
@@ -170,6 +182,16 @@ paths:
       security:
         - X-AIMS-Auth-Token: []
       parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
         - schema:
             type: integer
           in: query
@@ -349,6 +371,16 @@ paths:
           in: query
           name: ts
           description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the observation definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the observation definition
     delete:
       summary: Delete Observation
       operationId: delete_observation
