@@ -713,6 +713,29 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetHealthcheckFunction.Arn}/invocations'
+  '/v1/{account_id}/migration/connection_targets':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: ''
+      operationId: post-v1-account_id-migration-connection_targets
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConnectionTarget'
+      description: Migrates accounts connections to connection targets
+      security:
+        - aims_request_authorizer: []
 components:
   schemas:
     EmailConnection:
@@ -1223,6 +1246,33 @@ components:
               type: integer
             headers:
               type: object
+    ConnectionTarget:
+      title: ConnectionTarget
+      type: object
+      properties:
+        id:
+          type: string
+        account_id:
+          type: string
+        type:
+          type: string
+        base_url:
+          type: string
+        name:
+          type: string
+        secret_id:
+          type: string
+        auth_header:
+          type: string
+        created:
+          $ref: '#/components/schemas/ChangeRecord'
+        modified:
+          $ref: '#/components/schemas/ChangeRecord'
+        headers:
+          type: string
+        routing_key:
+          type: string
+      description: Connection Target schema
   securitySchemes:
     aims_request_authorizer:
       type: apiKey
