@@ -1,36 +1,35 @@
-openapi: 3.0.2
+openapi: 3.0.0
 info:
   title: Alert Logic Universal Search Service
   version: '2.0'
-  description: "Service for submitting searches and getting their results.\nThis API is datatype-agnostic as the selection of which datatype to search over is now done in the SQL via the FROM part of the query. "
+  description: |-
+    The *Search* service is a highly available multi-region web service that provides search capabilities over customer data.
+
+    There are two versions of Search service endpoints: SIEMless Search (v1) and Expert Mode Search (v2).  This document only covers the Expert Mode Search endpoints because the SIEMless Search endpoints are deprecated and were never publicly released.
+  contact:
+    name: Contact your Alert Logic customer service representative
 servers:
-  - url: 'https://api.global-services.global.alertlogic.com'
-    description: production
-    x-alertlogic-session-endpoint: true
-  - url: 'https://api.global-integration.product.dev.alertlogic.com'
+  - url: 'https://api.global-integration.us-west-2.product.dev.alertlogic.com'
     description: integration
+  - url: 'https://api.global-services.us-west-2.global.alertlogic.com'
+    description: us-west-2/Denver
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.global-services.us-east-1.global.alertlogic.com'
+    description: us-east-1/
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.global-services.eu-west-1.global.alertlogic.com'
+    description: eu-west-1/Newport
     x-alertlogic-session-endpoint: true
 paths:
   '/search/v2/{account_id}/searches':
+    parameters:
+      - $ref: '#/components/parameters/account_id'
     post:
-      summary: Execute Search
-      tags: []
+      summary: Submit search
+      operationId: start_query_execution
       responses:
         '201':
-          description: The search has been created and is executing.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SearchCreated'
-              examples:
-                Create Search Response Example:
-                  value:
-                    search_uuid: 001737AE-B6BB-4DC4-9AE0-7CF363B6836E
-                    progress: 0
-                    search_status: pending
-                    start_ts: 1527509673
-                    status_details: pending
-                    update_ts: 1527509673
+          $ref: '#/components/responses/SearchLaunched'
         '400':
           description: Bad Request
           content:
@@ -40,57 +39,42 @@ paths:
                 properties:
                   error:
                     type: string
-              examples:
-                Bad SQL Response Example:
-                  value:
-                    error: "Unknown keyword 'SELECTA'"
-      operationId: start_query_execution
-      description: |-
-        Request the execution of a new search.
-
-        Use the text/plain media type with an SQL statement to execute http request.
-        The documentation for AL SQL statements will be coming soon.
-      security:
-        - X-AIMS-Auth-Token: []
+                    description: A description of the error that occured
       parameters:
-        - name: search_type
-          schema:
-            type: string
-            enum:
-              - auto
-              - batch
-              - report
-            default: auto
-          in: query
-        - name: timeframe
-          in: query
-          description: 'A number of seconds back from the current time to query.  I.e. a value of 3600 indicates that the
-                        query should start from 1 hour ago (3600 seconds ago) until now.'
-          schema:
+        - $ref: '#/components/parameters/search_type'
+        - schema:
             type: integer
-            minimum: 1
-            maximum: 31622400   # NOTE: This comes from MAX_TIMEFRAME in search_lib
-        - name: start
+            minimum: 0
           in: query
-          description: 'The start of the time period to search as a Unix epoch timestamp.'
-          schema:
-            $ref: '#/components/schemas/EpochTimestamp'
-        - name: end
+          name: start
+          description: 'Option to specify the start of search query time frame. This must be used with `end` parameter.  If `start`, `end` or `timeframe` are used in conjunction with a search query that has exact timeframe conditions, the URL query parameters are ignored.  This parameter is mutually exclusive with `timeframe`.'
+        - schema:
+            type: integer
+            minimum: 0
           in: query
-          description: 'The end of the time period to search as a Unix epoch timestamp.'
-          schema:
-            $ref: '#/components/schemas/EpochTimestamp'
+          name: end
+          description: 'Option to specify the end of search query time frame. This must be used with `end` parameter.  If `start`, `end` or `timeframe` are used in conjunction with a search query that has exact timeframe conditions, the URL query parameters are ignored.  This parameter is mutually exclusive with `timeframe`.'
+        - schema:
+            type: integer
+            minimum: 0
+          in: query
+          name: timeframe
+          description: 'Option to specify the search time frame duration in past seconds.  If `start`, `end` or `timeframe` are used in conjunction with a search query that has exact timeframe conditions, the URL query parameters are ignored.  This parameter is mutually exclusive with `start` and `end`.'
+        - $ref: '#/components/parameters/x-invoked-by'
       requestBody:
         content:
           text/plain:
             schema:
               type: string
-              description: The SQL statement to execute
             x-alertlogic-schema:
               name: query_string
-        description: ''
-    parameters:
-      - $ref: '#/components/parameters/AccountId'
+            examples:
+              Select last 100 messages:
+                value: 'SELECT time_recv, message FROM logmsgs WHERE EXISTS(message) ORDER by time_recv DESC LIMIT 100'
+        description: An AL-SQL query
+      description: Request the execution of a new search. Accepts either SQL or JSON form of search request. Details on how the SQL statements look will be given in a separate document.
+      tags:
+        - general-purpose
   '/search/v2/{account_id}/searches/{query_execution_id}':
     get:
       summary: Get Search Results
@@ -103,15 +87,13 @@ paths:
         '404':
           description: Not Found
       operationId: get_query_results
-      security:
-        - X-AIMS-Auth-Token: []
       parameters:
         - name: details
           schema:
             type: boolean
             enum:
-              - 'true'
-              - 'false'
+              - true
+              - false
             default: 'false'
           in: query
           description: Return search execution details
@@ -131,9 +113,10 @@ paths:
             type: string
           in: query
           description: A `next_token` from a previous request to continue paging results
-      description: 'Returns the results of a query execution specified by {search_uuid}'
+      description: Returns the results of a query execution specified by `query_execution_id`.  This is deprecated in favor of the `get_search_results` operation which has a better definition.  The two are functionally equivalent.
+      deprecated: true
     parameters:
-      - $ref: '#/components/parameters/AccountId'
+      - $ref: '#/components/parameters/account_id'
       - name: query_execution_id
         schema:
           type: string
@@ -151,12 +134,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessagesResponse'
       operationId: read_messages
-      description: |-
-        Read a set of messages from storage by ID
-      security:
-        - X-AIMS-Auth-Token: []
+      description: Read a set of messages from storage by ID
       parameters:
-        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/account_id'
         - name: datatype
           schema:
             type: string
@@ -168,46 +148,372 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MessagesParams'
+              type: object
+              properties:
+                ids:
+                  type: array
+                  description: List of Base64 encoded AMI4 or NSM message IDs. Both Message ID types can be used in the same request.
+                  items:
+                    type: string
+                fields:
+                  type: string
+                  description: List of comma-separated fields names in messages.
+                tokens_offsets:
+                  type: boolean
+                  default: false
+                  description: Optional parameter for requesting tokens offsets in parsing results.
+                properties:
+                  type: boolean
+                  default: false
+              required:
+                - ids
         description: Read Messages Input Parameters
         required: true
-components:
-  parameters:
-    AccountId:
-      name: account_id
-      schema:
-        type: string
-      in: path
-      required: true
-      description: AIMS Account Id
-  schemas:
-    EpochTimestamp:
-      type: integer
-      minimum: 0
-    MessagesParams:
-      title: MessagesParams
-      type: object
-      required:
-        - ids
-      properties:
-        ids:
-          type: array
-          items:
+    get:
+      summary: Read Messages
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+      operationId: read_messages_get
+      description: Read a set of messages from storage by ID
+      parameters:
+        - $ref: '#/components/parameters/account_id'
+        - name: datatype
+          schema:
             type: string
-        fields:
-          type: string
-        tokens_offsets:
-          type: string
-          enum:
-            - 'true'
-            - 'false'
-          default: 'false'
-        properties:
-          type: string
-          enum:
-            - 'true'
-            - 'false'
-          default: 'false'
+            enum:
+              - logmsgs
+          in: path
+          required: true
+        - schema:
+            type: array
+          in: query
+          name: ids
+          description: Comma-separated list of Base64 encoded AMI4 or NSM message IDs. Both Message ID types can be used in the same request.
+          required: true
+          style: form
+        - schema:
+            type: string
+          in: query
+          name: fields
+          description: List of comma-separated fields names in messages.
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: tokens_offsets
+          description: Request tokens offsets in parsing results.
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: properties
+          description: Request properties in parsing results.
+  '/search/v2/{account_id}/searches/{search_uuid}':
+    parameters:
+      - $ref: '#/components/parameters/account_id'
+      - $ref: '#/components/parameters/search_uuid'
+    delete:
+      summary: Release Search
+      operationId: release_search
+      responses:
+        '202':
+          description: Accepted - The search will be stopped (if running) and any results will be deleted.
+        '204':
+          description: No such search was found
+        '401':
+          $ref: '#/components/responses/AIMSUnauthorized'
+        '403':
+          $ref: '#/components/responses/AIMSForbidden'
+        '404':
+          $ref: '#/components/responses/SearchNotFound'
+      description: 'Stops an ongoing search if it is currently running.  Deletes the search results if any exist, regardless of the current search state.'
+      tags:
+        - general-purpose
+      parameters:
+        - $ref: '#/components/parameters/x-invoked-by'
+    get:
+      summary: Get Search Results
+      operationId: get_search_results
+      responses:
+        '200':
+          $ref: '#/components/responses/ResultsResponse'
+      description: Get the paginated results of a search.
+      parameters:
+        - schema:
+            type: number
+            minimum: 0
+            default: 100
+            maximum: 100000
+          in: query
+          name: limit
+          description: Limit the number of elements in the response
+        - schema:
+            type: number
+            minimum: 0
+          in: query
+          name: offset
+          description: Offset with the results (used in conjunction with limit)
+        - schema:
+            type: array
+            items:
+              type: number
+          in: query
+          name: selected
+          description: 'Get just a list of result rows numbers, constrained by the `limit` and `offset` parameters.  This should be a comma-separated list of row numbers.  The length of the list is limited by the general requirements for the size of the GET request (2048 bytes, including URL). The list should be URL encoded. If the requested row does not belong to the already found rows then it''ll not be returned.  E.g. "2,5,29,31,45,99,100"'
+          style: form
+          explode: false
+        - schema:
+            type: boolean
+            default: 'false'
+          in: query
+          name: details
+          description: Return debugging details of the search
+        - schema:
+            type: string
+          in: query
+          name: next_token
+          description: A `next_token` from a previous response to continue paging results
+        - $ref: '#/components/parameters/x-invoked-by'
+      tags:
+        - general-purpose
+  '/search/v2/{account_id}/searches/{search_uuid}/status':
+    parameters:
+      - $ref: '#/components/parameters/account_id'
+      - $ref: '#/components/parameters/search_uuid'
+    get:
+      summary: Get Search Status
+      tags:
+        - general-purpose
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchDescription'
+        '401':
+          $ref: '#/components/responses/AIMSUnauthorized'
+        '403':
+          $ref: '#/components/responses/AIMSForbidden'
+        '404':
+          $ref: '#/components/responses/SearchNotFound'
+      operationId: get_search_status
+      description: Get the status of a search
+      parameters:
+        - $ref: '#/components/parameters/x-invoked-by'
+  '/search/v2/{account_id}/searches/{search_uuid}/rerun':
+    parameters:
+      - $ref: '#/components/parameters/account_id'
+      - $ref: '#/components/parameters/search_uuid'
+    post:
+      summary: Rerun search
+      operationId: rerun_search
+      responses:
+        '201':
+          $ref: '#/components/responses/SearchLaunched'
+        '401':
+          $ref: '#/components/responses/AIMSUnauthorized'
+        '403':
+          $ref: '#/components/responses/AIMSForbidden'
+        '404':
+          $ref: '#/components/responses/SearchNotFound'
+      description: Reruns the specified search if it is allowed
+      tags:
+        - general-purpose
+      parameters:
+        - schema:
+            type: boolean
+            default: 'false'
+          in: query
+          name: redefine_now
+          description: 'When retry is `false`, you can choose to redefine the value of NOW() to the time this API is called.  If the original search used the `timeframe` query string parameter, the start and end time will be recalculated accordingly.'
+        - schema:
+            type: boolean
+            default: 'false'
+          in: query
+          name: retry
+          description: Whether to link the given search to the new search in the `retried_by` field of the original search (`true`) or simply copy the search and rerun it (`false`). Defaults to `false`.
+        - $ref: '#/components/parameters/x-invoked-by'
+  '/search/v2/{account_id}/searches/{search_uuid}/complete':
+    parameters:
+      - $ref: '#/components/parameters/account_id'
+      - $ref: '#/components/parameters/search_uuid'
+    post:
+      summary: Complete Search
+      operationId: complete_search
+      responses:
+        '200':
+          description: The search has already been run to completion
+        '202':
+          description: Accepted.  The search will be run to completion.
+        '401':
+          $ref: '#/components/responses/AIMSUnauthorized'
+        '403':
+          $ref: '#/components/responses/AIMSForbidden'
+        '404':
+          $ref: '#/components/responses/SearchNotFound'
+      description: Run a suspended interactive search to completion
+      tags:
+        - general-purpose
+      parameters:
+        - $ref: '#/components/parameters/x-invoked-by'
+  /search/v2/validate:
+    post:
+      summary: Validate Search
+      operationId: validate_search
+      responses:
+        '200':
+          description: Valid search query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data_type:
+                    $ref: '#/components/schemas/DataTypeAttribute'
+              examples:
+                Valid search query:
+                  value:
+                    data_type: logmsgs
+        '400':
+          description: Invalid search query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: A description of the error that occured
+                  position:
+                    type: number
+                    description: The byte-offset into the query where there's an error.  This field is only set if the query is somewhat intelligible.
+                required:
+                  - position
+      parameters:
+        - schema:
+            type: integer
+            minimum: 0
+          in: query
+          name: start
+          description: 'Option to specify the start of search query time frame. This must be used with `end` parameter.  If `start`, `end` or `timeframe` are used in conjunction with a search query that has exact timeframe conditions, the URL query parameters are ignored.  This parameter is mutually exclusive with `timeframe`.'
+        - schema:
+            type: integer
+            minimum: 0
+          in: query
+          name: end
+          description: 'Option to specify the end of search query time frame. This must be used with `end` parameter.  If `start`, `end` or `timeframe` are used in conjunction with a search query that has exact timeframe conditions, the URL query parameters are ignored.  This parameter is mutually exclusive with `timeframe`.'
+        - schema:
+            type: integer
+            minimum: 0
+          in: query
+          name: timeframe
+          description: 'Option to specify the search time frame duration  in past seconds.  If `start`, `end` or `timeframe` are used in conjunction with a search query that has exact timeframe conditions, the URL query parameters are ignored.  This parameter is mutually exclusive with `start` and `end`.'
+        - $ref: '#/components/parameters/x-invoked-by'
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+            examples:
+              Select last 100 messages:
+                value: 'SELECT time_recv, message FROM logmsgs WHERE EXISTS(message) ORDER by time_recv DESC LIMIT 100'
+        description: An AL-SQL query
+      description: Validates the SQL query for Expert Mode Search usage
+      tags:
+        - general-purpose
+  /search/v2/searches/by-status/pending:
+    get:
+      summary: Get all pending searches
+      responses:
+        '200':
+          $ref: '#/components/responses/SearchPendingList'
+      operationId: get_all_pending_searches
+      description: Get all pending searches across all accounts
+      tags:
+        - internal
+      parameters:
+        - $ref: '#/components/parameters/x-invoked-by'
+  /search/v2/peg:
+    get:
+      summary: Search PEG grammar
+      tags:
+        - general-purpose
+        - internal
+      responses:
+        '200':
+          description: Get the PEG grammar
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              description: text/plain
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                PEG Grammar:
+                  $ref: '#/components/examples/PEGGrammar'
+      operationId: get_peg_grammar
+      description: |-
+        Get the PEG grammar for the AL SQL language
+
+        This API is used internally to the search project and is subject to change without notice to customers.
+      parameters:
+        - $ref: '#/components/parameters/x-invoked-by'
+  /search/v2/grammar:
+    get:
+      summary: Search SQL Grammar
+      tags:
+        - general-purpose
+        - internal
+      responses:
+        '200':
+          description: The SQL grammar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grammar'
+              examples:
+                Truncated grammar example:
+                  value:
+                    aggregator:
+                      keywords:
+                        AVG:
+                          spec:
+                            - help: search aggregation function for the average value
+                              insertText: AVG( scalar_expression )
+                              label: AVG projection
+                            - help: search aggregation function for the average value with respect to an expression
+                              insertText: 'AVG( scalar_expression , expression )'
+                              label: AVG projection
+      operationId: get_em_grammar
+      description: |-
+        Get the SQL grammar used by Expert Mode Search
+
+        The grammar has three categories that will be in the result:
+
+        * aggregator
+          * functions like MIN, MAX, and COUNT.
+        * projector
+          * functions like GEOIP, FROM_EPOCHTIME, and NOW.
+        * structure
+          * keywords like SELECT, FROM, and AS.
+
+        Each of these will have an object as value, where "keywords" is the only key coming out of the backend (more will be added by the UI). The value for "keywords" is one big map with all the keywords and their specs.
+
+        This API is used internally to the search project and is subject to change without notice to customers.
+      parameters:
+        - $ref: '#/components/parameters/x-invoked-by'
+components:
+  schemas:
     MessagesResponse:
       title: Messages
       type: array
@@ -230,82 +536,546 @@ components:
             type: object
           error:
             type: object
-    SearchCreated:
-      title: SearchCreated
+    AccountIdAttribute:
+      type: string
+      title: Account ID
+      description: The AIMS Account ID
+      pattern: '[0-9]+'
+      minLength: 2
+      maxLength: 9
+    DataTypeAttribute:
+      type: string
+      title: DataTypeAttribute
+      description: 'The data type being searched, that a particular message belongs to, or detected in a query.'
+      example: logmsgs
+    DetailsModel:
       type: object
       properties:
-        search_uuid:
+        request:
           type: string
-          description: The unique id for the search request
-    SearchDetails:
-      title: SearchDetails
-      type: object
-      properties:
-        query:
-          type: string
-          description: Search requested query after applying of defaults
+          description: The SQL query that was submitted for the search.
+        requested_type:
+          oneOf:
+            - $ref: '#/components/schemas/RequestedSearchType'
+            - type: string
+              enum:
+                - unknown
+          description: The type of the search that was requested.  This may also be "unknown" for v1 searches which have been wrapped to be v2 searches.
         search_type:
-          type: string
-          enum:
-            - batch
-            - interactive
-            - report
-        start_ts:
-          type: integer
-          description: Start time of the search in Epoch
-        update_ts:
-          type: integer
-          description: Last update to the search in Epoch
+          oneOf:
+            - $ref: '#/components/schemas/SearchType'
+            - type: string
+              enum:
+                - unknown
+          description: The type of the search.  This may also be "unknown" for v1 searches which have been wrapped to be v2 searches.
         stats:
-          $ref: '#/components/schemas/SearchStats'
-    SearchFailed:
-      title: SearchFailed
+          type: object
+          description: Internal statistics of the search.
+        submit_ts:
+          type: number
+          minimum: 0
+          description: An epoch timestamp of when the search was submitted.  This is also the value of `NOW()` in the search.
+        update_ts:
+          type: number
+          minimum: 0
+          description: An epoch timestamp of when the search was last updated.
+        cost:
+          type: object
+          description: 'A map containing the costs of various components of the search, if you have permission to view such data.'
+          properties:
+            total:
+              type: number
+              description: The total cost of the search.
+          required:
+            - total
+      required:
+        - request
+        - requested_type
+        - search_type
+        - stats
+        - submit_ts
+        - update_ts
+    ExternalDetailsAttribute:
+      title: ExternalDetailsAttribute
+      type: string
+      description: An external-facing description that gives more details to the `search_status` field.
+    FailedSearchResults:
+      title: FailedSearchResults
       type: object
+      description: The results response for a search in the `failed` state.
       properties:
+        account_id:
+          $ref: '#/components/schemas/AccountIdAttribute'
+        data_type:
+          $ref: '#/components/schemas/DataTypeAttribute'
+        external_details:
+          $ref: '#/components/schemas/ExternalDetailsAttribute'
         search_status:
           type: string
           enum:
             - failed
+        search_uuid:
+          $ref: '#/components/schemas/SearchUuidAttribute'
         status_details:
-          type: string
-          description: 'User friendly status '
-        details:
-          $ref: '#/components/schemas/SearchDetails'
-    SearchStats:
-      title: SearchStats
+          $ref: '#/components/schemas/StatusDetailsAttribute'
+      required:
+        - account_id
+        - data_type
+        - external_details
+        - search_status
+        - search_uuid
+        - status_details
+    Grammar:
+      title: Function Grammar
       type: object
       properties:
-        fetchers_executed:
-          type: integer
-        filtered_batches:
-          type: integer
-        filtered_bytes:
-          type: integer
-        filtered_compressed_bytes:
-          type: integer
-        filtered_records:
-          type: integer
-        filters_executed:
-          type: integer
-        filters_scheduled:
-          type: integer
-        input_scanned_bytes:
-          type: integer
-        input_scanned_packets:
-          type: integer
-        input_scanned_records:
-          type: integer
-        output_records:
-          type: integer
-        recurse_sorts:
-          type: integer
-        sort_recurse_time:
-          type: integer
-        sorts_executed:
-          type: integer
+        aggregator:
+          type: object
+          properties:
+            keywords:
+              type: object
+              properties:
+                (variable):
+                  $ref: '#/components/schemas/GrammarSpec'
+        projector:
+          type: object
+          properties:
+            keywords:
+              type: object
+              properties:
+                (variable):
+                  $ref: '#/components/schemas/GrammarSpec'
+        structure:
+          type: object
+          properties:
+            keywords:
+              type: object
+              properties:
+                (variable):
+                  $ref: '#/components/schemas/GrammarSpec'
+      description: 'Each key under `keywords` is variable.  The values will conform to #/components/schemas/GrammarSpec'
+    GrammarSpec:
+      title: Grammar Spec
+      type: object
+      properties:
+        spec:
+          type: array
+          items:
+            $ref: '#/components/schemas/GrammarSpecPart'
+      description: A subcomponent of the grammar
+    GrammarSpecPart:
+      description: A definition of a function in the grammar
+      type: object
+      properties:
+        help:
+          type: string
+          minLength: 1
+        insertText:
+          type: string
+          minLength: 1
+        label:
+          type: string
+          minLength: 1
+      required:
+        - help
+        - insertText
+        - label
+      title: Grammar Spec Item
+    PendingSearchDescription:
+      title: Search Summary
+      description: A summary of a search that gives just the essential details
+      allOf:
+        - type: object
+          properties:
+            jobs_count:
+              type: number
+              minimum: 0
+              description: The number of filter jobs required to run this search.
+            raw_request:
+              type: string
+              description: The raw request received by the search service.
+            search_version:
+              type: number
+              enum:
+                - 1
+                - 2
+              description: The search version requested.
+          required:
+            - jobs_count
+            - raw_request
+            - search_version
+        - $ref: '#/components/schemas/SearchDescription'
+    PendingSearchResults:
+      title: PendingSearchResults
+      type: object
+      description: The results response for a search in the `pending` state.
+      properties:
+        account_id:
+          $ref: '#/components/schemas/AccountIdAttribute'
+        data_type:
+          $ref: '#/components/schemas/DataTypeAttribute'
+        external_details:
+          $ref: '#/components/schemas/ExternalDetailsAttribute'
+        progress:
+          $ref: '#/components/schemas/ProgressAttribute'
+        search_status:
+          type: string
+          enum:
+            - pending
+        search_uuid:
+          $ref: '#/components/schemas/SearchUuidAttribute'
+        status_details:
+          $ref: '#/components/schemas/StatusDetailsAttribute'
+      required:
+        - account_id
+        - data_type
+        - external_details
+        - progress
+        - search_status
+        - search_uuid
+        - status_details
+    ProgressAttribute:
+      type: number
+      title: ProgressAttribute
+      minimum: 0
+      maximum: 100
+      description: An estimate of the progress of the search completion on a scale of 0-100.
+    ReleasedSearchResults:
+      title: ReleasedSearchResults
+      type: object
+      description: The results response for a search in the `released` state.
+      properties:
+        account_id:
+          $ref: '#/components/schemas/AccountIdAttribute'
+        data_type:
+          $ref: '#/components/schemas/DataTypeAttribute'
+        external_details:
+          $ref: '#/components/schemas/StatusDetailsAttribute'
+        search_status:
+          type: string
+          enum:
+            - released
+        search_uuid:
+          $ref: '#/components/schemas/SearchUuidAttribute'
+        status_details:
+          $ref: '#/components/schemas/StatusDetailsAttribute'
+      required:
+        - account_id
+        - data_type
+        - external_details
+        - search_status
+        - search_uuid
+        - status_details
+    RequestedSearchType:
+      type: string
+      title: RequestedSearchType
+      enum:
+        - auto
+        - batch
+        - report
+      description: |-
+        The `requested_search_type` describes how the user would like the search to execute.  See the SearchType model for more information.
+
+        - `auto` as a requested search type will pick either the `interactive` or `batch` search type, depending on whether the query has (`batch`) or does not have (`interactive`) aggregation.
+        - `batch` will force a search to execute as a batch search.
+        - `report` will force a search to execute as a report search.
+
+        See the `SearchType` model for more information.
+      default: auto
+    RerunModel:
+      title: RerunModel
+      type: object
+      description: 'An object describing the search this search is a rerun of.  '
+      properties:
+        retried_by:
+          $ref: '#/components/schemas/SearchUuidAttribute'
+        retry:
+          type: boolean
+          description: 'If `true`, this search is a retry of the search in `retried_by` because that search failed.'
+      required:
+        - retried_by
+        - retry
+    SearchDescription:
+      description: A description of a search.
+      type: object
+      title: Search Description
+      properties:
+        account_id:
+          $ref: '#/components/schemas/AccountIdAttribute'
+        details:
+          $ref: '#/components/schemas/DetailsModel'
+        external_details:
+          $ref: '#/components/schemas/ExternalDetailsAttribute'
+        search_status:
+          $ref: '#/components/schemas/SearchStatus'
+        search_uuid:
+          $ref: '#/components/schemas/SearchUuidAttribute'
+        status_details:
+          $ref: '#/components/schemas/StatusDetailsAttribute'
+        authoritative_retry:
+          type: string
+          description: 'The UUID of the first successful search that was a retry of this search.  This field is only populated when `search_status` is or was `failed`.  If this field is populated, its value will always be in `retried_by`.'
+        progress:
+          $ref: '#/components/schemas/ProgressAttribute'
+        rerun:
+          $ref: '#/components/schemas/RerunModel'
+        retried_by:
+          type: array
+          description: 'A list of search UUIDs of searches that are retries of this search, in the order the retries were launched.  This field is only populated after a search fails (i.e. the `search_status` is or was `failed`).'
+          items:
+            $ref: '#/components/schemas/SearchUuidAttribute'
+        total_found:
+          type: number
+          minimum: 0
+          description: The number of results found in the search.
+      required:
+        - account_id
+        - details
+        - external_details
+        - search_status
+        - search_uuid
+        - status_details
+    SearchPendingList:
+      type: array
+      description: A list of searches in the "pending" state
+      minItems: 1
+      uniqueItems: true
+      title: Pending Searches List
+      items:
+        $ref: '#/components/schemas/PendingSearchDescription'
+    SearchResultsCore:
+      title: Search Results Core
+      type: object
+      description: The core part of the Search Results schema
+      properties:
+        columns:
+          type: array
+          description: A list of column names for the result rows
+          items:
+            type: string
+          readOnly: true
+        metadata:
+          type: object
+          description: A mapping of column names to row field names when simple fields are aliased.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultsRecord'
+        details:
+          $ref: '#/components/schemas/DetailsModel'
+      required:
+        - columns
+        - metadata
+        - results
+    SearchResultsRecord:
+      title: Search Result Record
+      type: object
+      description: A record of a single search result
+      properties:
+        fields:
+          type: object
+          description: The values of the row in the search result.  The keys correspond to the `columns` field in the `results` object.
+        id:
+          type: object
+          description: The unique id of the row in the search result
+          required:
+            - aid
+            - datatype
+            - msgid
+          properties:
+            account_id:
+              oneOf:
+                - $ref: '#/components/schemas/AccountIdAttribute'
+                - type: number
+                  properties: {}
+              description: 'The account id this message belongs to.  NOTE: this may be either a string OR a number.'
+            aid:
+              type: number
+            datatype:
+              $ref: '#/components/schemas/DataTypeAttribute'
+            msgid:
+              type: string
+              description: A unique id for the message within the account ID / its data type.
+      required:
+        - fields
+        - id
+    SearchResultsResponse:
+      title: Search Results Response
+      type: object
+      description: Search Results
+      properties:
+        account_id:
+          $ref: '#/components/schemas/AccountIdAttribute'
+        data_type:
+          $ref: '#/components/schemas/DataTypeAttribute'
+        external_details:
+          $ref: '#/components/schemas/ExternalDetailsAttribute'
+        offset:
+          type: number
+          minimum: 0
+          description: The 0-based offset into the results of the search
+        search_status:
+          $ref: '#/components/schemas/SearchStatus'
+        search_uuid:
+          $ref: '#/components/schemas/SearchUuidAttribute'
+        status_details:
+          $ref: '#/components/schemas/StatusDetailsAttribute'
+        next_token:
+          type: string
+          description: The token to pass back as a query parameter to get the next page of results.
+        remaining:
+          type: number
+          description: The number of results remaining to fetch after this point.
+        results:
+          $ref: '#/components/schemas/SearchResultsCore'
+        selected:
+          type: string
+          description: 'A list of result rows numbers, constrained by the `limit` and `offset` parameters.  This is a comma-separated list of row numbers.'
+        total_found:
+          type: number
+          minimum: 0
+          description: The number of results in the search
+      required:
+        - account_id
+        - data_type
+        - external_details
+        - offset
+        - search_status
+        - search_uuid
+        - status_details
+    SearchStatus:
+      type: string
+      title: Search Status
+      enum:
+        - pending
+        - failed
+        - suspended
+        - complete
+        - released
+      description: |-
+        The state of the search.
+
+        * `pending` is running
+        * `suspended` is a search that has partially run but is no longer executing
+        * `failed` is a search that encountered an error
+        * `complete` is a search that completed successfully
+        * `released` is a search that has been stopped and/or had its results deleted.
+    SearchType:
+      type: string
+      title: SearchType
+      enum:
+        - report
+        - batch
+        - interactive
+      description: |-
+        The SearchType describes how the Search service will structure execution of a search.
+
+        - `interactive` searches will run with a fairly high number of compute units, but will be suspended after a small number of data has been matched.  This will have a moderate impact on the amount of resources consumed for throttling purposes.
+        - `batch` searches are similar to `interactive` except that they will not be suspended because they use aggregations and aggregations must be performed on an entire result set.  This will have a large impact on the amount of resources consumed for throttling purposes.  I.e. many batch searches will be throttled quickly.
+        - `report` searches use fewer computational resources in exchange for taking longer.  This has the lowest impact on the amount of resources consumed for throttling purposes.
+
+        Note that the `search_type` is different than the `requested_search_type`.  `search_type` describes the search type as executed.  The values that may be requested are defined by the _requested_ search type.
+    SearchUuidAttribute:
+      type: string
+      title: Search UUID
+      format: uuid
+      readOnly: true
+      description: A unique identifier for a search
+    StatusDetailsAttribute:
+      title: StatusDetailsAttribute
+      type: string
+      description: 'An internal-facing description of the `search_status` field, typically used for failed searches.'
   securitySchemes:
-    X-AIMS-Auth-Token:
-      name: X-AIMS-Auth-Token
+    X-Aims-Auth-Token:
+      name: X-Aims-Auth-Token
       type: apiKey
       in: header
-      description: AIMS Authentication Token
+      description: The AIMS session token received from the AIMS service
+  parameters:
+    account_id:
+      name: account_id
+      in: path
+      schema:
+        type: string
+        pattern: '[0-9]+'
+        minLength: 2
+        maxLength: 9
+      required: true
+      description: The AIMS account ID
+    search_type:
+      name: search_type
+      in: query
+      schema:
+        $ref: '#/components/schemas/RequestedSearchType'
+    search_uuid:
+      name: search_uuid
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: A search UUID
+    x-invoked-by:
+      name: x-invoked-by
+      in: header
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9._-]+$'
+        minLength: 1
+        maxLength: 32
+        example: search-cli
+        default: openapi-client
+      description: A one or two-word description of your client
+  responses:
+    AIMSUnauthorized:
+      description: You are not authorized to perform this operation
+    AIMSForbidden:
+      description: You do not have permission to access the specified account.
+    ResultsResponse:
+      description: A response from the results endpoint of a search
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/PendingSearchResults'
+              - $ref: '#/components/schemas/FailedSearchResults'
+              - $ref: '#/components/schemas/ReleasedSearchResults'
+              - $ref: '#/components/schemas/SearchResultsResponse'
+    SearchLaunched:
+      description: A search was launched successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchDescription'
+    SearchNotFound:
+      description: No search was found with the specified UUID.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+          examples:
+            No such search:
+              value:
+                error: can not find such uuid
+    SearchPendingList:
+      description: A list of search summaries
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchPendingList'
+  examples:
+    PEGGrammar:
+      value: |-
+        Top = _ (query:Query / jpath:JsonPath)
+        Query = select:SelectClause __ from:FromClause sort:SortSpecification? _
+        SelectClause = SELECT __ list:SelectList
+        SelectList = all:Star / head:Selector tail:(_ '','' _ tail_elem:Selector)*
+        Selector = Expression
+security:
+  - X-Aims-Auth-Token: []
+tags:
+  - name: general-purpose
+  - name: internal
