@@ -332,6 +332,12 @@ paths:
         in: path
         required: true
         description: url-encoded path
+      - schema:
+          type: string
+        name: audit
+        in: query
+        required: false
+        description: optional audit information when updating a tagset
     post:
       summary: Atomically perform CRUD operations on specific keys of a tagset.
       tags:
@@ -418,6 +424,12 @@ paths:
         in: path
         required: true
         description: url-encoded path
+      - schema:
+          type: string
+        name: audit
+        in: query
+        required: false
+        description: base64 encoded map of extra audit information
     post:
       summary: >-
         Atomically perform CRUD operations on specific keys of a tuning tagset.
