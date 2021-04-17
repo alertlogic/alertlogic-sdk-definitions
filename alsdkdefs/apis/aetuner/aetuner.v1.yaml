@@ -592,7 +592,7 @@ components:
       title: IncidentSeverity
       description: Severity of an incident
       enum:
-        - informational
+        - info
         - low
         - medium
         - high
