@@ -657,11 +657,6 @@ components:
           description: Values to add or remove
           items:
             type: string
-      required:
-        - name
-        - key
-        - operation
-        - values
 tags:
   - name: aetuner
     description: aetuner operations
