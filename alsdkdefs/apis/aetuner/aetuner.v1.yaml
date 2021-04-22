@@ -82,24 +82,6 @@ paths:
         required: true
         description: AIMS Account ID
   '/v1/{account_id}/analytics/{path}':
-    get:
-      summary: Get Analytic for a specific customer
-      responses:
-        '200':
-          description: Analytic Information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnalyticInfo'
-      operationId: get_analytic
-      security:
-        - aims_request_authorizer: []
-      description: Returns an analytic for a specific customer
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalyticFunction.Arn}/invocations'
-      tags:
-        - aetuner
     parameters:
       - schema:
           type: string
@@ -123,6 +105,34 @@ paths:
         in: query
         name: visibility_key
         description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
+      - schema:
+          type: integer
+        in: query
+        name: audit_events_limit
+        description: Limit the number of audit events to this number
+      - schema:
+          type: boolean
+        in: query
+        name: include_audit_events
+        description: When set to true returns audit events for the tuning tagsets in the analytic
+    get:
+      summary: Get Analytic for a specific customer
+      responses:
+        '200':
+          description: Analytic Information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticInfo'
+      operationId: get_analytic
+      security:
+        - aims_request_authorizer: []
+      description: Returns an analytic for a specific customer
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalyticFunction.Arn}/invocations'
+      tags:
+        - aetuner
     post:
       summary: Update Analytics
       operationId: update_analytic
