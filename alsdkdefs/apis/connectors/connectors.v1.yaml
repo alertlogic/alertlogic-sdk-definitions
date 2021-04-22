@@ -265,6 +265,11 @@ paths:
           in: query
           name: include_sample_payload
           description: Include sample payload in the result?
+        - schema:
+            type: string
+          in: query
+          name: connection_target_id
+          description: Filter by the connection target id
     post:
       summary: Create connection information
       operationId: create_connection
