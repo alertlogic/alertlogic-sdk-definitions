@@ -503,7 +503,19 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
-  /healthcheck:
+  '/version':
+    get:
+      summary: Get AEtuner version
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: get_version
+      description: Get the AEtuner version
+      x-amazon-apigateway-integration:
+        uri:
+         'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerVersionFunction.Arn}/invocations'
+  '/healthcheck':
     get:
       summary: Your GET endpoint
       tags: []
