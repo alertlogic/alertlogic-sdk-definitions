@@ -12,11 +12,19 @@ from functools import reduce, lru_cache
 import requests
 import json
 import re
+from .persistent_storage import PersistentStorage
+
+try:
+    from .version import version as alsdkdefs_version
+except ImportError:
+    alsdkdefs_version = '0.0.1'
 
 try:
     import alsdkdefs_dev
+    from alsdkdefs_dev.version import version as alsdkdefs_dev_version
     DEV_SDK_DEFS = True
 except ImportError:
+    alsdkdefs_dev_version = '0.0.1dev'
     DEV_SDK_DEFS = False
 
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
@@ -24,9 +32,10 @@ URI_SCHEMES = ['file', 'http', 'https']
 
 
 class ServiceDefinition:
-    def __init__(self, name, filespath):
+    def __init__(self, name, filespath, type='public'):
         self.service_name = name
         self.filespath = filespath
+        self.type = type
 
     def __str__(self):
         return self.service_name
@@ -42,6 +51,9 @@ class ServiceDefinition:
 
     def __lt__(self, other):
         return self.get_service_name() < other.get_service_name()
+
+    def get_service_type(self):
+        return self.type
 
     def get_service_name(self):
         return self.service_name
@@ -143,12 +155,35 @@ _YamlOrderedLoader.add_constructor(
 )
 
 
+class SpecCache(PersistentStorage):
+    def __init__(self, service_def, lib_version, load_fun, fun_args, **kwargs):
+        self.cache_name = f'normalized_schemas_{service_def.service_name}'
+        self.cache_key = self.make_cache_key(service_def, lib_version)
+        self.load_fun = load_fun
+        self.fun_args = fun_args
+        super().__init__(self.cache_name, **kwargs)
+
+    def get_spec(self):
+        normalized_spec = self.get(self.cache_key)
+        if normalized_spec:
+            return normalized_spec
+        else:
+            self.clear()
+            spec = self.load_fun(*self.fun_args)
+            self.set(self.cache_key, spec)
+            return spec
+
+    @staticmethod
+    def make_cache_key(service_def, lib_version):
+        return f"{service_def.get_service_name()}_{service_def.get_service_type()}_{lib_version}"
+
+
 def get_apis_dir():
     """Get absolute apis directory path on the fs"""
     return f"{pjoin(os.path.dirname(__file__), 'apis')}"
 
 
-def load_service_spec(service_name, apis_dir=None, version=None):
+def load_service_spec(service_name, apis_dir=None, version=None, use_persistent_cache=True):
     """Loads a version of service from library apis directory, if version is not specified, latest is loaded"""
     services = list_services(apis_dir)
     servicedef = services.get(service_name)
@@ -166,7 +201,12 @@ def load_service_spec(service_name, apis_dir=None, version=None):
     else:
         version = version[:1] != "v" and version or version[1:]
     service_spec_file_path = f"{pjoin(service_api_dir, service_name)}.v{version}.yaml"
-    return load_spec(service_spec_file_path)
+    if use_persistent_cache:
+        ver = {'dev': alsdkdefs_dev_version}.get(servicedef.type, alsdkdefs_version)
+        cache = SpecCache(servicedef, ver, load_spec, [service_spec_file_path])
+        return cache.get_spec()
+    else:
+        return load_spec(service_spec_file_path)
 
 
 def load_spec(uri_or_path):
@@ -197,7 +237,7 @@ def list_services(apis_dir=None):
     dev_services = []
     if DEV_SDK_DEFS:
         dev_dirs = alsdkdefs_dev.get_apis_dir()
-        dev_services = [ServiceDefinition(s, pjoin(dev_dirs, s)) for s in next(os.walk(dev_dirs))[1]]
+        dev_services = [ServiceDefinition(s, pjoin(dev_dirs, s), 'dev') for s in next(os.walk(dev_dirs))[1]]
     pub_services = [ServiceDefinition(s, pjoin(base_dir, s)) for s in next(os.walk(base_dir))[1]]
     services_search = OrderedDict(sorted([(str(servicedef), servicedef) for servicedef in pub_services + dev_services]))
     return services_search
