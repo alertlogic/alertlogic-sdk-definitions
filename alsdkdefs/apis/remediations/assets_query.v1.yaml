@@ -112,6 +112,7 @@ info:
     | Is not                | `!!`           | Scalar               | `x.name=!!Draco`                 |
     | Is null               | `$null`        | None                 | `x.name=$null`                   |
     | Is one of             | `@` or `<<`    | Comma separated list | `x.name=@Harry,Ron,Hermione`     |
+    | Is not one of         | `!@` or `!<<`  | Comma separated list | `x.name=!@Harry,Ron,Hermione`    |
     | List contains         | `>>`           | Scalar               | `x.parents=>>Lilly`              |
     | List does not contain | `!>>`          | Scalar               | `x.parents=!>>Lilly`             |
     | String contains       | `%`            | String               | `x.name=%Percival`               |
