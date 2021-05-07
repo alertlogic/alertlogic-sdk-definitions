@@ -183,7 +183,7 @@ def get_apis_dir():
     return f"{pjoin(os.path.dirname(__file__), 'apis')}"
 
 
-def load_service_spec(service_name, apis_dir=None, version=None, use_persistent_cache=True):
+def load_service_spec(service_name, apis_dir=None, version=None, use_persistent_cache=False):
     """Loads a version of service from library apis directory, if version is not specified, latest is loaded"""
     services = list_services(apis_dir)
     servicedef = services.get(service_name)
