@@ -46,7 +46,9 @@ GroupNameParam:
   type: string
   description: |-
     The unique name for the `asset-group` asset, such as `my-group`. This will be the same
-    as the asset `key`.
+    as the asset `key`. The name must be 500 characters or less in length, and may include
+    multilingual letters, numbers, backslash (`\`), colon (`:`), hyphen (`-`), period (`.`),
+    plus sign (`+`), slash (`/`), underscore (`_`), and space (` `).
 GroupPropertiesParam:
   type: object
   description: |-
