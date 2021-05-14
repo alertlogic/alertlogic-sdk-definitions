@@ -172,13 +172,13 @@ def load_service_spec(service_name, apis_dir=None, version=None):
 
 def load_spec(uri_or_path):
     """Loads spec out of RFC3986 URI, resolves refs, normalizes"""
-    uri_or_path = __normalize_uri(uri_or_path)
+    uri_or_path = normalize_uri(uri_or_path)
     return normalize_spec(uri_or_path, get_spec(uri_or_path))
 
 
 def normalize_spec(uri_or_path, spec):
     """Resolves refs, normalizes"""
-    uri_or_path = __normalize_uri(uri_or_path)
+    uri_or_path = normalize_uri(uri_or_path)
     return __normalize_spec(__resolve_refs(__base_uri(uri_or_path), spec))
 
 
@@ -268,14 +268,14 @@ def make_uri(scheme, netloc, url, query, fragment):
     return urlunsplit((scheme, netloc, url, query, fragment))
 
 
-# Private functions
-
-def __normalize_uri(uri_or_path):
+def normalize_uri(uri_or_path):
     parsed = urlparse(uri_or_path)
     if parsed.scheme not in URI_SCHEMES:
         return make_file_uri(uri_or_path)
     else:
         return uri_or_path
+
+# Private functions
 
 
 def __base_uri(uri):
