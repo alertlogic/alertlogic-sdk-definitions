@@ -82,15 +82,25 @@ info:
     on the security group with that key and assets within that security group. These classes are
     identified with `I` and `R` in the table below.
 
+    #### Using CSVs in filters
+    Some filters allow passing a comma-separated list (CSV) of limiting property values, indicating
+    that only remediations/exposures that contain **at least one** of the given values will be
+    returned. This is identified with `C` in the table below.
+
+    #### Using negation in filters
+    Some filters allow prefixing a value (or a comma-separated list (CSV)) with `!`, indicating
+    that only remediations/exposures that **do not** meet the filter criteria will be returned. This
+    is identified with `!` in the table below.
+
     #### The `any` limiting property value
     Some filters allow the limiting property value to be `any`, indicating that only
-    `remediation-items` that apply to the specific filter type will be returned. These are part of
+    remediations/exposures that apply to the specific filter type will be returned. These are part of
     the `any` class of filters. E.g. the filter `"s3-bucket:any"` yields only vulnerabilities on
     s3-buckets. This is identified with `A` in the table below.
 
     #### The `none` limiting property value
     Some filters allow the limiting property value to be `none`, indicating that only
-    `remediation-items` that do not apply to the specific filter type will be returned. These are
+    remediations/exposures that do not apply to the specific filter type will be returned. These are
     part of the `none` class of filters. E.g. the filter `"cve:none"` yields only exposures whose
     vulnerabilities `cve` field isn't set. This is identified with `N` in the table below.
 
@@ -100,47 +110,42 @@ info:
 
     | Type                | Limiting Property | Class<sup>1</sup> | Example | Notes |
     |---------------------|-------------------|-------------------|----------|------|
-    | `acl`               | `key`             | I       | `"acl:/aws/us-east-1/acl/acl-7ada4a1c"` | |
-    | `application`       | `type`            | A, R    | `"application:any"`, `"application:Apache"` | |
-    | `cloud-trail`       | `key`             | I       | `"cloud-trail:/aws/us-west-2/cloud-trail/trail/Rackspace"` | |
-    | `cve`               | `key`             | A, N, R | `"cve:any"`, `"cve:none"`, `"cve:CVE-2013-1937"` | |
-    | `cwe`               | `key`             | A, N, R | `"cwe:any"`, `"cwe:none"`, `"cwe:CWE-121"` | |
-    | `db-instance`       | `key`             | I       | `"db-instance:/aws/us-east-1/db-instance/db-12345678"` | |
-    | `dns-zone`          | `key`             | A, I    | `"dns-zone:/a/dns-zone/key"` | |
-    | `deployment`        | `key`             | A, I    | `"deployment:/al/12345678/deployment/aws/00001111-2222-3333-4444-555566667777"` | |
-    | `host`              | `key`             | I       | `"host:/aws/us-east-1/host/i-1234567890abcdef0"` | |
-    | `image`             | `key`             | I, R    | `"image:/aws/us-east-1/ami/ami-12345678"` | |
-    | `instance-profile`  | `key`             | A, I    | `"instance-profile:/an/instance-profile/key"` | |
-    | `kms-key`           | `key`             | I       | `"kms-key:/aws/us-east-1/kms-key/1"` | |
-    | `load-balancer`     | `key`             | I, R    | `"load-balancer:/aws/us-east-1/load-balancer/s-12345678"` ||
-    | `redshift-cluster`  | `key`             | I       | `"redshift-cluster:/aws/us-east-1/redshift-cluster/rc-12345678"` | |
-    | `remediation`       | `remediation_id`  | R       | `"remediation:00001111-2222-3333-4444-555566667777"` | |
-    | `region`            | `key`             | I       | `"region:/aws/us-east-1"` | <sup>2</sup> |
-    | `role`              | `key`             | A, I    | `"role:/a/role/key"` | |
-    | `route`             | `key`             | I       | `"route:/aws/eu-west-2/route/rtb-0e738966"` | |
-    | `s3-bucket`         | `key`             | A, I    | `"s3-bucket:any"`, `"s3-bucket:/an/s3-bucket/key"` | |
-    | `sg`                | `key`             | I, R    | `"sg:/aws/us-east-1/sg/s-12345678"` ||
-    | `user`              | `key`             | A, I    | `"user:any"`, `"user:/aws/123456789012/user/jdoe"` | |
-    | `volume`            | `key`             | I       | `"volume:/aws/us-east-1/volume/vol-12345678"` | |
-    | `vulnerability`     | `vulnerability_id`| R       | `"vulnerability:09876543210fedcba0987654321fedcba"` | |
-    | `vulnerability:id`  | `vulnerability_id`| R       | `"vulnerability:id:09876543210fedcba0987654321fedcba"` | |
-    | `vulnerability:key` | `key`             | R       | `"vulnerability:/aws/us-east-1/host/i-1234567890abcdef0/vulnerability/09876543210fedcba0987654321fedcba/tcp/22"` | <sup>3</sup> |
-    | `vpc`               | `key`             | R       | `"vpc:/aws/us-east-1/vpc/vpc-12345678"` | |
+    | `acl`               | `key`             | I             | `"acl:/aws/us-east-1/acl/acl-7ada4a1c"` | |
+    | `application`       | `type`            | A, R          | `"application:any"`, `"application:Apache"` | |
+    | `asset_type`        | `type`            | I             | `"asset_type:host"` | Applies to the `"type"` of the vulnerable asset. Only one `asset_type` filter of a single asset type is supported in a request. This filter must be present in the exposures query request to be included in the response. |
+    | `cloud-trail`       | `key`             | I             | `"cloud-trail:/aws/us-west-2/cloud-trail/trail/Rackspace"` | |
+    | `category`          | `categories`      | !, C, R       | `"category:security"`| Applies to the `"categories"` property of the related vulnerability. |
+    | `cve`               | `cve`             | !, A, C, N, R | `"cve:CVE-2013-1937"` | Applies to the `"cve"` property of the related vulnerability.|
+    | `cwe`               | `cwe`             | !, A, C, N, R | `"cwe:CWE-121"` | Applies to the `"cwe"` property of the related vulnerability. |
+    | `db-instance`       | `key`             | I             | `"db-instance:/aws/us-east-1/db-instance/db-12345678"` | |
+    | `deployment_id`     | `deployment_id`   | I             | `"deployment_id:825283AC-8244-412C-8674-4DBF931E6C16"` | Only one deployment_id filter may be passed per request. |
+    | `dns-zone`          | `key`             | A, I          | `"dns-zone:/a/dns-zone/key"` | |
+    | `deployment`        | `key`             | A, I          | `"deployment:/al/12345678/deployment/aws/00001111-2222-3333-4444-555566667777"` | |
+    | `host`              | `key`             | I             | `"host:/aws/us-east-1/host/i-1234567890abcdef0"` | |
+    | `image`             | `key`             | I, R          | `"image:/aws/us-east-1/ami/ami-12345678"` | |
+    | `instance-profile`  | `key`             | A, I          | `"instance-profile:/an/instance-profile/key"` | |
+    | `kms-key`           | `key`             | I             | `"kms-key:/aws/us-east-1/kms-key/1"` | |
+    | `load-balancer`     | `key`             | I, R          | `"load-balancer:/aws/us-east-1/load-balancer/s-12345678"` ||
+    | `redshift-cluster`  | `key`             | I             | `"redshift-cluster:/aws/us-east-1/redshift-cluster/rc-12345678"` | |
+    | `remediation`       | `remediation_id`  | !, C, R       | `"remediation:00001111-2222-3333-4444-555566667777"` | |
+    | `region`            | `key`             | I             | `"region:/aws/us-east-1"` | <sup>2</sup> |
+    | `role`              | `key`             | A, I          | `"role:/a/role/key"` | |
+    | `route`             | `key`             | I             | `"route:/aws/eu-west-2/route/rtb-0e738966"` | |
+    | `s3-bucket`         | `key`             | A, I          | `"s3-bucket:any"`, `"s3-bucket:/an/s3-bucket/key"` | |
+    | `severity`          | `severity`        | !, C, R       | `"severity:high"` | Applies to the `"severity"` property of the related vulnerability. |
+    | `sg`                | `key`             | I, R          | `"sg:/aws/us-east-1/sg/s-12345678"` | |
+    | `user`              | `key`             | A, I          | `"user:any"`, `"user:/aws/123456789012/user/jdoe"` | |
+    | `volume`            | `key`             | I             | `"volume:/aws/us-east-1/volume/vol-12345678"` | |
+    | `vulnerability`     | `vulnerability_id`| !, C, R       | `"vulnerability:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:id`  | `vulnerability_id`| !, C, R       | `"vulnerability:id:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:key` | `key`             | !, C, R       | `"vulnerability:key:/aws/us-east-1/host/i-1234567890abcdef0/vulnerability/09876543210fedcba0987654321fedcba/tcp/22"` | <sup>3</sup> |
+    | `vpc`               | `key`             | R             | `"vpc:/aws/us-east-1/vpc/vpc-12345678"` | |
 
     Notes:
-    1. A = `any` allowed, I = identity, R = relational, N = none.
+    1. ! = negation allowed, A = `any` allowed, C = CSV allowed, I = identity, R = relational, N = `none` allowed.
     2. The region filter will also be relational in the near future.
     3. This selects only assets that have the vulnerability specified by the vulnerability key.
        This will only ever return a single remediation on a single asset.
-
-    #### Additional remediations query filters
-
-    | Type                | Example | Notes |
-    |---------------------|---------|-------|
-    |`deployment_id`      | `deployment_id:825283AC-8244-412C-8674-4DBF931E6C16` | |
-    |`category`           | `category:security`, `category:configuration,security`, `category:!security` | |
-    |`severity`           | `severity:high` | |
-    |`asset_type`         | `asset_type:host` | Only one asset_type filter of a single asset type is supported in a request. This filter must be present in the exposures query request to be included in the response. |
 paths:
 ############################## COLLECTION HEALTH ##############################
 
@@ -153,9 +158,11 @@ paths:
       summary: Get Collection Health
       description: |-
         This endpoint will return collection health information for the given asset type (agent, appliance,
-        collector, network, or vpc). By default, the endpoint summarizes the health of assets of
+        collector, host, subnet, network, or vpc). By default, the endpoint summarizes the health of assets of
         the given asset type across all deployments, but supports filtration by deployment ID, deployment type,
         protection level (`protection_policy_id`), and vulnerability category, as well as evaluating assets in scope (default) or not.
+
+        Note that `host` health only includes non-agent, non-appliance hosts in its results.
 
         Note that the protection level filter, `protection_policy_id`, requires a policy ID from the
         policies service. If given, only assets in the protection scope of that policy will be used to
@@ -233,7 +240,7 @@ paths:
                         full remediation details)
                       * `health_level`
                       * `unhealthiness`
-                      * `asset_count` (only included for the `network`/`vpc` asset types)
+                      * `asset_count` (only included for the `network`/`vpc`/`subnet` asset types)
                     items:
                       type: object
               examples:
@@ -300,9 +307,19 @@ paths:
             curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/collector" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
+          label: Get host (without agent) health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/host" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
           label: Get network health
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/network" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get subnet health
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/health/subnet" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
           label: Get vpc health
@@ -811,6 +828,7 @@ paths:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
       - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+      - $ref: 'parameters.yaml#/ParamAssessmentSpecsFilter'
     get:
       operationId: get_assessment_specs
       summary: Get Assessment Specs
@@ -827,15 +845,27 @@ paths:
               schema:
                 type: object
                 properties:
-                  version:
-                    type: string
-                  type:
-                    type: string
-                  threat_level:
-                    type: string
+                  assessment-specs:
+                    type: array
+                    items:
+                      type: object
+                  filters:
+                    type: array
+                    items:
+                      type: string
+                  summary:
+                    type: object
               examples:
-                Assessment Specs Example:
+                Get Assessment Specs Example:
                   $ref: 'examples.yaml#/AssessmentSpecsExample'
+                Get Assessment Specs By spec_id Example:
+                  $ref: 'examples.yaml#/AssessmentSpecsBySpecIdExample'
+                Get Assessment Specs Excluding spec_id Example:
+                  $ref: 'examples.yaml#/AssessmentSpecsExcludingSpecIdExample'
+                Get Assessment Specs By spec_id Regex Match Example:
+                  $ref: 'examples.yaml#/AssessmentSpecsSpecIdRegexExample'
+        "400":
+          $ref: 'responses.yaml#/InvalidValueError'
         "401":
           $ref: 'responses.yaml#/Unauthorized'
         "403":
@@ -849,6 +879,21 @@ paths:
           label: Get assessment-specs
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get assessment-specs by spec_id
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs?filter=assessment-specs.spec_id:/alertlogic/fusionvm/internal" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get assessment-specs excluding spec_id
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs?filter=assessment-specs.spec_id:!/alertlogic/fusionvm/internal" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Get assessment-specs by spec_id regex match
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/remediations/v1/12345678/deployments/347203EF-134C-1005-8499-1289DB15AB31/assessment-specs?filter=assessment-specs.spec_id:~/cis/.*" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       security:
         - x-aims-auth-token: []

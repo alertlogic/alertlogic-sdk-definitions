@@ -2,6 +2,7 @@ import os
 from os.path import join as pjoin
 import glob
 import collections
+from collections import OrderedDict
 import jsonschema
 from urllib.parse import urlparse, urlsplit, urlunsplit
 from urllib.request import urlopen, url2pathname
@@ -11,6 +12,13 @@ from functools import reduce, lru_cache
 import requests
 import json
 import re
+from jsonmerge import merge
+
+try:
+    import alsdkdefs_dev
+    DEV_SDK_DEFS = True
+except ImportError:
+    DEV_SDK_DEFS = False
 
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
 URI_SCHEMES = ['file', 'http', 'https']
@@ -18,6 +26,32 @@ URI_SCHEMES = ['file', 'http', 'https']
 
 class AlertLogicOpenApiValidationWarning(Exception):
     pass
+
+class ServiceDefinition:
+    def __init__(self, name, filespath):
+        self.service_name = name
+        self.filespath = filespath
+
+    def __str__(self):
+        return self.service_name
+
+    def __repr__(self):
+        return f"ServiceDefinition({self.service_name})"
+
+    def __gt__(self, other):
+        return self.get_service_name() > other.get_service_name()
+
+    def __eq__(self, other):
+        return other.get_service_name() == self.get_service_name()
+
+    def __lt__(self, other):
+        return self.get_service_name() < other.get_service_name()
+
+    def get_service_name(self):
+        return self.service_name
+
+    def get_files_path(self):
+        return self.filespath
 
 class AlertLogicOpenApiValidationException(Exception):
     pass
@@ -119,7 +153,11 @@ def get_apis_dir():
 
 def load_service_spec(service_name, apis_dir=None, version=None):
     """Loads a version of service from library apis directory, if version is not specified, latest is loaded"""
-    service_api_dir = pjoin(apis_dir or get_apis_dir(), service_name)
+    services = list_services(apis_dir)
+    servicedef = services.get(service_name)
+    if not servicedef:
+        raise FileNotFoundError(f'Service {service_name} definition files has not been found')
+    service_api_dir = servicedef.get_files_path()
     if not version:
         # Find the latest version of the service api spes
         version = 0
@@ -136,13 +174,13 @@ def load_service_spec(service_name, apis_dir=None, version=None):
 
 def load_spec(uri_or_path):
     """Loads spec out of RFC3986 URI, resolves refs, normalizes"""
-    uri_or_path = __normalize_uri(uri_or_path)
+    uri_or_path = normalize_uri(uri_or_path)
     return normalize_spec(uri_or_path, get_spec(uri_or_path))
 
 
 def normalize_spec(uri_or_path, spec):
     """Resolves refs, normalizes"""
-    uri_or_path = __normalize_uri(uri_or_path)
+    uri_or_path = normalize_uri(uri_or_path)
     return __normalize_spec(__resolve_refs(__base_uri(uri_or_path), spec))
 
 
@@ -155,16 +193,23 @@ def get_spec(uri):
             return json.loads(stream.read())
 
 
-def list_services():
+@lru_cache()
+def list_services(apis_dir=None):
     """Lists services definitions available"""
-    base_dir = get_apis_dir()
-    return sorted(next(os.walk(base_dir))[1])
+    base_dir = apis_dir or get_apis_dir()
+    dev_services = []
+    if DEV_SDK_DEFS:
+        dev_dirs = alsdkdefs_dev.get_apis_dir()
+        dev_services = [ServiceDefinition(s, pjoin(dev_dirs, s)) for s in next(os.walk(dev_dirs))[1]]
+    pub_services = [ServiceDefinition(s, pjoin(base_dir, s)) for s in next(os.walk(base_dir))[1]]
+    services_search = OrderedDict(sorted([(str(servicedef), servicedef) for servicedef in pub_services + dev_services]))
+    return services_search
 
 
 def get_service_defs(service_name):
     """Lists a service's definitions available"""
-    service_dir = pjoin(get_apis_dir(), service_name)
-    return glob.glob(f"{service_dir}/{service_name}.v*.yaml")
+    service = list_services()[service_name]
+    return glob.glob(pjoin(service.get_files_path(), f"{service_name}.v*.yaml"))
 
 
 @lru_cache()
@@ -189,7 +234,7 @@ def validate(spec, uri=None, schema=get_openapi_schema()):
             methods = _get_path_methods(path_obj)
             for method in methods:
                 operationid = path_obj[method].get(OpenAPIKeyWord.OPERATION_ID, None)
-                pattern = '^[a-z_]+$'
+                pattern = '^[A-Za-z][a-z0-9_]*$'
                 base_msg = f"Path {path} method {method} operation {operationid}"
                 if not operationid:
                     raise AlertLogicOpenApiValidationException(f"{base_msg}: Missing operationId")
@@ -254,14 +299,14 @@ def make_uri(scheme, netloc, url, query, fragment):
     return urlunsplit((scheme, netloc, url, query, fragment))
 
 
-# Private functions
-
-def __normalize_uri(uri_or_path):
+def normalize_uri(uri_or_path):
     parsed = urlparse(uri_or_path)
     if parsed.scheme not in URI_SCHEMES:
         return make_file_uri(uri_or_path)
     else:
         return uri_or_path
+
+# Private functions
 
 
 def __base_uri(uri):
@@ -311,7 +356,7 @@ def __normalize_node(node):
     if OpenAPIKeyWord.ALL_OF in node:
         __update_dict_no_replace(
             node,
-            dict(reduce(__deep_merge, node.pop(OpenAPIKeyWord.ALL_OF)))
+            dict(reduce(merge, node.pop(OpenAPIKeyWord.ALL_OF)))
         )
 
 
@@ -319,22 +364,3 @@ def __update_dict_no_replace(target, source):
     for key in source.keys():
         if key not in target:
             target[key] = source[key]
-
-
-def __deep_merge(target, source):
-    # Merge source into the target
-    for k in set(target.keys()).union(source.keys()):
-        if k in target and k in source:
-            if isinstance(target[k], dict) and isinstance(source[k], dict):
-                yield (k, dict(__deep_merge(target[k], source[k])))
-            elif type(target[k]) is list and type(source[k]) is list:
-                # TODO: Handle arrays of objects
-                yield (k, list(set(target[k] + source[k])))
-            else:
-                # If one of the values is not a dict,
-                # value from target dict overrides the one in source
-                yield (k, target[k])
-        elif k in target:
-            yield (k, target[k])
-        else:
-            yield (k, source[k])

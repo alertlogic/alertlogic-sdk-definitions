@@ -24,7 +24,7 @@ List available service definitions:
 ```
 >>> import alsdkdefs
 >>> alsdkdefs.list_services()
-['aefr', 'aerta', 'aetag', 'aetuner', 'aims', 'assets_query', 'kelt', 'credentials', 'deployments', 'ingest', 'iris', 'policies', 'search', 'themis']
+OrderedDict([('aecontent', ServiceDefinition(aecontent)), ('aefr', ServiceDefinition(aefr)), ('aepublish', ServiceDefinition(aepublish)), ('aerta', ServiceDefinition(aerta)), ('aetag', ServiceDefinition(aetag)), ('aetuner', ServiceDefinition(aetuner)), ('aims', ServiceDefinition(aims)), ('assets_query', ServiceDefinition(assets_query)), ('assets_write', ServiceDefinition(assets_write)), ('connectors', ServiceDefinition(connectors)), ('credentials', ServiceDefinition(credentials)), ('deployments', ServiceDefinition(deployments)), ('herald', ServiceDefinition(herald)), ('ingest', ServiceDefinition(ingest)), ('iris', ServiceDefinition(iris)), ('kalm', ServiceDefinition(kalm)), ('notify', ServiceDefinition(notify)), ('otis', ServiceDefinition(otis)), ('policies', ServiceDefinition(policies)), ('remediations', ServiceDefinition(remediations)), ('responder', ServiceDefinition(responder)), ('search', ServiceDefinition(search)), ('subscriptions', ServiceDefinition(subscriptions)), ('themis', ServiceDefinition(themis))])
 ```
 
 Get path to a service definitions paths:
@@ -59,7 +59,7 @@ in order to achieve quick validation:
 
 If no directory is specified, by default `doc/openapi/` directory will be used, if such behaviour is desired, use following line instead:
 
-`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash`
+`curl -s https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.sh | bash `
 
 It is recommended to invoke it via curl, since validation of the definitions might be extended with time.
 Script requires `python3` to be available in the system.

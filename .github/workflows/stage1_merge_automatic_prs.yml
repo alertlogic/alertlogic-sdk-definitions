@@ -1,0 +1,53 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Test and merge automated prs
+
+on: pull_request
+
+jobs:
+  test:
+    if: contains(github.head_ref, 'auto-update')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+      - name: Lock(not really)
+        uses: softprops/turnstyle@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ./
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Test
+        run: |
+          python3 -m unittest
+          python3 scripts/validate_my_definition.py -d alsdkdefs/apis/assets_query/
+  merge:
+    if: contains(github.head_ref, 'auto-update')
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lock(not really)
+        uses: softprops/turnstyle@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Merge PR automatically if matches
+        if: contains(github.head_ref, 'auto-update-')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_SECRET_TOKEN }}
+        run: |
+          GITHUB_REPO=$GITHUB_REPOSITORY BRANCHES_TO_MERGE_REGEX='^auto-update-' BRANCH_TO_MERGE_INTO=master scripts/automerge.sh

@@ -12,6 +12,12 @@ servers:
   - url: 'https://aetuner.mdr.product.dev.alertlogic.com'
     x-alertlogic-global-endpoint: integration
     description: integration
+  - url: 'http://localhost:3000'
+    x-alertlogic-global-endpoint: localhost3000
+    description: localhost on port 3000
+  - url: 'http://localhost:3001'
+    x-alertlogic-global-endpoint: localhost3001
+    description: localhost on port 3001
 paths:
   '/v1/{account_id}/analytics':
     get:
@@ -76,6 +82,39 @@ paths:
         required: true
         description: AIMS Account ID
   '/v1/{account_id}/analytics/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Analytic Fully Qualified Name
+      - schema:
+          type: string
+        in: query
+        name: severity_key
+        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
+      - schema:
+          type: string
+        in: query
+        name: visibility_key
+        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
+      - schema:
+          type: integer
+        in: query
+        name: audit_events_limit
+        description: Limit the number of audit events to this number
+      - schema:
+          type: boolean
+        in: query
+        name: include_audit_events
+        description: When set to true returns audit events for the tuning tagsets in the analytic
     get:
       summary: Get Analytic for a specific customer
       responses:
@@ -94,19 +133,6 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalyticFunction.Arn}/invocations'
       tags:
         - aetuner
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
-        description: Analytic Fully Qualified Name
     post:
       summary: Update Analytics
       operationId: update_analytic
@@ -123,12 +149,28 @@ paths:
               properties:
                 visibility:
                   $ref: '#/components/schemas/IncidentVisibility'
+                visibility_key:
+                  type: string
+                  description: Visibility tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `visibility` is updated.
                 severity:
                   $ref: '#/components/schemas/IncidentSeverity'
+                severity_key:
+                  type: string
+                  description: Severity tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `severity` is updated.
                 tuning:
                   type: object
                   description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
                   additionalProperties: true
+                  type: object
+                  properties:
+                    threshold:
+                      type: integer
+                      description: Example of property name
+                  additionalProperties:
+                    true
+                tuning_list:
+                  $ref: '#/components/schemas/TuningList'
+                  description: List Tuning Parameters
                 reason:
                   type: string
                   description: Reason for the performing the update. This information is used for auditing purposes.
@@ -169,18 +211,17 @@ paths:
             schema:
               type: object
               properties:
-#                TODO -support partial reset?
-#                visibility:
-#                  $ref: '#/components/schemas/IncidentVisibility'
-#                severity:
-#                  $ref: '#/components/schemas/IncidentSeverity'
-#                tuning:
-#                  type: object
-#                  description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
-#                  additionalProperties: true
+                visibility:
+                  type: boolean
+                severity:
+                  type: boolean
                 reason:
                   type: string
                   description: Reason for the performing the reset. This information is used for auditing purposes.
+                tuning:
+                  type: array
+                  example: '["threshold", "whitelist"]'
+                  description: List of tunning keys to reset
               required:
                 - reason
         required: true
@@ -462,7 +503,19 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
-  /healthcheck:
+  '/version':
+    get:
+      summary: Get AEtuner version
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: get_version
+      description: Get the AEtuner version
+      x-amazon-apigateway-integration:
+        uri:
+         'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerVersionFunction.Arn}/invocations'
+  '/healthcheck':
     get:
       summary: Your GET endpoint
       tags: []
@@ -561,7 +614,7 @@ components:
       title: IncidentSeverity
       description: Severity of an incident
       enum:
-        - informational
+        - info
         - low
         - medium
         - high
@@ -601,6 +654,31 @@ components:
         path:
           type: string
           description: Handling preferences path.
+    TuningList:
+      title: TuningList
+      type: object
+      description: Object to update a tuning with a list of values
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: Name of the tuning tagset
+          example: Authentication/UserLoginFailures/CountryWhitelist
+        key:
+          type: string
+          description: Key in the tuning tagset
+          example: CountryWhitelist
+        operation:
+          type: string
+          description: Name of the Operation
+          enum:
+            - add
+            - subtract
+        values:
+          type: array
+          description: Values to add or remove
+          items:
+            type: string
 tags:
   - name: aetuner
     description: aetuner operations

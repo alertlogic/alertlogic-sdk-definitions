@@ -321,13 +321,19 @@ paths:
         - `"if-undefined"` - check whether existing asset doesn't have that property
         
         Following comparisons are defined:
-        
-        - `"if-equal"` - true if existing asset has the property being tested and it's value is equal to
+
+        - `"if-equal"` - true if existing asset has the property being tested and its value is equal to
           the given one
-        - `"if-less"` - true if existing asset's value of the property being tested is less than the
-          given one or existing asset has no such property
-        - `"if-greater"` - true if existing asset's value of the property being tested is greater than
+        - `"if-not-equal"` - true if existing asset's value of the property being tested is not equal to
           the given one or existing asset has no such property
+        - `"if-less"` - true if existing asset's value of the property being tested is less than the given
+          one or existing asset has no such property
+        - `"if-less-or-equal"` - true if existing asset's value of the property being tested is less than
+          or equal to the given one or existing asset has no such property
+        - `"if-greater"` - true if existing asset's value of the property being tested is greater than the
+          given one or existing asset has no such property
+        - `"if-greater-or-equal"` - true if existing asset's value of the property being tested is greater
+          than or equal to the given one or existing asset has no such property
 
         ### Declare Relationships (operation:declare_relationships)
         

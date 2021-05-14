@@ -112,6 +112,7 @@ info:
     | Is not                | `!!`           | Scalar               | `x.name=!!Draco`                 |
     | Is null               | `$null`        | None                 | `x.name=$null`                   |
     | Is one of             | `@` or `<<`    | Comma separated list | `x.name=@Harry,Ron,Hermione`     |
+    | Is not one of         | `!@` or `!<<`  | Comma separated list | `x.name=!@Harry,Ron,Hermione`    |
     | List contains         | `>>`           | Scalar               | `x.parents=>>Lilly`              |
     | List does not contain | `!>>`          | Scalar               | `x.parents=!>>Lilly`             |
     | String contains       | `%`            | String               | `x.name=%Percival`               |
@@ -216,15 +217,25 @@ info:
     on the security group with that key and assets within that security group. These classes are
     identified with `I` and `R` in the table below.
 
+    #### Using CSVs in filters
+    Some filters allow passing a comma-separated list (CSV) of limiting property values, indicating
+    that only remediations/exposures that contain **at least one** of the given values will be
+    returned. This is identified with `C` in the table below.
+
+    #### Using negation in filters
+    Some filters allow prefixing a value (or a comma-separated list (CSV)) with `!`, indicating
+    that only remediations/exposures that **do not** meet the filter criteria will be returned. This
+    is identified with `!` in the table below.
+
     #### The `any` limiting property value
     Some filters allow the limiting property value to be `any`, indicating that only
-    `remediation-items` that apply to the specific filter type will be returned. These are part of
+    remediations/exposures that apply to the specific filter type will be returned. These are part of
     the `any` class of filters. E.g. the filter `"s3-bucket:any"` yields only vulnerabilities on
     s3-buckets. This is identified with `A` in the table below.
 
     #### The `none` limiting property value
     Some filters allow the limiting property value to be `none`, indicating that only
-    `remediation-items` that do not apply to the specific filter type will be returned. These are
+    remediations/exposures that do not apply to the specific filter type will be returned. These are
     part of the `none` class of filters. E.g. the filter `"cve:none"` yields only exposures whose
     vulnerabilities `cve` field isn't set. This is identified with `N` in the table below.
 
@@ -234,48 +245,42 @@ info:
 
     | Type                | Limiting Property | Class<sup>1</sup> | Example | Notes |
     |---------------------|-------------------|-------------------|----------|------|
-    | `acl`               | `key`             | I       | `"acl:/aws/us-east-1/acl/acl-7ada4a1c"` | |
-    | `application`       | `type`            | A, R    | `"application:any"`, `"application:Apache"` | |
-    | `asset-group`       | `key`             | I       | `"asset-group:PCI Assets"` | |
-    | `cloud-trail`       | `key`             | I       | `"cloud-trail:/aws/us-west-2/cloud-trail/trail/Rackspace"` | |
-    | `cve`               | `key`             | A, N, R | `"cve:any"`, `"cve:none"`, `"cve:CVE-2013-1937"` | |
-    | `cwe`               | `key`             | A, N, R | `"cwe:any"`, `"cwe:none"`, `"cwe:CWE-121"` | |
-    | `db-instance`       | `key`             | I       | `"db-instance:/aws/us-east-1/db-instance/db-12345678"` | |
-    | `dns-zone`          | `key`             | A, I    | `"dns-zone:/a/dns-zone/key"` | |
-    | `deployment`        | `key`             | A, I    | `"deployment:/al/12345678/deployment/aws/00001111-2222-3333-4444-555566667777"` | |
-    | `host`              | `key`             | I       | `"host:/aws/us-east-1/host/i-1234567890abcdef0"` | |
-    | `image`             | `key`             | I, R    | `"image:/aws/us-east-1/ami/ami-12345678"` | |
-    | `instance-profile`  | `key`             | A, I    | `"instance-profile:/an/instance-profile/key"` | |
-    | `kms-key`           | `key`             | I       | `"kms-key:/aws/us-east-1/kms-key/1"` | |
-    | `load-balancer`     | `key`             | I, R    | `"load-balancer:/aws/us-east-1/load-balancer/s-12345678"` ||
-    | `redshift-cluster`  | `key`             | I       | `"redshift-cluster:/aws/us-east-1/redshift-cluster/rc-12345678"` | |
-    | `remediation`       | `remediation_id`  | R       | `"remediation:00001111-2222-3333-4444-555566667777"` | |
-    | `region`            | `key`             | I       | `"region:/aws/us-east-1"` | <sup>2</sup> |
-    | `role`              | `key`             | A, I    | `"role:/a/role/key"` | |
-    | `route`             | `key`             | I       | `"route:/aws/eu-west-2/route/rtb-0e738966"` | |
-    | `s3-bucket`         | `key`             | A, I    | `"s3-bucket:any"`, `"s3-bucket:/an/s3-bucket/key"` | |
-    | `sg`                | `key`             | I, R    | `"sg:/aws/us-east-1/sg/s-12345678"` ||
-    | `user`              | `key`             | A, I    | `"user:any"`, `"user:/aws/123456789012/user/jdoe"` | |
-    | `volume`            | `key`             | I       | `"volume:/aws/us-east-1/volume/vol-12345678"` | |
-    | `vulnerability`     | `vulnerability_id`| R       | `"vulnerability:09876543210fedcba0987654321fedcba"` | |
-    | `vulnerability:id`  | `vulnerability_id`| R       | `"vulnerability:id:09876543210fedcba0987654321fedcba"` | |
-    | `vulnerability:key` | `key`             | R       | `"vulnerability:/aws/us-east-1/host/i-1234567890abcdef0/vulnerability/09876543210fedcba0987654321fedcba/tcp/22"` | <sup>3</sup> |
-    | `vpc`               | `key`             | R       | `"vpc:/aws/us-east-1/vpc/vpc-12345678"` | |
+    | `acl`               | `key`             | I             | `"acl:/aws/us-east-1/acl/acl-7ada4a1c"` | |
+    | `application`       | `type`            | A, R          | `"application:any"`, `"application:Apache"` | |
+    | `asset_type`        | `type`            | I             | `"asset_type:host"` | Applies to the `"type"` of the vulnerable asset. Only one `asset_type` filter of a single asset type is supported in a request. This filter must be present in the exposures query request to be included in the response. |
+    | `cloud-trail`       | `key`             | I             | `"cloud-trail:/aws/us-west-2/cloud-trail/trail/Rackspace"` | |
+    | `category`          | `categories`      | !, C, R       | `"category:security"`| Applies to the `"categories"` property of the related vulnerability. |
+    | `cve`               | `cve`             | !, A, C, N, R | `"cve:CVE-2013-1937"` | Applies to the `"cve"` property of the related vulnerability.|
+    | `cwe`               | `cwe`             | !, A, C, N, R | `"cwe:CWE-121"` | Applies to the `"cwe"` property of the related vulnerability. |
+    | `db-instance`       | `key`             | I             | `"db-instance:/aws/us-east-1/db-instance/db-12345678"` | |
+    | `deployment_id`     | `deployment_id`   | I             | `"deployment_id:825283AC-8244-412C-8674-4DBF931E6C16"` | Only one deployment_id filter may be passed per request. |
+    | `dns-zone`          | `key`             | A, I          | `"dns-zone:/a/dns-zone/key"` | |
+    | `deployment`        | `key`             | A, I          | `"deployment:/al/12345678/deployment/aws/00001111-2222-3333-4444-555566667777"` | |
+    | `host`              | `key`             | I             | `"host:/aws/us-east-1/host/i-1234567890abcdef0"` | |
+    | `image`             | `key`             | I, R          | `"image:/aws/us-east-1/ami/ami-12345678"` | |
+    | `instance-profile`  | `key`             | A, I          | `"instance-profile:/an/instance-profile/key"` | |
+    | `kms-key`           | `key`             | I             | `"kms-key:/aws/us-east-1/kms-key/1"` | |
+    | `load-balancer`     | `key`             | I, R          | `"load-balancer:/aws/us-east-1/load-balancer/s-12345678"` ||
+    | `redshift-cluster`  | `key`             | I             | `"redshift-cluster:/aws/us-east-1/redshift-cluster/rc-12345678"` | |
+    | `remediation`       | `remediation_id`  | !, C, R       | `"remediation:00001111-2222-3333-4444-555566667777"` | |
+    | `region`            | `key`             | I             | `"region:/aws/us-east-1"` | <sup>2</sup> |
+    | `role`              | `key`             | A, I          | `"role:/a/role/key"` | |
+    | `route`             | `key`             | I             | `"route:/aws/eu-west-2/route/rtb-0e738966"` | |
+    | `s3-bucket`         | `key`             | A, I          | `"s3-bucket:any"`, `"s3-bucket:/an/s3-bucket/key"` | |
+    | `severity`          | `severity`        | !, C, R       | `"severity:high"` | Applies to the `"severity"` property of the related vulnerability. |
+    | `sg`                | `key`             | I, R          | `"sg:/aws/us-east-1/sg/s-12345678"` | |
+    | `user`              | `key`             | A, I          | `"user:any"`, `"user:/aws/123456789012/user/jdoe"` | |
+    | `volume`            | `key`             | I             | `"volume:/aws/us-east-1/volume/vol-12345678"` | |
+    | `vulnerability`     | `vulnerability_id`| !, C, R       | `"vulnerability:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:id`  | `vulnerability_id`| !, C, R       | `"vulnerability:id:09876543210fedcba0987654321fedcba"` | |
+    | `vulnerability:key` | `key`             | !, C, R       | `"vulnerability:key:/aws/us-east-1/host/i-1234567890abcdef0/vulnerability/09876543210fedcba0987654321fedcba/tcp/22"` | <sup>3</sup> |
+    | `vpc`               | `key`             | R             | `"vpc:/aws/us-east-1/vpc/vpc-12345678"` | |
 
     Notes:
-    1. A = `any` allowed, I = identity, R = relational, N = none.
+    1. ! = negation allowed, A = `any` allowed, C = CSV allowed, I = identity, R = relational, N = `none` allowed.
     2. The region filter will also be relational in the near future.
     3. This selects only assets that have the vulnerability specified by the vulnerability key.
        This will only ever return a single remediation on a single asset.
-
-    #### Additional remediations query filters
-
-    | Type                | Example | Notes |
-    |---------------------|---------|-------|
-    |`deployment_id`      | `deployment_id:825283AC-8244-412C-8674-4DBF931E6C16` | |
-    |`category`           | `category:security`, `category:configuration,security`, `category:!security` | |
-    |`severity`           | `severity:high` | |
-    |`asset_type`         | `asset_type:host` | Only one asset_type filter of a single asset type is supported in a request. This filter must be present in the exposures query request to be included in the response. |
 paths:
   /assets_query/v1/{account_id}/assets:
     parameters:
@@ -370,6 +375,7 @@ paths:
   /assets_query/v1/{account_id}/asset_groups:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
+      - $ref: 'parameters.yaml#/ParamReturnAllProperties'
     get:
       operationId: list_asset_groups
       summary: List Asset Groups (Preview)
@@ -404,6 +410,56 @@ paths:
           $ref: 'responses.yaml#/UnavailableError'
       security:
         - x-aims-auth-token: []
+    put:
+      operationId: asset_group
+      summary: Create/Rename/Update/Delete Asset Group
+      description: |-
+        ### Create/Rename/Update/Delete Asset Group
+        Creates, renames, updates, or deletes an `asset-group` asset. On deletion, deletes any references in linked groups.
+        If a linked group has only a single reference in it, and would be emptied as a result
+        it will also be deleted. On rename, linked groups (that reference the renamed group) also have their reference updated.
+      tags:
+        - Asset Groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: 'schemas.yaml#/CreateAssetGroupRequestBody'
+                - $ref: 'schemas.yaml#/RenameAssetGroupRequestBody'
+                - $ref: 'schemas.yaml#/UpdateAssetGroupRequestBody'
+                - $ref: 'schemas.yaml#/DeleteAssetGroupRequestBody'
+            examples:
+              Create Asset Group Request Body Example:
+                $ref: 'examples.yaml#/CreateAssetGroupRequestBodyExample'
+              Delete Asset Group Request Body Example:
+                $ref: 'examples.yaml#/DeleteAssetGroupRequestBodyExample'
+              Rename Asset Group Request Body Example:
+                $ref: 'examples.yaml#/RenameAssetGroupRequestBodyExample'
+              Update Asset Group Request Body Example:
+                $ref: 'examples.yaml#/UpdateAssetGroupRequestBodyExample'
+      responses:
+        "200":
+          description: Delete Asset Group OK
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/AssetGroupDeleteResponse'
+              examples:
+                dry_run=true:
+                  $ref: 'examples.yaml#/DeleteAssetGroupsDryRunResponse'
+                dry_run=false:
+                  $ref: 'examples.yaml#/DeleteAssetGroupsResponse'
+        "201":
+          description: Create/Rename/Update Asset Group OK
+        "304":
+          description: Rename/Update Asset Group OK (Not Modified)
+        "400":
+          $ref: 'responses.yaml#/AssetGroupsBadRequest'
+        "404":
+          $ref: 'responses.yaml#/AssetGroupNotFound'
+        "409":
+          $ref: 'responses.yaml#/AssetGroupConflict'
   /assets_query/v1/{account_id}/deployments/{deployment_id}/assets:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
@@ -1427,6 +1483,205 @@ paths:
           $ref: 'responses.yaml#/UnavailableError'
       security:
         - x-aims-auth-token: []
+    post:
+      summary: Query Exposures
+      operationId: query_exposures_post
+      description: |-
+        Groups vulnerabilities for an account by exposure (by default), remediation, or vulnerable asset.
+        In combination with filtering, it's easy to view vulnerabilities across your account in the manner
+        most appropriate.
+
+        *Note*: exposures uses a `threatiness` property which is an internal measurement used for
+        relative comparison and is not considered useful for external purposes.
+
+        Vulnerabilities can be filtered using the `filter` parameter in the query string. The `filter` param
+        can be used multiple times. The [remediation filters](#section/Remediation-filters) documented above
+        are allowed.
+      tags:
+        - Exposures and Remediations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                concluded:
+                  $ref: parameters.yaml#/ExposuresConcluded
+                details:
+                  $ref: parameters.yaml#/ExposuresDetails
+                disposed:
+                  $ref: parameters.yaml#/ExposuresDisposed
+                filters:
+                  $ref: parameters.yaml#/ExposuresFilters
+                group:
+                  $ref: parameters.yaml#/ExposuresGroup
+                include_exposures:
+                  $ref: parameters.yaml#/IncludeExposures
+                included_filters:
+                  $ref: parameters.yaml#/IncludeFilters
+                included_remediations:
+                  $ref: parameters.yaml#/IncludeRemediations
+                include_remediation_items:
+                  $ref: parameters.yaml#/IncludeRemediationItems
+                limit:
+                  $ref: parameters.yaml#/ExposuresLimit
+                scope:
+                  $ref: parameters.yaml#/ScopeTrue
+                sort:
+                  $ref: parameters.yaml#/ExposuresSort
+      security:
+        - x-aims-auth-token: []
+      x-codeSamples:
+        - lang: Shell
+          label: Basic exposures query
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {}
+                 EOF
+        - lang: Shell
+          label: Exposures with filter by deployment ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": ["deployment_id:814C2911-09BB-1005-9916-7831C1BAC182"]
+                 }
+                 EOF
+        - lang: Shell
+          label: 'Exposures with filter on deployment ID, subnet, image, and application'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182",
+                     "subnet:/aws/us-east-1/subnet/subnet-1a-web",
+                     "image:/aws/us-east-1/image/ami-1",
+                     "application:Apache"
+                   ],
+                 }
+                 EOF
+        - lang: Shell
+          label: Basic remediations query
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "group": "remediation"
+                 }
+                 EOF
+        - lang: Shell
+          label: Remediations with filter by deployment ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": ["deployment_id:814C2911-09BB-1005-9916-7831C1BAC182"],
+                   "group": "remediation"
+                 }
+                 EOF
+        - lang: Shell
+          label: 'Remediations with filter on deployment ID, subnet, image, and application'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182",
+                     "subnet:/aws/us-east-1/subnet/subnet-1a-web",
+                     "image:/aws/us-east-1/image/ami-1",
+                     "application:Apache"
+                   ],
+                   "group": "remediation"
+                 }
+                 EOF
+        - lang: Shell
+          label: Basic vulnerable assets query
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "group": "asset"
+                 }
+                 EOF
+        - lang: Shell
+          label: Vulnerable assets with filter by deployment ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182"
+                   ],
+                   "group": "asset"
+                 }
+                 EOF
+        - lang: Shell
+          label: 'Vulnerable assets with filter on deployment ID, subnet, image, and application'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "deployment_id:814C2911-09BB-1005-9916-7831C1BAC182",
+                     "subnet:/aws/us-east-1/subnet/subnet-1a-web",
+                     "image:/aws/us-east-1/image/ami-1",
+                     "application:Apache"
+                   ],
+                   "group": "asset"
+                 }
+                 EOF
+        - lang: Shell
+          label: Most vulnerable assets by type (host)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "filters": [
+                     "asset_type:host"
+                   ],
+                   "group": "asset"
+                 }
+                 EOF
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: schemas.yaml#/QueryExposuresResponse
+              examples:
+                'Exposures (include_filters=false, include_exposures=false)':
+                  $ref: examples.yaml#/QueryExposuresExample
+                'Exposures for whole account (details=true, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresWholeAccountExample
+                'Exposures for specific deployment ID (details=false, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresSpecificDeploymentExample
+                'Remediations (include_filters=false, include_remediations=false)':
+                  $ref: examples.yaml#/QueryExposuresRemediationsExample
+                'Remediations for whole account (details=true, include_filters=true, include_remediation_items=true)':
+                  $ref: examples.yaml#/QueryExposuresRemediationsWholeAccountExample
+                'Remediations for specific deployment ID (details=false, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresRemediationsSpecificDeploymentExample
+                'Vulnerable assets (include_filters=false, include_exposures=false)':
+                  $ref: examples.yaml#/QueryExposuresVulnerableAssetsExample
+                'Vulnerable assets for whole account (details=true, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresVulnerableAssetsWholeAccountExample
+                'Vulnerable assets for specific deployment ID (details=false, include_filters=true)':
+                  $ref: examples.yaml#/QueryExposuresVulnerableAssetsSpecificDeploymentExample
+                'Most vulnerable assets by type (group=asset, filter=asset_type:host, limit=2)':
+                  $ref: examples.yaml#/QueryExposuresMostVulnerableAssetsExample
+        '400':
+          $ref: responses.yaml#/InvalidValueError
+        '401':
+          $ref: responses.yaml#/Unauthorized
+        '403':
+          $ref: responses.yaml#/Forbidden
+        '404':
+          $ref: responses.yaml#/NotFound
+        '503':
+          $ref: responses.yaml#/UnavailableError
   /assets_query/v2/{account_id}/remediation-items:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
@@ -1657,7 +1912,51 @@ paths:
         **Disclaimer: This endpoint is currently under development. The request parameters, response format
         or the endpoint itself may be changed or removed at any time without notice.**
         
-        Render asset group topology data for the given account.
+        Render asset group topology data for the given account. The asset group can be defined by either a list of scopes
+        that include/exclude assets, or a union or intersection of the set of assets in a list of existing nested groups.
+        The response body shares the same format for both types of asset groups.
+
+        In either case, a `return_asset_types` property can be provided that limits the previewed asset group results to the
+        types in the list and all topological ancestor types of the listed types. Although the preview can be limited using
+        the `return_asset_types` property, the actual asset group that is created using the other parameters will not have be
+        limited to that list of types.
+
+        Note that some assets in the `topology.data` object contain references to non-topologically related assets in the
+        asset model that may be filtered on. For example, a `host` asset
+        `814C2911-09BB-1005-9916-7831C1BAC182:host:/aws/us-east-1/host/web-1a-1` might contain an `image` property with
+        an array of keys, like `/aws/us-east-1/image/ami-1`. These properties indicate that the assets can be filtered (via
+        `include`/`exclude` in `scopes`), for example, placing the filter `host.image:/aws/us-east-1/image/ami-1` in the
+        `include` of an asset-group scope would result in all hosts related to that image being included in the
+        asset-group. These related assets are also included in the `topology.data` object, and can be found by constructing
+        their data key, e.g., `814C2911-09BB-1005-9916-7831C1BAC182:image:/aws/us-east-1/image/ami-1`. Here are the
+        non-topological filters by asset type:
+
+        | Asset Type        | Filter Label       | Note                                    |
+        |-------------------|--------------------|-----------------------------------------|
+        | cloud-trail       | s3-bucket          |                                         |
+        | external-dns-name | deployment         |                                         |
+        | external-dns-name | region             |                                         |
+        | external-dns-name | vpc                |                                         |
+        | external-dns-name | host               |                                         |
+        | external-dns-name | load-balancer      |                                         |
+        | external-ip       | deployment         |                                         |
+        | external-ip       | region             |                                         |
+        | external-ip       | vpc                |                                         |
+        | external-ip       | host               |                                         |
+        | external-ip       | load-balancer      |                                         |
+        | host              | application        | applications are not in the data object |
+        | host              | auto-scaling-group |                                         |
+        | host              | image              |                                         |
+        | host              | instance-profile   |                                         |
+        | host              | launch-config      |                                         |
+        | host              | load-balancer      |                                         |
+        | host              | sg                 |                                         |
+        | instance-profile  | role               |                                         |
+        | load-balancer     | subnet             |                                         |
+        | load-balancer     | sg                 |                                         |
+        | role              | s3-bucket          |                                         |
+        | user              | group              |                                         |
+        | volume            | host               |                                         |
       tags:
         - Topology
       requestBody:
@@ -1666,23 +1965,39 @@ paths:
             schema:
               type: object
               properties:
+                groups:
+                  type: array
+                  description: |-
+                    A list of nested groups that make up the group. These groups can have disjoint or intersecting sets of
+                    assets. The groups can also include other groups with nested groups.
+                groups_match:
+                  enum:
+                    - all
+                    - any
+                  type: string
+                  description: |-
+                    The criteria for inclusion of nested group assets in the previewed group. If the value is `any`, any asset
+                    in ANY of the nested groups will be included in the previewed group. If the value is `all`, any asset in
+                    common to ALL of the nested groups will be included in the previewed group.
                 scopes:
-                  type: object
+                  type: array
                   description: The list of request scopes, each containing a scope definition that will be `OR`ed together.
-                  properties:
-                    include:
-                      type: array
-                      description: |-
-                        A list of scope filters, `AND`ed together, that determine if an asset should be included in the resulting asset group.
-                    exclude:
-                      type: array
-                      description: |-
-                        A list of scope filters, `AND`ed together, that determine if an asset should NOT be included in the resulting asset group.
-                    asset_types:
-                      type: array
-                      description: |-
-                        A list of asset types that determines the assets included in the individual scope. If an asset would be included in
-                        multiple scopes, the scopes' allowed asset types are unioned together.
+                  items:
+                    type: object
+                    properties:
+                      include:
+                        type: array
+                        description: |-
+                          A list of scope filters, `AND`ed together, that determine if an asset should be included in the resulting asset group.
+                      exclude:
+                        type: array
+                        description: |-
+                          A list of scope filters, `AND`ed together, that determine if an asset should NOT be included in the resulting asset group.
+                      asset_types:
+                        type: array
+                        description: |-
+                          A list of asset types that determines the assets included in the individual scope. If an asset would be included in
+                          multiple scopes, the scopes' allowed asset types are unioned together.
                 return_asset_types:
                   type: array
                   description: |-
@@ -1694,7 +2009,7 @@ paths:
                     minLength: 1
       x-codeSamples:
         - lang: Shell
-          label: Topology Preview
+          label: 'scoped: Include only'
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/topology/asset_group" \
                  -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
@@ -1710,7 +2025,26 @@ paths:
             }
             EOF
         - lang: Shell
-          label: Topology Preview (return_asset_types=host)
+          label: 'scoped: Include and exclude'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/topology/asset_group" \
+            -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "scopes": [
+                {
+                  "include": [
+                      "deployment:any",
+                      "region.name:!eu-west-1"
+                  ],
+                  "exclude": [
+                      "tag:/tag/key/compliance_scope/value/PCI"
+                  ]
+                }
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: 'scoped: return_asset_types=host'
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/topology/asset_group" \
                  -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
@@ -1728,6 +2062,48 @@ paths:
               ]
             }
             EOF
+        - lang: Shell
+          label: 'nested: groups_match "all"'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/topology/asset_group" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "groups": [
+                "PCI Assets"
+                "US Assets"
+              ],
+              "groups_match": "all"
+            }
+            EOF
+        - lang: Shell
+          label: 'nested: groups_match "any"'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/topology/asset_group" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "groups": [
+                "PCI Assets"
+                "US Assets"
+              ],
+              "groups_match": "any"
+            }
+            EOF
+        - lang: Shell
+          label: 'nested: return_asset_types=host'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/19000001/topology/asset_group" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "groups": [
+                "PCI Assets"
+                "US Assets"
+              ],
+              "groups_match": "all",
+              "return_asset_types": [
+                "host"
+              ]
+            }
+            EOF
       responses:
         "200":
           description: OK
@@ -1740,6 +2116,8 @@ paths:
                   $ref: 'examples.yaml#/FullAssetGroupTopologyPreviewExample'
                 'Topology Preview Example (return_asset_types=host)':
                   $ref: 'examples.yaml#/HostAssetGroupTopologyPreviewExample'
+        "400":
+          $ref: 'responses.yaml#/TopologyPreviewBadRequest'
         "401":
           $ref: 'responses.yaml#/Unauthorized'
         "403":
@@ -2055,6 +2433,7 @@ paths:
                  -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
             {
               "operation": "dispose_remediations",
+              "applies_to_specific_assets": true,
               "comment": "Vulnerable database contains automated test data, not customer records.",
               "filters": [
                 "application:Apache",
@@ -2073,6 +2452,7 @@ paths:
                  -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
             {
               "operation": "conclude_remediations",
+              "applies_to_specific_assets": true,
               "filters": [
                 "application:Apache",
                 "image:/aws/us-east-1/image/ami-1"

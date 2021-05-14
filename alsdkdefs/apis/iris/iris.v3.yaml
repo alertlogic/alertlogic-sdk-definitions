@@ -70,7 +70,6 @@ paths:
                     incident_attack_class: string
                     incident_escalated: string
                     incident_sub_type: string
-                    iris_incident_version: number
                     iris_notifications: boolean
                     snooze_status:
                       period_ms: number
@@ -312,7 +311,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IncidentList'
+                oneOf:
+                  - $ref: '#/components/schemas/IncidentList'
+                  - $ref: '#/components/schemas/PaginatedIncidentList'
               examples:
                 Incidents by time response example:
                   value:
@@ -357,7 +358,6 @@ paths:
                       incident_attack_class: string
                       incident_escalated: string
                       incident_sub_type: string
-                      iris_incident_version: number
                       iris_notifications: boolean
                       snooze_status:
                         period_ms: number
@@ -371,6 +371,80 @@ paths:
                         ip: string
                       victim_lset:
                         - object
+                Incidents by time response example (with pagination):
+                  value:
+                    iris_items:
+                      - accountId: <number>
+                        account_id: <string>
+                        aggregations: <array>
+                        apex: <boolean>
+                        assets: <object>
+                        associatedLogCount: <number>
+                        authority: <string>
+                        auto_customer_close: <boolean>
+                        auto_escalate: <boolean>
+                        auto_soc_close: <boolean>
+                        aws_region: <string>
+                        correlation_id: <string>
+                        correlation_name: <string>
+                        createTime: <number>
+                        createtime_str: <string>
+                        customer: <string>
+                        customer_status:
+                          status: <string>
+                          status_change_time: <string>
+                        customer_status_status: <string>
+                        dedup_hint: <string>
+                        desc: <string>
+                        detection_source: <string>
+                        elaborations:
+                          - <object>
+                        end_ts: <number>
+                        has_assets: <boolean>
+                        humanFriendlyId: <string>
+                        incident:
+                          attackClassId: <number>
+                          attackClassId_str: <string>
+                          description: <string>
+                          evolution: <object>
+                          recommendations: <string>
+                          summary: <string>
+                          threatRating: <string>
+                        incidentId: <string>
+                        incident_attack_class: <string>
+                        incident_class: <string>
+                        incident_escalated: <string>
+                        incident_threat_rating: <string>
+                        incident_type: <string>
+                        observation_create_time: <number>
+                        parents:
+                          facts_count: <number>
+                          observations_count: <number>
+                        path: <string>
+                        recommendations: <string>
+                        scope_type: <string>
+                        snooze_status:
+                          period_ms: <number>
+                          reason_code: <string>
+                          snoozed: <boolean>
+                        snooze_status_snoozed: <boolean>
+                        sources:
+                          - <string>
+                        stack_region: <string>
+                        start_ts: <number>
+                        summary: <string>
+                        updateTime: <number>
+                        updatetime_str: <string>
+                        visibility: <string>
+                    metadata:
+                      limit: 10
+                      links:
+                        first: /iris/v3/1234/incidents_by_time?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=0
+                        next: null
+                        prev: /iris/v3/1234/incidents_by_time?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=0
+                        self: /iris/v3/1234/incidents_by_time?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=5
+                      offset: 5
+                      total_count: 6
         '400':
           description: Bad request
           content:
@@ -386,6 +460,10 @@ paths:
                   value:
                     code: 400
                     error: Invalid arguments
+                Invalid limit parameter:
+                  $ref: '#/components/examples/InvalidLimitParam'
+                Invalid offset parameter:
+                  $ref: '#/components/examples/InvalidOffsetParam'
         '401':
           description: Not authorized
         '403':
@@ -422,6 +500,9 @@ paths:
           name: return_value
           in: query
           description: Comma delimited list of dot-notation string names of desired properties in the result set. Use if you only want a subset of attributes from each incident
+        - $ref: '#/components/parameters/PaginationParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
   '/iris/v3/{account_id}/partner_incidents':
     get:
       summary: Get incidents for an account and all accounts managed by it in a timespan.
@@ -433,7 +514,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IncidentList'
+                oneOf:
+                  - $ref: '#/components/schemas/IncidentList'
+                  - $ref: '#/components/schemas/PaginatedIncidentList'
               examples:
                 Partner incidents response example:
                   value:
@@ -478,7 +561,6 @@ paths:
                       incident_attack_class: string
                       incident_escalated: string
                       incident_sub_type: string
-                      iris_incident_version: number
                       iris_notifications: boolean
                       snooze_status:
                         period_ms: number
@@ -492,6 +574,58 @@ paths:
                         ip: string
                       victim_lset:
                         - object
+                Partner incidents response example (with pagination):
+                  value:
+                    iris_items:
+                      - accountId: <number>
+                        account_deployments:
+                          - <string>
+                        affected_hosts: <array>
+                        assets:
+                          al__deployment: <string>
+                          al__region: <string>
+                          al__role: <string>
+                          al__subnet: <string>
+                          al__vpc: <string>
+                        associatedLogCount: <number>
+                        correlation_id: <string>
+                        correlation_name: <string>
+                        createTime: <number>
+                        createtime_str: <string>
+                        customer: <string>
+                        customer_status:
+                          status: <string>
+                          status_change_time: <string>
+                        has_assets: <boolean>
+                        humanFriendlyId: <string>
+                        incident:
+                          attackClassId: <number>
+                          attackClassId_str: <string>
+                          description: <string>
+                          escalated: <boolean>
+                          evolution: <object>
+                          summary: <string>
+                          threatRating: <string>
+                        incidentId: <string>
+                        snooze_status:
+                          period_ms: <number>
+                          reason_code: <string>
+                          snoozed: <boolean>
+                        source_keyword: <string>
+                        sources:
+                          - <string>
+                        updateTime: <number>
+                        updatetime_str: <string>
+                        victim: <object>
+                    metadata:
+                      limit: 10
+                      links:
+                        first: /iris/v3/1234/partner_incidents?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=0
+                        next: null
+                        prev: /iris/v3/1234/partner_incidents?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=0
+                        self: /iris/v3/1234/partner_incidents?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=5
+                      offset: 5
+                      total_count: 6
         '400':
           description: Bad request
           content:
@@ -511,6 +645,10 @@ paths:
                   value:
                     code: 400
                     error: Invalid arguments
+                Invalid limit parameter:
+                  $ref: '#/components/examples/InvalidLimitParam'
+                Invalid offset parameter:
+                  $ref: '#/components/examples/InvalidOffsetParam'
         '401':
           description: Unauthorized
         '403':
@@ -559,7 +697,10 @@ paths:
           name: aid
           in: query
           description: A comma delimited list of accounts managed by account_id to return. E.g aid=10,11,12,13
-  '/iris/v3/partner_incidents':
+        - $ref: '#/components/parameters/PaginationParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+  /iris/v3/partner_incidents:
     get:
       summary: Get incidents for caller account and all accounts managed by it in a timespan.
       tags: 
@@ -570,7 +711,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IncidentList'
+                oneOf:
+                  - $ref: '#/components/schemas/IncidentList'
+                  - $ref: '#/components/schemas/PaginatedIncidentList'
               examples:
                 Partner incidents response example:
                   value:
@@ -615,7 +758,6 @@ paths:
                       incident_attack_class: string
                       incident_escalated: string
                       incident_sub_type: string
-                      iris_incident_version: number
                       iris_notifications: boolean
                       snooze_status:
                         period_ms: number
@@ -629,6 +771,58 @@ paths:
                         ip: string
                       victim_lset:
                         - object
+                Partner incidents response example (with pagination):
+                  value:
+                    iris_items:
+                      - accountId: <number>
+                        account_deployments:
+                          - <string>
+                        affected_hosts: <array>
+                        assets:
+                          al__deployment: <string>
+                          al__region: <string>
+                          al__role: <string>
+                          al__subnet: <string>
+                          al__vpc: <string>
+                        associatedLogCount: <number>
+                        correlation_id: <string>
+                        correlation_name: <string>
+                        createTime: <number>
+                        createtime_str: <string>
+                        customer: <string>
+                        customer_status:
+                          status: <string>
+                          status_change_time: <string>
+                        has_assets: <boolean>
+                        humanFriendlyId: <string>
+                        incident:
+                          attackClassId: <number>
+                          attackClassId_str: <string>
+                          description: <string>
+                          escalated: <boolean>
+                          evolution: <object>
+                          summary: <string>
+                          threatRating: <string>
+                        incidentId: <string>
+                        snooze_status:
+                          period_ms: <number>
+                          reason_code: <string>
+                          snoozed: <boolean>
+                        source_keyword: <string>
+                        sources:
+                          - <string>
+                        updateTime: <number>
+                        updatetime_str: <string>
+                        victim: <object>
+                    metadata:
+                      limit: 10
+                      links:
+                        first: /iris/v3/partner_incidents?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=0
+                        next: null
+                        prev: /iris/v3/partner_incidents?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=0
+                        self: /iris/v3/partner_incidents?start_time=1577836800&end_time=1577923200&pagination=true&limit=10&offset=5
+                      offset: 5
+                      total_count: 6
         '400':
           description: Bad request
           content:
@@ -648,6 +842,10 @@ paths:
                   value:
                     code: 400
                     error: Invalid arguments
+                Invalid limit parameter:
+                  $ref: '#/components/examples/InvalidLimitParam'
+                Invalid offset parameter:
+                  $ref: '#/components/examples/InvalidOffsetParam'
         '401':
           description: Unauthorized
         '403':
@@ -689,7 +887,10 @@ paths:
             type: string
           name: aid
           in: query
-          description: A comma delimited list of accounts managed by account_id to return. E.g aid=10,11,12,13        
+          description: A comma delimited list of accounts managed by account_id to return. E.g aid=10,11,12,13
+        - $ref: '#/components/parameters/PaginationParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
   '/iris/v3/{account_id}/{incident_id}/complete':
     post:
       summary: Complete / close an incident
@@ -1002,7 +1203,97 @@ paths:
             $ref: '#/components/schemas/IncidentId'
           name: incident_id
           in: path
-          required: true  
+          required: true
+  /iris/v3/incident_filters:
+    get:
+      summary: Get incident filters
+      tags:
+        - Console
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: Incident Filters
+                type: object
+                properties:
+                  class:
+                    type: array
+                    items:
+                      type: string
+                  detection_source:
+                    type: array
+                    items:
+                      type: string
+                  escalated:
+                    type: array
+                    items:
+                      type: boolean
+                  threat_level:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - class
+                  - detection_source
+                  - escalated
+                  - threat_level
+              examples:
+                200 OK:
+                  value:
+                    class:
+                      - web-log-analytics
+                      - suspicious-activity
+                      - brute-force
+                      - application-attack
+                      - recon
+                      - trojan-activity
+                      - policy-violation
+                      - info-leak
+                      - test
+                      - base
+                      - worm-activity
+                      - defensive-action
+                      - containment-action
+                      - denial-of-service
+                      - log-policy
+                      - pending
+                      - misconfiguration
+                      - log-review
+                      - 'authentication:activity'
+                      - 'admin:activity'
+                    detection_source:
+                      - Network IDS
+                      - GuardDuty
+                      - Log Mgmt
+                      - Web App IDS
+                      - Web Log Analytics
+                      - Log Review
+                      - Correlated Log
+                      - Firewall
+                      - Manual
+                      - N/A
+                    escalated:
+                      - true
+                      - false
+                    threat_level:
+                      - Info
+                      - Low
+                      - Medium
+                      - High
+                      - Critical
+        '401':
+          description: Unauthorized
+      operationId: get_incident_filters
+      description: Fetch the fields and values used to filter incidents
+      security:
+        - X-AIMS-Auth-Token: []
+      x-code-samples:
+        - lang: Request Sample
+          source: |
+            curl -H "x-aims-auth-token: ${TOKEN}" -X GET https://api.cloudinsight.alertlogic.com/iris/v3/incident_filters
+      parameters: []
 components:
   schemas:
     IncidentId:
@@ -1152,6 +1443,15 @@ components:
       items:
         $ref: '#/components/schemas/Incident'
       description: Incident list
+    PaginatedIncidentList:
+      title: Paginated Incident list
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/PaginationMetadata'
+        iris_items:
+          $ref: '#/components/schemas/IncidentList'
+      description: Paginated Incident list
     CustomerFeedback:
       title: CustomerFeedback
       type: object
@@ -1247,12 +1547,86 @@ components:
       required:
         - new
         - old
+    PaginationMetadata:
+      title: PaginationMetadata
+      type: object
+      description: Metadata for the paginated API response
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          description: Maximum number of items in the result set
+        links:
+          type: object
+          required:
+            - prev
+            - next
+            - self
+          properties:
+            first:
+              type: string
+              description: The link for the first page of results.
+            prev:
+              type: string
+              description: The link for the immediate previous page of results.
+            next:
+              type: string
+              description: The link for the immediate next page of results.
+            self:
+              type: string
+              description: The link for the current page of results.
+            last:
+              type: string
+              description: The link for the last page of results.
+        offset:
+          type: integer
+          minimum: 0
+          description: Offset of the first item in the result set
+        total_count:
+          type: integer
+          minimum: 0
+          description: Total number of items
+      required:
+        - limit
+        - links
+        - offset
+        - total_count
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
       type: apiKey
       in: header
       description: AIMS Authentication Token
+  parameters:
+    PaginationParam:
+      name: pagination
+      in: query
+      schema:
+        type: boolean
+      description: Enable pagination of the result set
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+      description: Maximum number of items in the result set
+    OffsetParam:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+      description: The (zero-based) offset of the first item in the result set
+  examples:
+    InvalidLimitParam:
+      value:
+        code: 400
+        error: Invalid query parameter 'limit'
+    InvalidOffsetParam:
+      value:
+        code: 400
+        error: Invalid query parameter 'offset'
 tags:
   - name: Incident operations
     description: IRIS incident operations
@@ -1260,3 +1634,5 @@ tags:
     description: Multiple account operations
   - name: UI operations
     description: IRIS operations available through the console
+  - name: Console
+    description: IRIS helpers available for console

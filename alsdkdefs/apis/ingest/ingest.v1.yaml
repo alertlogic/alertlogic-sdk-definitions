@@ -336,6 +336,9 @@ components:
           default: v1
           enum:
             - v1
+        client_ip:
+          type: string
+          description: IP of the client which initiated an action
       required:
         - actor_alrn
         - reporter_alrn

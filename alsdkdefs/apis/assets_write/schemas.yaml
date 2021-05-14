@@ -46,11 +46,32 @@ GroupNameParam:
   type: string
   description: |-
     The unique name for the `asset-group` asset, such as `my-group`. This will be the same
-    as the asset `key`.
+    as the asset `key`. The name must be 500 characters or less in length, and may include
+    multilingual letters, numbers, backslash (`\`), colon (`:`), hyphen (`-`), period (`.`),
+    plus sign (`+`), slash (`/`), underscore (`_`), and space (` `).
 GroupPropertiesParam:
   type: object
-  description: An object of properties pertaining to the asset being created.
+  description: |-
+    An object of properties pertaining to the asset being created. Note that an asset group
+    can contain a `scopes` property, or `groups` and `groups_match` properties, but not
+    both.
   properties:
+    groups:
+      description: |-
+        An array of asset group names that define the asset groups linked to this asset group.
+      type: array
+      items:
+        type: string
+        description: An asset-group name
+    groups_match:
+      description: |-
+        Controls the aggregation logic for the groups in the `groups` property.
+        * `all` - Include any asset that is present in all of the groups in `groups`.
+        * `any` - Include any asset that is present in any of the groups in `groups`.
+      enum:
+        - all
+        - any
+      type: string
     scopes:
       description: |-
         An array of scope objects that define the asset membership in the group. Each `scope`

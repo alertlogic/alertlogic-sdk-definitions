@@ -27,6 +27,18 @@ InvalidValueError:
         Invalid Type:
           value:
             invalid_value: 'not_true is not a valid value for scope (should be either true or false)'
+        Missing Required Field:
+          value:
+            error_type: bad_request
+            message: "'request_body' is missing required property: 'scope'"
+        Incorrect Type:
+          value:
+            error_type: bad_request
+            message: "'example.property' is incorrect type; required: integer"
+        Bad Range:
+          value:
+            error_type: bad_request
+            message: "'example.property' value must be between 0 and 10"
 QueryAssetsBadRequestError:
   description: '`400 Bad Request`: There was a problem with one or more of the request parameters'
   content:
@@ -87,6 +99,25 @@ FindAssetBadRequest:
           value:
             error_type: missing_parameters
             message: Find endpoint parameters incorrect or missing
+TopologyPreviewBadRequest:
+  description: '`Bad Request` Topology preview endpoint parameters incorrect or missing.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: error
+            message: Invalid JSON
 FindAssetConflict:
   description: '`Conflict` Multiple assets match.'
   content:
@@ -148,3 +179,84 @@ AssetDetailsConflict:
           value:
             error_type: conflict
             message: Multiple assets match
+AssetGroupConflict:
+  description: '`Conflict` Multiple asset groups match.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+            enum:
+              - conflict
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: conflict
+            message: Asset group conflict
+AssetGroupNotFound:
+  description: '`404 Not Found` The requested asset group was not found.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+            enum:
+              - conflict
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: not_found
+            message: Asset group not found
+AssetGroupsBadRequest:
+  description: 'Asset Groups `Bad Request`'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        Invalid Operation:
+          value:
+            error_type: bad_request
+            message: invalid operation
+        Existing Reference:
+          value:
+            error_type: bad_request
+            message: Asset Group is still reference in these groups
+        Missing Required Field:
+          value:
+            error_type: bad_request
+            message: "'properties.scopes.0' is missing required property: 'include'"
+        Incorrect Type:
+          value:
+            error_type: bad_request
+            message: "'properties.criticality' is incorrect type; required: integer"
+        Bad Range:
+          value:
+            error_type: bad_request
+            message: "'properties.criticality' value must be between 0 and 10"
+        Expected Values:
+          value:
+            error_type: bad_request
+            message: "'properties.groups_match' is not one of the following allowed values: 'any', 'all'"
