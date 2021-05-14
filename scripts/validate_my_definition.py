@@ -12,8 +12,13 @@ import os
 def validate_definition(definition_file):
     print(f"Validating {definition_file}")
     try:
-        spec = alsdkdefs.load_spec(definition_file)
-        alsdkdefs.validate(spec, definition_file)
+        uri_or_path = alsdkdefs.normalize_uri(definition_file)
+        # Validate raw
+        spec = alsdkdefs.get_spec(uri_or_path)
+        alsdkdefs.validate(spec, uri_or_path)
+        # Then validate normalised
+        spec = alsdkdefs.load_spec(uri_or_path)
+        alsdkdefs.validate(spec, uri_or_path)
     except YAMLError as e:
         print(f"Validation has failed - failed to load YAML {e}")
         exit(1)
