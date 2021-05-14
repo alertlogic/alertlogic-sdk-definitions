@@ -12,6 +12,7 @@ from functools import reduce, lru_cache
 import requests
 import json
 import re
+from jsonmerge import merge
 
 try:
     import alsdkdefs_dev
@@ -324,7 +325,7 @@ def __normalize_node(node):
     if OpenAPIKeyWord.ALL_OF in node:
         __update_dict_no_replace(
             node,
-            dict(reduce(__deep_merge, node.pop(OpenAPIKeyWord.ALL_OF)))
+            dict(reduce(merge, node.pop(OpenAPIKeyWord.ALL_OF)))
         )
 
 
@@ -332,22 +333,3 @@ def __update_dict_no_replace(target, source):
     for key in source.keys():
         if key not in target:
             target[key] = source[key]
-
-
-def __deep_merge(target, source):
-    # Merge source into the target
-    for k in set(target.keys()).union(source.keys()):
-        if k in target and k in source:
-            if isinstance(target[k], dict) and isinstance(source[k], dict):
-                yield (k, dict(__deep_merge(target[k], source[k])))
-            elif type(target[k]) is list and type(source[k]) is list:
-                # TODO: Handle arrays of objects
-                yield (k, list(set(target[k] + source[k])))
-            else:
-                # If one of the values is not a dict,
-                # value from target dict overrides the one in source
-                yield (k, target[k])
-        elif k in target:
-            yield (k, target[k])
-        else:
-            yield (k, source[k])
