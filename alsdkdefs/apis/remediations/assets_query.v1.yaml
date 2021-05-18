@@ -294,6 +294,8 @@ paths:
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
       - $ref: 'parameters.yaml#/ParamTopoChain'
+      - $ref: 'parameters.yaml#/ParamScopeBoolean'
+      - $ref: 'parameters.yaml#/ParamIncludeAlertlogicSecurity'
     get:
       operationId: query_assets
       summary: Query Assets for Account
@@ -473,6 +475,8 @@ paths:
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
       - $ref: 'parameters.yaml#/ParamTopoChain'
+      - $ref: 'parameters.yaml#/ParamScopeBoolean'
+      - $ref: 'parameters.yaml#/ParamIncludeAlertlogicSecurity'
     get:
       operationId: query_deployment_assets
       summary: Query Assets in Deployment
