@@ -99,12 +99,17 @@ paths:
           type: string
         in: query
         name: severity_key
-        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
+        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default.
       - schema:
           type: string
         in: query
         name: visibility_key
-        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
+        description: Visiblity tagset tuning key. Used for getting tuning tagset value instead of default.
+      - schema:
+          type: string
+        in: query
+        name: handling_key
+        description: Handling tagset tuning key. Used for getting tuning tagset value instead of default.
       - schema:
           type: integer
         in: query
@@ -115,6 +120,19 @@ paths:
         in: query
         name: include_audit_events
         description: When set to true returns audit events for the tuning tagsets in the analytic
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_path
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_key
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_value
+
     get:
       summary: Get Analytic for a specific customer
       responses:
@@ -147,6 +165,39 @@ paths:
             schema:
               type: object
               properties:
+                disable_tuning_validation:
+                  type: boolean
+                  description: "Disable the check that tuning referes to a tagset referenced by the analytic. Use if there is a tuning tagset that is not detected to be refernced by an analytic"
+                  default: true
+                xtuning:        # TODO: rename
+                  type: string
+                  description: |-
+                    Specify a list of space seperated tunings for an analytic. For visiblity, severity, threshold and handling when the default tagsets are not used it is possible to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist tuning a tagset path and key must be provided. Examples explain how to use it.
+                    Examples:
+                      Severity
+                       - severity:low
+                       - severity:CustomSeverityMap:windows:low
+                      Visibity to incident
+                       - visiblity:incident
+                       - visiblity:CustomVisibilityMap:windows:incident
+                      Threshold
+                       - threshold:100
+                      Handling
+                       - handling:+auto_soc_close
+                       - handling:+auto_soc_close,-auto_escalate
+                       - handling:CustomHandlingMap:windows:+auto_soc_close
+                      Whitelist
+                       - whitelist:tuning/SomeWhitelist:windows:+1.0.0.0
+                       - whitelist:tuning/SomeWhitelist:windows:+1.0.0.0,-2.0.0.0
+                      Blacklist
+                       - blacklist:tuning/SomeBlacklist:windows:+1.0.0.0
+                       - blacklist:tuning/SomeBlacklist:windows:+1.0.0.0,-2.0.0.0
+
+                    To specify more than one tuning provide them in a space separates list like 'severity:incident visibility:high threshold:100'
+
+                dry_run:
+                  type: boolean
+                  description: "DRY RUN only"
                 visibility:
                   $ref: '#/components/schemas/IncidentVisibility'
                 visibility_key:
@@ -157,6 +208,13 @@ paths:
                 severity_key:
                   type: string
                   description: Severity tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `severity` is updated.
+                handling:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IncidentTypeHandlingSetting'
+                handling_key:
+                  type: string
+                  description: Handling tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `handling` is updated.
                 tuning:
                   type: object
                   description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
@@ -608,7 +666,7 @@ components:
           type: string
           description: Fully qualifed name of an incident type
         incident_handling:
-          $ref: '#/components/schemas/IncidentTypeHandlingInfo'
+          $ref: '#/components/schemas/IncidentTypeHandlingSetting'
     IncidentSeverity:
       type: string
       title: IncidentSeverity
