@@ -819,6 +819,10 @@ components:
           $ref: '#/components/schemas/DetailsModel'
         external_details:
           $ref: '#/components/schemas/ExternalDetailsAttribute'
+        search_end:
+          $ref: '#/components/schemas/SearchEnd'
+        search_start:
+          $ref: '#/components/schemas/SearchStart'
         search_status:
           $ref: '#/components/schemas/SearchStatus'
         search_uuid:
@@ -927,6 +931,10 @@ components:
           type: number
           minimum: 0
           description: The 0-based offset into the results of the search
+        search_end:
+          $ref: '#/components/schemas/SearchEnd'
+        search_start:
+          $ref: '#/components/schemas/SearchStart'
         search_status:
           $ref: '#/components/schemas/SearchStatus'
         search_uuid:
