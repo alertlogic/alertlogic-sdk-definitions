@@ -216,6 +216,10 @@ paths:
         name: id
         in: path
         required: true
+      - schema:
+          type: boolean
+        name: include_extended
+        in: query
   '/aetag/v1/tags/key/paths/{path}':
     parameters:
       - schema:
@@ -224,6 +228,12 @@ paths:
         in: path
         required: true
         description: url-encoded path
+      - schema:
+          type: string
+        name: audit
+        in: query
+        required: false
+        description: base64 encoded map of extra audit information
     post:
       summary: Atomically perform CRUD operations on specific keys of a tagset.
       tags:
@@ -537,7 +547,7 @@ paths:
               encoding:
                 explode: true
         description: JSON array of crud operations to perform.
-  /aetag/v1/tags:
+  '/aetag/v1/tags':
     parameters: []
     post:
       summary: Create/Update Tagset
@@ -671,7 +681,7 @@ paths:
         in: path
         required: true
         description: url-encoded path
-  /aetag/v1/tunings:
+  '/aetag/v1/tunings':
     post:
       summary: Create or update a global tuning tag set related to a trigger
       operationId: create_global_tuning_tagset
@@ -866,7 +876,7 @@ paths:
       description: Return a definition by its specific UUID identifier
       security:
         - X-AIMS-Auth-Token: []
-  /aetag/v1/definitions:
+  '/aetag/v1/definitions':
     get:
       summary: Get Definitions
       tags:
@@ -1192,7 +1202,7 @@ paths:
           application/json:
             schema:
               type: integer
-  /aetag/v1/definitions/paths:
+  '/aetag/v1/definitions/paths':
     post:
       summary: Get specific list of definitions by paths
       operationId: get_definitions_by_paths
@@ -1234,7 +1244,7 @@ paths:
                 type: string
         description: ''
     parameters: []
-  /aetag/v1/tags/paths:
+  '/aetag/v1/tags/paths':
     post:
       summary: Get specific list of global tagsets by paths
       operationId: get_global_tagsets_by_paths
@@ -1269,7 +1279,7 @@ paths:
       tags:
         - Tags Resources
     parameters: []
-  /aetag/v1/validate/definitions:
+  '/aetag/v1/validate/definitions':
     post:
       summary: Validate Definition
       operationId: validate_definition
@@ -1286,7 +1296,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Definitions'
-  /aetag/v1/validate/tags:
+  '/aetag/v1/validate/tags':
     post:
       summary: Validate Tagset
       operationId: validate_tagset
@@ -1303,7 +1313,7 @@ paths:
               type: object
       tags:
         - Tags Resources
-  /aetag/v1/validate/tunings:
+  '/aetag/v1/validate/tunings':
     post:
       summary: Validate Tuning
       operationId: validate_tuning_tagset
