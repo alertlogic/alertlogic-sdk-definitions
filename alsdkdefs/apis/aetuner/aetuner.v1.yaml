@@ -132,7 +132,10 @@ paths:
           type: string
         in: query
         name: tuning_tagset_value
-
+      - schema:
+          type: boolean
+        in: query
+        name: include_stacktrace
     get:
       summary: Get Analytic for a specific customer
       responses:
