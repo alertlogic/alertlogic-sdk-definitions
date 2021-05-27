@@ -95,7 +95,7 @@ paths:
             enum:
               - true
               - false
-            default: 'false'
+            default: false
           in: query
           description: Return search execution details
         - name: offset
@@ -193,6 +193,8 @@ paths:
           required: true
         - schema:
             type: array
+            items:
+              type: string
           in: query
           name: ids
           description: Comma-separated list of Base64 encoded AMI4 or NSM message IDs. Both Message ID types can be used in the same request.
@@ -753,6 +755,14 @@ components:
       minimum: 0
       maximum: 100
       description: An estimate of the progress of the search completion on a scale of 0-100.
+    SearchStart:
+      type: number
+      title: SearchStart
+      description: Unix timestamp of requested search timeframe beginning
+    SearchEnd:
+      type: number
+      title: SearchEnd
+      description: Unix timestamp of requested search timeframe end
     ReleasedSearchResults:
       title: ReleasedSearchResults
       type: object
@@ -819,6 +829,10 @@ components:
           $ref: '#/components/schemas/DetailsModel'
         external_details:
           $ref: '#/components/schemas/ExternalDetailsAttribute'
+        search_end:
+          $ref: '#/components/schemas/SearchEnd'
+        search_start:
+          $ref: '#/components/schemas/SearchStart'
         search_status:
           $ref: '#/components/schemas/SearchStatus'
         search_uuid:
@@ -927,6 +941,10 @@ components:
           type: number
           minimum: 0
           description: The 0-based offset into the results of the search
+        search_end:
+          $ref: '#/components/schemas/SearchEnd'
+        search_start:
+          $ref: '#/components/schemas/SearchStart'
         search_status:
           $ref: '#/components/schemas/SearchStatus'
         search_uuid:
