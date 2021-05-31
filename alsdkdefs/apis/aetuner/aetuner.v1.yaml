@@ -136,6 +136,10 @@ paths:
           type: boolean
         in: query
         name: include_stacktrace
+      - schema:
+          type: boolean
+        in: query
+        name: enable_new
     get:
       summary: Get Analytic for a specific customer
       responses:
@@ -168,36 +172,47 @@ paths:
             schema:
               type: object
               properties:
-                disable_tuning_validation:
+                disable_validation:
                   type: boolean
                   description: "Disable the check that tuning referes to a tagset referenced by the analytic. Use if there is a tuning tagset that is not detected to be refernced by an analytic"
-                  default: true
+                  default: false
                 xtuning:        # TODO: rename
-                  type: string
+                  type: array
+                  items:
+                    type:
+                      string
                   description: |-
-                    Specify a list of space seperated tunings for an analytic. For visiblity, severity, threshold and handling when the default tagsets are not used it is possible to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist tuning a tagset path and key must be provided. Examples explain how to use it.
+                    A list of tunings for the analytic.
+
+                    For visiblity, severity, threshold and handling when the default tagsets are not used it is possible
+                    to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist
+                    tuning a tagset path and key must be provided. Examples explain how to use it.
+
                     Examples:
                       Severity
-                       - severity:low
-                       - severity:CustomSeverityMap:windows:low
+                       - '["severity:low"]'
+                       - '["severity:CustomSeverityMap:windows:low"]'
                       Visibity to incident
-                       - visiblity:incident
-                       - visiblity:CustomVisibilityMap:windows:incident
+                       - '["visiblity:incident"]'
+                       - '["visiblity:CustomVisibilityMap:windows:incident"]'
                       Threshold
-                       - threshold:100
+                       - '["threshold:100"]'
                       Handling
-                       - handling:+auto_soc_close
-                       - handling:+auto_soc_close,-auto_escalate
-                       - handling:CustomHandlingMap:windows:+auto_soc_close
+                       - '["handling:+auto_soc_close"]'
+                       - '["handling:+auto_soc_close,-auto_escalate"]'
+                       - '["handling:CustomHandlingMap:windows:+auto_soc_close"]'
                       Whitelist
-                       - whitelist:tuning/SomeWhitelist:windows:+1.0.0.0
-                       - whitelist:tuning/SomeWhitelist:windows:+1.0.0.0,-2.0.0.0
+                       - '["whitelist:tuning/SomeWhitelist:windows:+1.0.0.0"]'
+                       - '["whitelist:tuning/SomeWhitelist:windows:+1.0.0.0,-2.0.0.0"]'
                       Blacklist
-                       - blacklist:tuning/SomeBlacklist:windows:+1.0.0.0
-                       - blacklist:tuning/SomeBlacklist:windows:+1.0.0.0,-2.0.0.0
+                       - '["blacklist:tuning/SomeBlacklist:windows:+1.0.0.0"]'
+                       - '["blacklist:tuning/SomeBlacklist:windows:+1.0.0.0,-2.0.0.0"]'
 
-                    To specify more than one tuning provide them in a space separates list like 'severity:incident visibility:high threshold:100'
+                    To specify more than one tuning provide them in a space separates list like
 
+                      '["severity:incident","visibility:high","threshold:100"]'
+
+                    NOTE: Spaces are not allowed between the items of a list.
                 dry_run:
                   type: boolean
                   description: "DRY RUN only"
