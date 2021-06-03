@@ -140,6 +140,16 @@ paths:
           type: boolean
         in: query
         name: enable_new
+      - schema:
+          type: boolean
+        in: query
+        name: resolve_tagsets
+        description: Fetch values for tuning tagsets
+      - schema:
+          type: string
+        in: query
+        name: key
+        description: Tuning tagset key, defaults to the analytic name
     get:
       summary: Get Analytic for a specific customer
       responses:
@@ -179,8 +189,7 @@ paths:
                 xtuning:        # TODO: rename
                   type: array
                   items:
-                    type:
-                      string
+                    $ref: '#/components/schemas/XTuning'
                   description: |-
                     A list of tunings for the analytic.
 
@@ -188,31 +197,31 @@ paths:
                     to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist
                     tuning a tagset path and key must be provided. Examples explain how to use it.
 
+                    NOTE: Spaces are not allowed between the items of a list.
+
                     Examples:
                       Severity
-                       - '["severity:low"]'
-                       - '["severity:CustomSeverityMap:windows:low"]'
+                       - {"type":"severity","value":"low"}
+                       - {"type":"severity","path":"CustomSeverityMap","key":"windows","value":"low"}
                       Visibity to incident
-                       - '["visiblity:incident"]'
-                       - '["visiblity:CustomVisibilityMap:windows:incident"]'
+                       - {"type":"visiblity","value":"incident"}
+                       - {"type":"visiblity","path":"CustomVisibilityMap","key":"windows","value":"incident"}
                       Threshold
-                       - '["threshold:100"]'
+                       - threshold:100
                       Handling
-                       - '["handling:+auto_soc_close"]'
-                       - '["handling:+auto_soc_close,-auto_escalate"]'
-                       - '["handling:CustomHandlingMap:windows:+auto_soc_close"]'
+                       - {"type":"handling","operation":"add","value":"auto_soc_close"}
+                       - {"type":"handling","operation":"add","value":"auto_soc_close,-auto_escalate"}
+                       - {"type":"handling","operation":"add","path":"CustomHandlingMap","key":"windows","value":"auto_soc_close"}
                       Whitelist
-                       - '["whitelist:tuning/SomeWhitelist:windows:+1.0.0.0"]'
-                       - '["whitelist:tuning/SomeWhitelist:windows:+1.0.0.0,-2.0.0.0"]'
+                       - {"type":"whitelist","operation":"add","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"whitelist","operation":"subtract","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
                       Blacklist
-                       - '["blacklist:tuning/SomeBlacklist:windows:+1.0.0.0"]'
-                       - '["blacklist:tuning/SomeBlacklist:windows:+1.0.0.0,-2.0.0.0"]'
+                       - {"type":"blacklist","operation":add","path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"blacklist","operation":subtract,"path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
 
-                    To specify more than one tuning provide them in a space separates list like
+                      To specify more than one tuning provide them in list like
 
-                      '["severity:incident","visibility:high","threshold:100"]'
-
-                    NOTE: Spaces are not allowed between the items of a list.
+                      '[{"type":"severity","value":"incident"},{"type":"visibility","value":"high"},{"type":"threshold","value":"100"}]'
                 dry_run:
                   type: boolean
                   description: "DRY RUN only"
@@ -730,6 +739,44 @@ components:
         path:
           type: string
           description: Handling preferences path.
+    XTuning:
+      title: XTuning
+      type: object
+      description: Tuning specification
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          description: Type of the tuning
+          enum:
+            - severity
+            - visibility
+            - handling
+            - whitelist
+            - blacklist
+        key:
+          type: string
+          description: Tagset key default to the analytic name
+        operation:
+          type: string
+          description: Operation to perform
+          enum:
+            - add
+            - subtract
+            - write
+        value:
+          description: Value string or a list of string
+          anyOf:
+            - description: String value
+              type: string
+            - description: List value
+              type: array
+        path:
+          type: string
+          description: Explicit tuning tagset path
+        key:
+          type: string
+          description: Explicit tuning tagset key
     TuningList:
       title: TuningList
       type: object
