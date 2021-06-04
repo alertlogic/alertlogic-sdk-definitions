@@ -94,7 +94,7 @@ paths:
         name: path
         in: path
         required: true
-        description: Analytic Fully Qualified Name
+        description: Analytic Name, use global to update global tunings
       - schema:
           type: string
         in: query
@@ -764,6 +764,7 @@ components:
             - add
             - subtract
             - write
+            - delete
         value:
           description: Value string or a list of string
           anyOf:
