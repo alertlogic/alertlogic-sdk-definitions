@@ -81,6 +81,107 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+  '/v1/{account_id}/tagsets':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: query
+        description: Name of a tagset
+      - schema:
+          type: string
+        name: key
+        in: query
+        description: Key in the taget
+    get:
+      summary: Get Value of a tagset
+      responses:
+        '200':
+          description: Analytic Information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticInfo'
+      operationId: get_tagset
+      security:
+        - aims_request_authorizer: []
+      description: Returns an analytic for a specific customer
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetTagsetFunction.Arn}/invocations'
+      tags:
+        - aetuner
+    post:
+      summary: Update Tagset
+      operationId: update_tagset
+      responses:
+        '201':
+          description: Ok
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                xtuning:        # TODO: rename
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/XTuning'
+                  description: |-
+                    A list of tunings for the analytic.
+
+                    For visiblity, severity, threshold and handling when the default tagsets are not used it is possible
+                    to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist
+                    tuning a tagset path and key must be provided. Examples explain how to use it.
+
+                    NOTE: Spaces are not allowed between the items of a list.
+
+                    Examples:
+                      Severity
+                       - {"type":"severity","value":"low"}
+                       - {"type":"severity","path":"CustomSeverityMap","key":"windows","value":"low"}
+                      Visibity to incident
+                       - {"type":"visiblity","value":"incident"}
+                       - {"type":"visiblity","path":"CustomVisibilityMap","key":"windows","value":"incident"}
+                      Threshold
+                       - threshold:100
+                      Handling
+                       - {"type":"handling","operation":"add","value":"auto_soc_close"}
+                       - {"type":"handling","operation":"add","value":"auto_soc_close,-auto_escalate"}
+                       - {"type":"handling","operation":"add","path":"CustomHandlingMap","key":"windows","value":"auto_soc_close"}
+                      Whitelist
+                       - {"type":"whitelist","operation":"add","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"whitelist","operation":"subtract","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+                      Blacklist
+                       - {"type":"blacklist","operation":add","path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"blacklist","operation":subtract,"path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+
+                      To specify more than one tuning provide them in list like
+
+                      '[{"type":"severity","value":"incident"},{"type":"visibility","value":"high"},{"type":"threshold","value":"100"}]'
+                dry_run:
+                  type: boolean
+                  description: "DRY RUN only"
+                reason:
+                  type: string
+                  description: Reason for the performing the update. This information is used for auditing purposes.
+              required:
+                - reason
+        required: true
+      description: Update a tagset
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateTagsetFunction.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/analytics/{path}':
     parameters:
       - schema:
@@ -94,7 +195,7 @@ paths:
         name: path
         in: path
         required: true
-        description: Analytic Name, use global to update global tunings
+        description: Analytic Name
       - schema:
           type: string
         in: query
