@@ -98,7 +98,17 @@ paths:
           type: string
         name: key
         in: query
-        description: Key in the taget
+        description: Key in the tagset
+      - schema:
+          type: boolean
+        name: include_audit_events
+        in: query
+        description: Include audit events
+      - schema:
+          type: integer
+        name: audit_events_limit
+        in: query
+        description: Limit of audit events to include
     get:
       summary: Get Value of a tagset
       responses:
