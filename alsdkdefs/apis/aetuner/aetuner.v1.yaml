@@ -165,7 +165,7 @@ paths:
                        - threshold:100
                       Handling
                        - {"type":"handling","operation":"add","value":"auto_soc_close"}
-                       - {"type":"handling","operation":"add","value":"auto_soc_close,-auto_escalate"}
+                       - {"type":"handling","operation":"subtract","value":"auto_soc_close"}
                        - {"type":"handling","operation":"add","path":"CustomHandlingMap","key":"windows","value":"auto_soc_close"}
                       Whitelist
                        - {"type":"whitelist","operation":"add","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0"]}
@@ -321,7 +321,7 @@ paths:
                        - threshold:100
                       Handling
                        - {"type":"handling","operation":"add","value":"auto_soc_close"}
-                       - {"type":"handling","operation":"add","value":"auto_soc_close,-auto_escalate"}
+                       - {"type":"handling","operation":"subtract","value":"auto_escalate"}
                        - {"type":"handling","operation":"add","path":"CustomHandlingMap","key":"windows","value":"auto_soc_close"}
                       Whitelist
                        - {"type":"whitelist","operation":"add","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0"]}
@@ -357,13 +357,10 @@ paths:
                   type: object
                   description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
                   additionalProperties: true
-                  type: object
                   properties:
                     threshold:
                       type: integer
                       description: Example of property name
-                  additionalProperties:
-                    true
                 tuning_list:
                   $ref: '#/components/schemas/TuningList'
                   description: List Tuning Parameters
@@ -865,9 +862,6 @@ components:
             - handling
             - whitelist
             - blacklist
-        key:
-          type: string
-          description: Tagset key default to the analytic name
         operation:
           type: string
           description: Operation to perform
