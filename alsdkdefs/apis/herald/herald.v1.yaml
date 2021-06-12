@@ -205,7 +205,7 @@ paths:
         in: path
         required: true
         description: Notification id
-  '/herald/v2/notifications/type/incidents/alerts/{long_incident_id}':
+  '/herald/v2/{account_id}/notifications/type/incidents/alerts/{long_incident_id}':
     get:
       summary: Get list of sent incident notifications for given incident id
       tags:
@@ -222,10 +222,16 @@ paths:
         '404':
           description: Not Found
       operationId: get_sent_incident_notifications
-      description: Get a notification by ID
+      description: Get list of sent incident notifications for a provided account id and long incident id
       security:
         - X-AIMS-Auth-Token: []
     parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: Account id
       - schema:
           type: string
         name: long_incident_id
