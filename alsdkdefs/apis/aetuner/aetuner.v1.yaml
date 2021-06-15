@@ -261,6 +261,11 @@ paths:
         in: query
         name: sql_field_values
         description: A map of values for SQL fields, example {"bf_protocol":"windows"}
+      - schema:
+          type: string
+        in: query
+        name: key
+        description: Tuning tagset key, defaults to the analytic name
     get:
       summary: Get Analytic for a specific customer
       responses:
