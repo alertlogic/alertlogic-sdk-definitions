@@ -1439,6 +1439,103 @@ paths:
           description: A positive integer representing an epoch
       tags:
         - Tags Resources
+  '/aetag/v1/metadata/tunings/account_ids/':
+    get:
+      summary: Get tunings for account ids
+      tags:
+        - Metadata
+      responses:
+        '200':
+          description: OK
+      operationId: get_tuning_for_account_ids
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+         Returns paths for tuned tagsets for all users
+  '/aetag/v1/metadata/tunings/account_ids/{account_id}':
+    get:
+      parameters:
+        - schema:
+            type: string
+          name: account_id
+          in: path
+          required: true
+          description: AIMS Account ID
+      summary: Get tunings for an account id
+      tags:
+        - Metadata
+      responses:
+        '200':
+          description: OK
+      operationId: get_tuning_for_account_id
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+        Returns tunings tagsets for a given account_id, including the
+        keys in the tagset contain a value for the user.
+  '/aetag/v1/metadata/tunings/tagsets/{path}':
+    get:
+      parameters:
+        - schema:
+            type: string
+          name: path
+          in: path
+          required: true
+          description: Name of the tagset
+      summary: Get tuning for a tagset
+      tags:
+        - Metadata
+      responses:
+        '200':
+          description: OK
+      operationId: get_tuning_for_tagset
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+        Returns all the account_ids that have a tuning value for the
+        tiven tagset; includes the keys in the tagset that have a
+        value for the user
+  '/aetag/v1/metadata/tunings/analytics/{path}':
+    get:
+      parameters:
+        - schema:
+            type: string
+          name: path
+          in: path
+          required: true
+          description: Path
+      summary: Get information about tunings for the analytic
+      tags:
+        - Metadata
+      responses:
+        '200':
+          description: OK
+      operationId: get_tuning_for_analytic
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+        Returns all the users that have a tuning for the analytic;
+        inclues the tagset that are tuned and the keys that have a value for each user.
+  '/aetag/v1/metadata/tunings/analytics/account_ids/{account_id}':
+    get:
+      parameters:
+        - schema:
+            type: string
+          name: account_id
+          in: path
+          required: true
+          description: Path
+      summary: Get information about all analytics
+      tags:
+        - Metadata
+      responses:
+        '200':
+          description: OK
+      operationId: get_tuning_for_all_analytics
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+        Returns tunings for all analytics in the system for the given account id.
 components:
   schemas:
     Definitions:
