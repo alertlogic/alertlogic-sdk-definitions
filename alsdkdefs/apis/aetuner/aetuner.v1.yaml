@@ -859,6 +859,7 @@ components:
           enum:
             - severity
             - visibility
+            - threshold
             - handling
             - whitelist
             - blacklist
@@ -875,6 +876,8 @@ components:
           anyOf:
             - description: String value
               type: string
+            - description: Number value
+              type: integer
             - description: List value
               type: array
         path:
