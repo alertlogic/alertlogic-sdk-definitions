@@ -106,10 +106,10 @@ paths:
         - name: limit
           schema:
             type: integer
-            default: '100'
+            default: 100
           in: query
           description: Limit the number of elements in the response
-        - name: next_token
+        - name: starting_token
           schema:
             type: string
           in: query
@@ -273,14 +273,14 @@ paths:
           explode: false
         - schema:
             type: boolean
-            default: 'false'
+            default: false
           in: query
           name: details
           description: Return debugging details of the search
         - schema:
             type: string
           in: query
-          name: next_token
+          name: starting_token
           description: A `next_token` from a previous response to continue paging results
         - $ref: '#/components/parameters/x-invoked-by'
       tags:
@@ -332,13 +332,13 @@ paths:
       parameters:
         - schema:
             type: boolean
-            default: 'false'
+            default: false
           in: query
           name: redefine_now
           description: 'When retry is `false`, you can choose to redefine the value of NOW() to the time this API is called.  If the original search used the `timeframe` query string parameter, the start and end time will be recalculated accordingly.'
         - schema:
             type: boolean
-            default: 'false'
+            default: false
           in: query
           name: retry
           description: Whether to link the given search to the new search in the `retried_by` field of the original search (`true`) or simply copy the search and rerun it (`false`). Defaults to `false`.
