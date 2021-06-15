@@ -257,10 +257,10 @@ paths:
         name: resolve_tagsets
         description: Fetch values for tuning tagsets
       - schema:
-          type: string
+          type: object
         in: query
-        name: key
-        description: Tuning tagset key, defaults to the analytic name
+        name: sql_field_values
+        description: A map of values for SQL fields, example {"bf_protocol":"windows"}
     get:
       summary: Get Analytic for a specific customer
       responses:
