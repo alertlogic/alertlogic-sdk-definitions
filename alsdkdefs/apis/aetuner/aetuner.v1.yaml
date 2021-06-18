@@ -252,11 +252,6 @@ paths:
         in: query
         name: enable_new
       - schema:
-          type: boolean
-        in: query
-        name: resolve_tagsets
-        description: Fetch values for tuning tagsets
-      - schema:
           type: object
         in: query
         name: sql_field_values
