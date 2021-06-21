@@ -109,6 +109,11 @@ paths:
         name: audit_events_limit
         in: query
         description: Limit of audit events to include
+      - schema:
+          type: boolean
+        in: query
+        name: explain
+        description: Explain how tunings are calculated or updates
     get:
       summary: Get Value of a tagset
       responses:
@@ -261,6 +266,11 @@ paths:
         in: query
         name: key
         description: Tuning tagset key, defaults to the analytic name
+      - schema:
+          type: boolean
+        in: query
+        name: explain
+        description: Explain how tunings are calculated or updates
     get:
       summary: Get Analytic for a specific customer
       responses:
