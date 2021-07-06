@@ -1441,6 +1441,13 @@ paths:
         - Tags Resources
   '/aetag/v1/metadata/tunings/account_ids/':
     get:
+      parameters:
+        - schema:
+            type: boolean
+          name: return_values
+          in: query
+          required: false
+          description: Returns tagset values
       summary: Get tunings for account ids
       tags:
         - Metadata
@@ -1455,6 +1462,12 @@ paths:
   '/aetag/v1/metadata/tunings/account_ids/{account_id}':
     get:
       parameters:
+        - schema:
+            type: boolean
+          name: return_values
+          in: query
+          required: false
+          description: Returns tagset values
         - schema:
             type: string
           name: account_id
@@ -1476,6 +1489,12 @@ paths:
   '/aetag/v1/metadata/tunings/tagsets/{path}':
     get:
       parameters:
+        - schema:
+            type: boolean
+          name: return_values
+          in: query
+          required: false
+          description: Returns tagset values
         - schema:
             type: string
           name: path
@@ -1499,6 +1518,12 @@ paths:
     get:
       parameters:
         - schema:
+            type: boolean
+          name: return_values
+          in: query
+          required: false
+          description: Returns tagset values
+        - schema:
             type: string
           name: path
           in: path
@@ -1516,26 +1541,6 @@ paths:
       description: >-
         Returns all the users that have a tuning for the analytic;
         inclues the tagset that are tuned and the keys that have a value for each user.
-  '/aetag/v1/metadata/tunings/analytics/account_ids/{account_id}':
-    get:
-      parameters:
-        - schema:
-            type: string
-          name: account_id
-          in: path
-          required: true
-          description: Path
-      summary: Get information about all analytics
-      tags:
-        - Metadata
-      responses:
-        '200':
-          description: OK
-      operationId: get_tuning_for_all_analytics
-      security:
-        - X-AIMS-Auth-Token: []
-      description: >-
-        Returns tunings for all analytics in the system for the given account id.
 components:
   schemas:
     Definitions:
