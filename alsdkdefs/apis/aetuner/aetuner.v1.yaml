@@ -706,6 +706,53 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+  '/v1/tunings/report':
+    get:
+      summary: Tuning report commands
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: tuning_report
+      description: |-
+        Returns a shell command that produces that can be run to
+        produce the desired report.
+
+        Example:
+
+        bash -c "$(alcli aetuner tuning_report --command get_tuning_for_tagset --path IncidentVisibilityMap)"
+      x-amazon-apigateway-integration:
+        uri:
+         'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerTuningReportFunction.Arn}/invocations'
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - get_tuning_for_tagset
+            - get_tuning_for_analytic
+            - get_tuning_for_account_id
+        name: command
+        in: query
+        required: true
+        description: Command to run
+      - schema:
+          type: string
+        name: cid
+        in: query
+        required: false
+        description: Customer Account ID
+      - schema:
+          type: string
+        name: path
+        in: query
+        required: false
+        description: Path or Name of an analytic or tagset
+      - schema:
+          type: boolean
+        name: return_values
+        in: query
+        required: false
+        description: If true return the values of the tagsets, otherwise just return the keys
   '/version':
     get:
       summary: Get AEtuner version
