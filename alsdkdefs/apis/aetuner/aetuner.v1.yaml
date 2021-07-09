@@ -715,8 +715,8 @@ paths:
           description: OK
       operationId: tuning_report
       description: |-
-        Returns a shell command that produces that can be run to
-        produce the desired report.
+        Returns a shell command that can be run to produce the desired
+        report.
 
         Example:
 
