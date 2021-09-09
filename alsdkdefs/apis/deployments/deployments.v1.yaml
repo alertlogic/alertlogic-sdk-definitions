@@ -174,6 +174,8 @@ components:
           type: boolean
         ct_install_region:
           type: string
+        preferred_ct_arn:
+          type: string
       required:
         - enabled
         - ct_install_region
@@ -202,6 +204,9 @@ components:
             ct_install_region:
               type: string
               description: 'The AWS region to install CloudTrail in; Required if platform.monitor.enabled == true, Invalid otherwise'
+            preferred_ct_arn:
+              type: string
+              description: 'Trail ARN which should be used for cloud trail collection'
       required:
         - type
     DeploymentScopeInfo:
