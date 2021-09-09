@@ -18,6 +18,9 @@ servers:
   - url: 'http://localhost:3001'
     x-alertlogic-global-endpoint: localhost3001
     description: localhost on port 3001
+  - url: 'http://localhost:3002'
+    x-alertlogic-global-endpoint: localhost3002
+    description: localhost on port 3002
 paths:
   '/v1/{account_id}/analytics':
     get:
@@ -759,6 +762,12 @@ paths:
         in: query
         required: false
         description: If true return the values of the tagsets, otherwise just return the keys
+      - schema:
+          type: string
+        name: exclude
+        in: query
+        required: false
+        description: Comma separated list of paths to exclude for get_tuning_for_analytic command
   '/version':
     get:
       summary: Get AEtuner version
