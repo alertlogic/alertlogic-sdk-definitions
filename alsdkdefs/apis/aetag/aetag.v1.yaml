@@ -1525,6 +1525,12 @@ paths:
           description: Returns tagset values
         - schema:
             type: string
+          name: exclude
+          in: query
+          required: false
+          description: Comma seperated list of path prefixes to exclude e.g., tuning/Global
+        - schema:
+            type: string
           name: observation_path
           in: query
           required: false
