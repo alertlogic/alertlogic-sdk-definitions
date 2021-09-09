@@ -1280,7 +1280,58 @@ AssetDetailsRemoteSource:
       declared: true
       created_on: 1599744832188
       account_id: '12345678'
-
+AssetDetailsUser:
+  value:
+    deployment:
+      account_id: '12345678'
+      created_on: 1525784980749
+      declared: true
+      deleted_on: 0
+      deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+      in_scope: false
+      key: "/al/12345678/deployment/aws/33CB4E47-8FBA-4502-A8F2-F9EE1B566454"
+      modified_on: 1525784980749
+      native_account_id: '01000002'
+      native_type: deployment
+      path:
+      - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+      scope_aws_native_account_id: '01000002'
+      tag_keys: {}
+      tags: {}
+      threat_level: 0
+      threatiness: 0
+      type: deployment
+      version: 1
+    key: "/aws/12345678/user/user_name-5cf2df986ad9411d"
+    type: user
+    user:
+      "/aws/12345678/user/user_name-5cf2df986ad9411d":
+        asset:
+          account_id: '68780934'
+          created_on: 1627996065231
+          declared: true
+          deleted_on: 0
+          deployment_id: 33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          has_password: false
+          in_scope: false
+          key: "/aws/12345678/user/user_name-5cf2df986ad9411d"
+          modified_on: 1627996065231
+          name: user_name-5cf2df986ad9411d
+          native_type: user
+          path:
+          - deployment:33CB4E47-8FBA-4502-A8F2-F9EE1B566454
+          scope_aws_has_password: false
+          scope_aws_user_id: AIDAI2INU2Y52FB2B7JOM
+          scope_aws_user_name: user_name-5cf2df986ad9411d
+          tag_keys: {}
+          tags: {}
+          threat_level: 0
+          threatiness: 0
+          type: user
+          user_id: AIDAI2INU2Y52FB2B7JOM
+          user_name: user_name-5cf2df986ad9411d
+          version: 1
+        related: {}
 
 AgentCollectionHealthNoDeploymentExample:
   value:
