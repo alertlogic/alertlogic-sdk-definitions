@@ -466,7 +466,12 @@ paths:
       summary: Declare Batch
       description: |-
         Declares a list of any combination of `declare_asset`, `declare_properties`,
-        and `declare_relationships` operations.
+        `remove_properties`, `remove_relationships`, and `declare_relationships` operations.
+        Batch operations on the same asset with the same scope may be combined into a single operation.
+        **Note that** you should avoid batching operations that could result in different outcomes if
+        applied in a different order, for instance, you must not declare and remove the same properties
+        or relationships in different operations on the same asset in the same batch. Currently, the API
+        may accept it but in the future this behavior will be rejected.
       tags:
         - Declare Functions
       requestBody:
