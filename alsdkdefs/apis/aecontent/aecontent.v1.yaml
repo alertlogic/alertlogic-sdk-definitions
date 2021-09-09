@@ -133,7 +133,7 @@ paths:
               - normal
               - extended
           in: query
-          name: visibility
+          name: format
           description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this observation became effective for the first time), and expiration_ts.
     post:
       summary: Create Global Observation
@@ -204,7 +204,7 @@ paths:
               - normal
               - extended
           in: query
-          name: visibility
+          name: format
           description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this observation became effective for the first time), and expiration_ts.
   '/aecontent/v1/observations/paths/{path}':
     parameters:
@@ -257,7 +257,7 @@ paths:
               - normal
               - extended
           in: query
-          name: visibility
+          name: format
           description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this observation became effective for the first time), and expiration_ts.
     delete:
       summary: Delete Global Observation
