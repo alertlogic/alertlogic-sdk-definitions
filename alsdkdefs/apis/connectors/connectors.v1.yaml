@@ -414,7 +414,14 @@ paths:
         schema:
           type: string
         in: query
-        description: 'When present, list only connection target with specified type'
+        description: 'When present, list only connection targets with specified type'
+      - name: filter
+        schema:
+          type: object
+        in: query
+        description: 'When present, list only connection targets with the specified values of the given fields'
+        style: form
+        explode: true
     get:
       summary: "List all account's connection targets"
       tags: []
@@ -466,6 +473,47 @@ paths:
                 - $ref: '#/components/schemas/ConnectionTargetWebhook'
             examples: {}
         description: Valid Integration Connection Objects
+
+  '/v1/{account_id}/connection_targets_full':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - name: type
+        schema:
+          type: string
+        in: query
+        description: 'When present, list only connection targets with specified type'
+      - name: filter
+        schema:
+          type: object
+        in: query
+        description: 'When present, list only connection targets with the specified values of the given fields. Each value is treated as a string.'
+        style: form
+        explode: true
+    get:
+      summary: List Existing Connection Target Full Information
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+        '403':
+          description: Forbidden
+      operationId: list_connection_targets_full
+      description: Returns A List Of Connection Targets With Full Information
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsFull.Arn}/invocations'
+
   '/v1/{account_id}/connection_targets_full/{id}':
     parameters:
       - schema:
@@ -826,6 +874,7 @@ components:
             - incident
             - observation
             - scheduled_report
+            - health
           description: Alert Logic payload type this connection converts and send to the target URL as HTTP POST request body
         payload_conversion_type:
           type: string
@@ -1116,6 +1165,18 @@ components:
           minProperties: 1
           additionalProperties: false
           description: Scheduled Report Payload conversion object
+          properties:
+            jq:
+              type: string
+              description: '`jq` conversion template'
+            default:
+              type: string
+              description: '`default` (JSON) conversion template'
+        health:
+          type: object
+          minProperties: 1
+          additionalProperties: false
+          description: Health Payload conversion object
           properties:
             jq:
               type: string
