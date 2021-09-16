@@ -164,7 +164,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActualRequest'
         '201':
-          description: "Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified."
+          description: Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified.
           content:
             application/json:
               schema:
@@ -242,7 +242,7 @@ paths:
         required: true
         description: AIMS Account ID
     get:
-      summary: "List all account's connections"
+      summary: List all account's connections
       tags: []
       responses:
         '200':
@@ -281,7 +281,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActualRequest'
         '201':
-          description: "Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified."
+          description: Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified.
           content:
             application/json:
               schema:
@@ -410,20 +410,8 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
-      - name: type
-        schema:
-          type: string
-        in: query
-        description: 'When present, list only connection targets with specified type'
-      - name: filter
-        schema:
-          type: object
-        in: query
-        description: 'When present, list only connection targets with the specified values of the given fields'
-        style: form
-        explode: true
     get:
-      summary: "List all account's connection targets"
+      summary: List all account's connection targets
       tags: []
       responses:
         '200':
@@ -438,6 +426,19 @@ paths:
       description: Returns a list of all connections targets for an account
       security:
         - aims_request_authorizer: []
+      parameters:
+        - name: type
+          schema:
+            type: string
+          in: query
+          description: 'When present, list only connection targets with specified type'
+        - name: filter
+          schema:
+            type: object
+          in: query
+          description: 'When present, list only connection targets with the specified values of the given fields'
+          style: form
+          explode: true
     post:
       summary: Create connection target
       operationId: create_connection_target
@@ -473,7 +474,6 @@ paths:
                 - $ref: '#/components/schemas/ConnectionTargetWebhook'
             examples: {}
         description: Valid Integration Connection Objects
-
   '/v1/{account_id}/connection_targets_full':
     parameters:
       - schema:
@@ -513,7 +513,6 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsFull.Arn}/invocations'
-
   '/v1/{account_id}/connection_targets_full/{id}':
     parameters:
       - schema:
@@ -862,11 +861,11 @@ components:
           description: Connection type.
         target_url:
           type: string
-          pattern: "^https?://\\\\S+"
+          pattern: '^https?://\\S+'
           description: Target URL
         headers:
           type: string
-          pattern: "^([-\\w]+:\\s*[^,]+(,\\s*)?)*$"
+          pattern: '^([-\w]+:\s*[^,]+(,\s*)?)*$'
           description: Custom headers to be sent with HTTP POST request
         payload_type:
           type: string
@@ -921,7 +920,7 @@ components:
           description: Type of the connection. Must be `email`
         email:
           type: string
-          pattern: "^[^@]+@[^@]+\\\\.[a-z]+$"
+          pattern: '^[^@]+@[^@]+\\.[a-z]+$'
           description: Email address to send notifications to
         subject_template:
           type: string
@@ -958,7 +957,7 @@ components:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -987,7 +986,7 @@ components:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -1016,7 +1015,7 @@ components:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -1042,7 +1041,7 @@ components:
             - msteams
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         active:
           type: boolean
           description: Active status of the connection
@@ -1066,7 +1065,7 @@ components:
             - slack
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         active:
           type: boolean
           description: Active status of the connection
@@ -1090,7 +1089,7 @@ components:
             - pagerduty
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         routing_key:
           type: string
         active:
@@ -1116,12 +1115,12 @@ components:
             - webhook
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         auth_header:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -1203,7 +1202,7 @@ components:
           description: Business category an integration type belongs to
         icon:
           type: string
-          description: "An icon from Alert Logic's library of icons to use to display an integration"
+          description: An icon from Alert Logic's library of icons to use to display an integration
         dry_run_message:
           type: string
           description: ''
@@ -1239,7 +1238,7 @@ components:
           description: Business category an integration type belongs to
         icon:
           type: string
-          description: "An icon from Alert Logic's library of icons to use to display an integration"
+          description: An icon from Alert Logic's library of icons to use to display an integration
       required:
         - name
         - display_name
@@ -1259,7 +1258,7 @@ components:
           description: Connection target isplay name
         icon:
           type: string
-          description: "An icon from Alert Logic's library of icons to use to display an integration"
+          description: An icon from Alert Logic's library of icons to use to display an integration
         form:
           type: object
           description: UI Rendering form
