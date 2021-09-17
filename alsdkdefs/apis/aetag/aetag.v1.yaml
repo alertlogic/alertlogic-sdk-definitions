@@ -1291,11 +1291,21 @@ paths:
       description: Validate a definition object.
       security:
         - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          description: Path of the tagset definition to validate against
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Definitions'
+            x-alertlogic-schema:
+              name: tagset
+              encoding:
+                explode: true
   '/aetag/v1/validate/tags':
     post:
       summary: Validate Tagset
@@ -1306,11 +1316,21 @@ paths:
       description: Validate a tagset object.
       security:
         - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          description: Path of the tagset definition to validate against
       requestBody:
         content:
           application/json:
             schema:
               type: object
+            x-alertlogic-schema:
+              name: tagset
+              encoding:
+                explode: true
       tags:
         - Tags Resources
   '/aetag/v1/validate/tunings':
@@ -1328,6 +1348,10 @@ paths:
           application/json:
             schema:
               type: object
+            x-alertlogic-schema:
+              name: tagset
+              encoding:
+                explode: true
       tags:
         - Tunings Resources
   '/aetag/v1/{account_id}/tags/paths':
