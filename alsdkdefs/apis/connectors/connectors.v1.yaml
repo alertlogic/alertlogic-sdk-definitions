@@ -427,16 +427,11 @@ paths:
       security:
         - aims_request_authorizer: []
       parameters:
-        - name: type
-          schema:
-            type: string
-          in: query
-          description: 'When present, list only connection targets with specified type'
         - name: filter
           schema:
             type: object
           in: query
-          description: 'When present, list only connection targets with the specified values of the given fields'
+          description: 'When present, list only connection targets with the specified values of the given fields. Multiple values can be separated using comma: `param=foo,bar`.'
           style: form
           explode: true
     post:
@@ -482,21 +477,17 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
-      - name: type
-        schema:
-          type: string
-        in: query
-        description: 'When present, list only connection targets with specified type'
-      - name: filter
-        schema:
-          type: object
-        in: query
-        description: 'When present, list only connection targets with the specified values of the given fields. Each value is treated as a string.'
-        style: form
-        explode: true
     get:
       summary: List Existing Connection Target Full Information
       tags: []
+      parameters:
+        - name: filter
+          schema:
+            type: object
+          in: query
+          description: 'When present, list only connection targets with the specified values of the given fields. Multiple values can be separated using comma: `param=foo,bar`.'
+          style: form
+          explode: true
       responses:
         '200':
           description: OK
@@ -665,6 +656,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsGetAccountIntegrationTypeFunction.Arn}/invocations'
+
   /v1/connection_targets:
     get:
       summary: Get a list of supported connection targets
@@ -688,6 +680,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsDefinitionsFunction.Arn}/invocations'
+
   '/v1/connection_targets/{name}':
     parameters:
       - schema:
@@ -714,6 +707,71 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetDefinitionFunction.Arn}/invocations'
+
+  /v1/{account_id}/definitions/connection_targets:
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get a list of supported connection targets for an account
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of ConnectionTarget objects
+                items:
+                  $ref: '#/components/schemas/ConnectionTargetDef'
+        '403':
+          description: Forbidden
+      operationId: list_account_connection_targets_definitions
+      description: Returns definitions of supported connection targets
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListAccountConnectionTargetsDefinitionsFunction.Arn}/invocations'
+
+  '/v1/{account_id}/definitions/connection_targets/{name}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    get:
+      summary: Get a connection target definition by its name for an account
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionTargetDef'
+        '403':
+          description: Forbidden
+      operationId: get_account_connection_target_definition
+      description: Returns connection target definition
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetAccountConnectionTargetDefinitionFunction.Arn}/invocations'
+
   /v1/payload_types:
     get:
       summary: Get a list of supported payload types
