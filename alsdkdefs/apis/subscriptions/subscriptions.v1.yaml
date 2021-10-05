@@ -181,6 +181,12 @@ paths:
           in: query
           name: subscription_type
           description: Only check entitlements derived from a subscription with the provided type
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: only_active
+          description: Filter out inactive account ids based on the status
       security:
         - X-AIMS-Auth-Token: []
     parameters:
