@@ -185,7 +185,7 @@ paths:
             type: boolean
             default: false
           in: query
-          name: only_active
+          name: active
           description: Filter out inactive account ids based on the status
       security:
         - X-AIMS-Auth-Token: []
