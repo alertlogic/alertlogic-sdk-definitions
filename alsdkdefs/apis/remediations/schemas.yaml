@@ -108,7 +108,7 @@ RemediationIds:
     A list of remediation IDs. Note that this parameter is *mutually exclusive* with
     `"vulnerability_ids"`, and any operation that includes both will be rejected.
 VulnerabilityIds:
-  type: string
+  type: array
   description: |-
     A list of vulnerability IDs. Note that this parameter is *mutually exclusive* with
     `"remediation_ids"`, and any operation that includes both will be rejected.
