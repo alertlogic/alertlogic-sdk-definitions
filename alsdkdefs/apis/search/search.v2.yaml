@@ -515,6 +515,65 @@ paths:
         This API is used internally to the search project and is subject to change without notice to customers.
       parameters:
         - $ref: '#/components/parameters/x-invoked-by'
+  /search/v2/convert-from-v1:
+    post:
+      summary: SIEMless to EM query converter
+      operationId: convert_from_v1
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                example-1:
+                  value: 'SELECT field_a, field_b FROM logmsgs WHERE time_recv BETWEEN 1230065 AND 1230078'
+          headers: {}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: A description of the error that occured
+              examples:
+                example-1:
+                  value:
+                    error: invalid json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  schema:
+                    type: object
+                  type: object
+            examples:
+              example-1:
+                value:
+                  query:
+                    select:
+                      - field_a
+                      - field_b
+                    from: logmsgs
+                    where:
+                      between:
+                        - source: time_recv
+                        - 1230065
+                        - 1230078
+      description: |-
+        Convert a SIEMless query to Expert Mode (i.e. v2) format.
+
+        Returns:
+
+        - 200 - if the query was successfully converted to Expert Mode format;
+        - 400 - if the query cannot be converted for whatever reason.
 components:
   schemas:
     MessagesResponse:
