@@ -426,6 +426,8 @@ paths:
                   description: Reason for the performing the reset. This information is used for auditing purposes.
                 tuning:
                   type: array
+                  items:
+                    type: string
                   example: '["threshold", "whitelist"]'
                   description: List of tunning keys to reset
               required:
