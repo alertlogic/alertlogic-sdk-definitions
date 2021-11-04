@@ -439,6 +439,111 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAnalyticFunction.Arn}/invocations'
       tags:
         - aetuner
+  '/v1/{account_id}/reset/all_analytics/visibility':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics visibility fields to default
+      operationId: reset_all_analytics_visibility
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handling_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics visibility
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsVisibilityFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/all_analytics/severity':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics severity to defaults
+      operationId: reset_all_analytics_severity
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  severity_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics severity
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsSeverityFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/all_analytics/handling':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics handling to defaults
+      operationId: reset_all_analytics_handling
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handling_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics handling
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsHandlingFunction.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/incident_types':
     get:
       summary: List Incident Types
@@ -985,6 +1090,44 @@ components:
           description: Values to add or remove
           items:
             type: string
+    ResetAllAnalyticsRequestBody:
+      title: ResetAllAnalyticsRequestBody
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Reason for the performing the reset. This information is used for auditing purposes.
+        dry_run:
+          type: boolean
+          description: "DRY RUN only"
+      required:
+        - reason
+    ResetAllAnalyticsResponseBody:
+      title: ResetAllAnalyticsResponseBody
+      oneOf:
+        - type: array
+          description: List of tagsets delete results
+          items:
+            type: object
+            properties:
+              tagset_path:
+                type: string
+              operation:
+                type: string
+              status:
+                type: object
+                properties:
+                  stored:
+                    type: string
+                    format: uuid
+        - type: object
+          properties:
+            dry_run:
+              type: boolean
+            tagsets_to_delete:
+              type: array
+              items:
+                type: string
 tags:
   - name: aetuner
     description: aetuner operations
