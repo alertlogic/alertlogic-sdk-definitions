@@ -139,7 +139,7 @@ ParamVulnerabilityIds:
   schema:
     type: string
   in: query
-  name: remediation_ids
+  name: vulnerability_ids
   description: A comma-separated list of vulnerability IDs.
 ParamDisposed:
   schema:
