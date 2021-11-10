@@ -376,7 +376,6 @@ paths:
                       description: Example of property name
                 tuning_list:
                   $ref: '#/components/schemas/TuningList'
-                  description: List Tuning Parameters
                 reason:
                   type: string
                   description: Reason for the performing the update. This information is used for auditing purposes.
@@ -428,8 +427,10 @@ paths:
                   type: array
                   items:
                     type: string
-                  example: '["threshold", "whitelist"]'
-                  description: List of tunning keys to reset
+                  example:
+                    - threshold
+                    - whitelist
+                  description: List of tuning keys to reset
               required:
                 - reason
         required: true
@@ -833,7 +834,7 @@ paths:
         bash -c "$(alcli aetuner tuning_report --command get_tuning_for_tagset --path IncidentVisibilityMap)"
       x-amazon-apigateway-integration:
         uri:
-         'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerTuningReportFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerTuningReportFunction.Arn}/invocations'
     parameters:
       - schema:
           type: string
@@ -886,7 +887,7 @@ paths:
       description: Get the AEtuner version
       x-amazon-apigateway-integration:
         uri:
-         'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerVersionFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerVersionFunction.Arn}/invocations'
   '/healthcheck':
     get:
       summary: Your GET endpoint
@@ -899,6 +900,78 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetHealthcheckFunction.Arn}/invocations'
+  '/v1/{account_id}/incident/{incident_id}/tunables':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: incident_id
+        in: path
+        required: true
+    get:
+      summary: Get Tunables
+      tags: []
+      responses:
+        '200':
+          description: A list of tunable tagsets for the specified incident.
+          headers: {}
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  tunings:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        value:
+                          type: object
+                        type:
+                          type: string
+                          minLength: 1
+                        keys:
+                          type: array
+                          uniqueItems: true
+                          minItems: 1
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                minLength: 1
+                              name:
+                                type: string
+                                minLength: 1
+                            required:
+                              - type
+                              - name
+                        name:
+                          type: string
+                          minLength: 1
+                          description: tagset name
+                        tuning_command:
+                          type: string
+                          minLength: 1
+                          description: alcli sample command
+                      required:
+                        - value
+                        - type
+                        - keys
+                        - name
+                        - tuning_command
+                required:
+                  - tunings
+              examples: {}
+      operationId: get_incident_tunables
+      description: Returns a list of all the tags that can be tuned and sample alcli commands to tune them.
 components:
   securitySchemes:
     aims_request_authorizer:
