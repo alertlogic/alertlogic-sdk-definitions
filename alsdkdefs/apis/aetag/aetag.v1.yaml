@@ -1709,6 +1709,10 @@ components:
             - type: boolean
               description: 'true or false'
               title: 'A boolean'
+            - type: object
+              additionalProperties: true
+              description: 'An object'
+              title: 'An object'
       required:
         - operation
         - key
