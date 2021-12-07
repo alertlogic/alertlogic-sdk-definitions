@@ -854,6 +854,56 @@ paths:
           description: >-
             Determine if the tags are retrieve with composition or not, by
             default it is true.
+  '/aetag/v1/{account_id}/tags/lookup':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Lookup keys or Values in Tags&tunning paths
+      operationId: lookup_tagset
+      responses:
+        '200':
+          description: Key or Value Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matched:
+                    type: boolean
+        '204':
+          description: Key or Value Not Found
+
+      security:
+        - X-AIMS-Auth-Token: [ ]
+      parameters:
+        - schema:
+            type: boolean
+            default: 'true'
+          in: query
+          name: compose
+          description: >-
+            Determine if the tags are retrieve with composition or not, by
+            default it is true.
+      description: >-
+        Looks up specific keys and values in specified tagsets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LookupValues'
+            x-alertlogic-schema:
+              name: lookup
+              encoding:
+                explode: true
+        description: Look up request propotype.
+      tags:
+        - Tags Resources
   '/aetag/v1/definitions/ids/{id}':
     parameters:
       - schema:
@@ -1746,6 +1796,36 @@ components:
         - operation
         - key
       additionalProperties: false
+    LookupValues:
+      description: 'Schema for lookup operation'
+      title: LookupValues
+      type: object
+      required:
+        - paths
+        - keys
+      properties:
+        paths:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+        keys:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+        values:
+          type: array
+          maxItems: 100
+          items:
+            oneOf:
+              - type: string
+              - type: number
+        lookup:
+          type: string
+          enum:
+            - "and"
+            - "or"
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
