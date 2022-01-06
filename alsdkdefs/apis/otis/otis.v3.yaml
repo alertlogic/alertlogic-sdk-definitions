@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: Otis API
+  title: Otis API customer configurations service
   version: 3.0.0
   description: |-
       # Otis
