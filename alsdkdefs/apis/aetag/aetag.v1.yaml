@@ -897,10 +897,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LookupValues'
-            x-alertlogic-schema:
-              name: lookup
-              encoding:
-                explode: true
         description: Look up request propotype.
       tags:
         - Tags Resources
