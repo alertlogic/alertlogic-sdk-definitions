@@ -1,0 +1,6 @@
+DeploymentNotFound:
+  description: '`deployment not found`'
+Unauthorized:
+  description: '`Unauthorized`. The provided `x-aims-auth-token` header could not be authenticated.'
+Forbidden:
+  description: '`Forbidden`. Insufficient permissions.'
