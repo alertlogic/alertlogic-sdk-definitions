@@ -1,0 +1,48 @@
+ScopeJSON:
+  value:
+    - deployment_id: 843BD5F3-583D-48D7-B929-616B100D6B7B
+      vpc: vpc-43f82c3a
+      type: subnet
+      region: us-west-2
+      protection_level: inherited
+      name: subnet-974c78df
+      key: /aws/us-west-2/subnet/subnet-974c78df
+      account_id: 12345678
+      cidr_block: 172.31.32.0/20
+
+ScopeCSV:
+  value: |
+    type,key,name,protection_level,cidr_block,region,network,subnet,cidr_ranges
+    vpc,/aws/us-west-2/vpc/vpc-43f82c3a,vpc-43f82c3a,inherited,172.31.0.0/16,us-west-2,,,"[""172.31.0.0/16""]"
+    subnet,/aws/us-west-2/subnet/subnet-094f8853,subnet-094f8853,inherited,172.31.0.0/20,us-west-2,,,
+    subnet,/aws/us-west-2/subnet/subnet-78f2e71e,subnet-78f2e71e,inherited,172.31.16.0/20,us-west-2,,,
+    subnet,/aws/us-west-2/subnet/subnet-94ccb0bc,subnet-94ccb0bc,inherited,172.31.48.0/20,us-west-2,,,
+    subnet,/aws/us-west-2/subnet/subnet-974c78df,subnet-974c78df,inherited,172.31.32.0/20,us-west-2,,,
+
+ImportSummary:
+  value:
+    new_scope:
+      include:
+        - type: vpc
+          policy:
+            id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+          key: "/aws/ca-central-1/vpc/vpc-e0a0a689"
+      exclude:
+        - type: host
+          key: "/aws/ca-central-1/host/i-031b312d8b6472247"
+    included:
+      - type: vpc
+        policy:
+          id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+        key: "/aws/ca-central-1/vpc/vpc-e0a0a689"
+    excluded:
+      - type: region
+        policy:
+          id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+        key: "/aws/us-east-1"
+      - type: host
+        policy:
+          id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+        key: "/aws/eu-west-2/host/i-0e36e01a0efd53cbf"
+      - type: host
+        key: "/aws/ca-central-1/host/i-031b312d8b6472247"

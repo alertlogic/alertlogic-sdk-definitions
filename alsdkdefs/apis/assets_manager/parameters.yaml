@@ -1,0 +1,28 @@
+WriteOption:
+  schema:
+    type: boolean
+    default: false
+  description: |-
+    The option is used to perform write operation if specified as `true`.
+    Otherwise the endpoint works in dry-run mode.
+    If no option specified the `false` is assumed.
+  name: write
+  in: query
+  required: false
+UrlParamAccountId:
+  schema:
+    type: string
+  name: account_id
+  in: path
+  required: true
+  description: |-
+    The AIMS account ID whose assets are being accessed. Only valid account IDs are acceptable.
+    Invalid account IDs result in an `HTTP 404 Not Found` or `HTTP 403 Forbidden`, depending on
+    the client's access level.
+UrlParamDeploymentId:
+  schema:
+    type: string
+  name: deployment_id
+  in: path
+  required: true
+  description: The ID of the deployment source as represented in the deployments service (uppercase UUID).

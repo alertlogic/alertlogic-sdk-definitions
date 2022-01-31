@@ -1,0 +1,100 @@
+ImportSummary:
+  description: 'Import result summary'
+  type: object
+  properties:
+    included:
+      description: Scope items protected by the request
+      type: array
+      items:
+        $ref: '#/ScopeItem'
+    excluded:
+      description: Scope items unprotected by the request
+      type: array
+      items:
+        $ref: '#/ScopeItem'
+    new_scope:
+      description: The new requested protection scope
+      type: array
+      items:
+        $ref: '#/ScopeItem'
+
+AssetsProtection:
+  description: 'The list of assets with protection level'
+  type: array
+  items:
+    $ref: '#/AssetProtection'
+
+AssetProtection:
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    key:
+      $ref: '#/AssetKey'
+    protection_level:
+      $ref: '#/ProtectionLevel'
+    name:
+      $ref: '#/AssetName'
+    cidr_block:
+      $ref: '#/CidrBlock'
+    region:
+      description: The region asset name containing the asset. Informational only.
+      type: string
+    network:
+      description: The vpc/network asset name containing the asset. Informational only.
+      type: string
+    cidr_ranges: 
+      description: The network list of CIDRs
+      type: array
+      items:
+        $ref: '#/CidrBlock'
+  required:
+    - type
+    - key
+    - protection_level
+
+CidrBlock:
+  type: string
+  description: The subnet cidr_block
+
+ProtectionLevel:
+  type: string
+  enum:
+    - professional
+    - essentials
+    - enterprise
+    - lm_essentials
+    - lmpro
+    - tmpro
+    - excluded
+    - inherited
+
+ScopeItem:
+  type: object
+  properties:
+    type:
+      $ref: '#/AssetType'
+    key:
+      $ref: '#/AssetKey'
+    policy:
+      description: Protection level policy
+      type: object
+      properties:
+        id:
+          type: string
+          enum:
+            - D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+            - A8E8B104-8F45-411D-A240-A30EA5FE25B0
+            - EC735B49-2517-4D98-BB9D-BEBC1E75D56D
+            - A562D3E4-ECBE-426E-B2CF-78D2336E5D63
+            - 7E184449-FB15-4693-807F-C01A1ECD7E66
+            - D2A589A9-EA56-456C-844E-65843B483D68
+AssetKey:
+  type: string
+  description: Asset key
+AssetType:
+  type: string
+  description: Asset type
+AssetName:
+  type: string
+  description: Asset Name

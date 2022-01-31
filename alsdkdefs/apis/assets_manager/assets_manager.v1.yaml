@@ -1,0 +1,156 @@
+openapi: 3.0.1
+info:
+  title: Assets Manager API
+  contact:
+    email: support@alertlogic.com
+    name: Alert Logic Support
+    url: https://support.alertlogic.com
+  x-alertlogic-iws-service:
+    type: public
+  description: |-
+    The assets management service. The service provides additional validation
+    layer in front of assets to ensure the user supplied configuration is consistent.
+    The service also provides different utility functions.
+  version: 1.0.0
+servers:
+  - url: https://api.cloudinsight.alertlogic.com
+    x-alertlogic-session-endpoint: true
+    description: production (US)
+  - url: https://api.cloudinsight.alertlogic.co.uk
+    description: production (UK)
+    x-alertlogic-session-endpoint: true
+  - url: https://api.product.dev.alertlogic.com
+    description: integration
+components:
+  securitySchemes:
+    x-aims-auth-token:
+      name: x-aims-auth-token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+paths:
+  /assets_manager/v1/{account_id}/deployments/{deployment_id}/scope/export:
+    post:
+      operationId: export_scope
+      tags:
+        - Protection Scope Management
+      summary: Export protection scope
+      description: |-
+        Endpoint for exporting the protection scope of a deployment along with
+        asset metadata. By default the endpoints returns data in `CSV` format
+        if no `Accept` header specified.
+        cURL example:
+      parameters:
+        - $ref: 'parameters.yaml#/UrlParamAccountId'
+        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+      security:
+        - x-aims-auth-token: []
+      x-codeSamples:
+        - lang: Shell
+          label: alcli
+          source: |
+            alcli assets_manager export_scope \
+            --account_id 134235158 \
+            --deployment_id 843BD5F3-583D-48D7-B929-616B100D6B7B \
+            > scope.csv
+        - lang: cURL
+          label: cURL
+          source: |
+            curl -X POST \
+            https://api.product.dev.alertlogic.com/assets_manager/v1/134235158/deployments/843BD5F3-583D-48D7-B929-616B100D6B7B/scope/export \
+            > scope.csv
+      responses:
+        '200':
+          description: OK
+          content:
+            text/csv:
+              schema:
+                $ref: 'schemas.yaml#/AssetsProtection'
+              examples:
+                CSV:
+                  $ref: 'examples.yaml#/ScopeCSV'
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/AssetsProtection'
+              examples:
+                JSON:
+                  $ref: 'examples.yaml#/ScopeJSON'
+        '401':
+          $ref: 'responses.yaml#/Unauthorized'
+        '403':
+          $ref: 'responses.yaml#/Forbidden'
+        '404':
+          $ref: 'responses.yaml#/DeploymentNotFound'
+  /assets_manager/v1/{account_id}/deployments/{deployment_id}/scope/import:
+    post:
+      operationId: import_scope
+      tags:
+        - Protection Scope Management
+      requestBody:
+        description: |-
+          By default If no `Content-Type` header specified the `CSV` format assumed.
+          The data format is the same as returned by the export endpoint.
+          The required fields are: `type`, `key` and `protection_level`.
+          All other fields are ignored. Any invalid items are ignored.
+          The protection scope policy id to `protection_level` mapping:
+          * `D12D5E67-166C-474F-87AA-6F86FC9FB9BC` - professional
+          * `A8E8B104-8F45-411D-A240-A30EA5FE25B0` - essentials
+          * `EC735B49-2517-4D98-BB9D-BEBC1E75D56D` - enterprise
+          * `A562D3E4-ECBE-426E-B2CF-78D2336E5D63` - lm_essentials
+          * `7E184449-FB15-4693-807F-C01A1ECD7E66` - lmpro
+          * `D2A589A9-EA56-456C-844E-65843B483D68` - tmpro
+        required: true
+        content:
+          text/csv:
+            examples:
+              CSV:
+                $ref: 'examples.yaml#/ScopeCSV'
+            schema:
+              $ref: 'schemas.yaml#/AssetsProtection'
+          application/json:
+            examples:
+              JSON:
+                $ref: 'examples.yaml#/ScopeJSON'
+            schema:
+              $ref: 'schemas.yaml#/AssetsProtection'
+      summary: Import protection scope
+      description: |-
+        Endpoint for importing the protection scope of a deployment.
+      parameters:
+        - $ref: 'parameters.yaml#/UrlParamAccountId'
+        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+        - $ref: 'parameters.yaml#/WriteOption'
+      security:
+        - x-aims-auth-token: []
+      x-codeSamples:
+        - lang: Shell
+          label: alcli
+          source: |
+            alcli assets_manager import_scope \
+            --account_id 134235158 \
+            --deployment_id 843BD5F3-583D-48D7-B929-616B100D6B7B \
+            --content_type=text/csv \
+            --write true \
+            --data file://scope.csv
+        - lang: cURL
+          label: cURL
+          source: |
+            curl -X POST \
+            https://api.product.dev.alertlogic.com/assets_manager/v1/134235158/deployments/843BD5F3-583D-48D7-B929-616B100D6B7B/scope/import?write=true \
+            --data-binary @scope.csv
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                JSON:
+                  $ref: 'examples.yaml#/ImportSummary'
+              schema:
+                $ref: 'schemas.yaml#/ImportSummary'
+        '401':
+          $ref: 'responses.yaml#/Unauthorized'
+        '403':
+          $ref: 'responses.yaml#/Forbidden'
+        '404':
+          $ref: 'responses.yaml#/DeploymentNotFound'
