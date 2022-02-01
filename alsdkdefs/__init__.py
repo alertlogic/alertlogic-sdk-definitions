@@ -21,6 +21,7 @@ except ImportError:
     DEV_SDK_DEFS = False
 
 OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
+OPENAPI_SCHEMA_FILE = 'openapi_schema.json'
 URI_SCHEMES = ['file', 'http', 'https']
 
 
@@ -149,6 +150,10 @@ def get_apis_dir():
     return f"{pjoin(os.path.dirname(__file__), 'apis')}"
 
 
+def get_openapi_schema_dir():
+    return f"{pjoin(os.path.dirname(__file__), 'schema')}"
+
+
 def load_service_spec(service_name, apis_dir=None, version=None):
     """Loads a version of service from library apis directory, if version is not specified, latest is loaded"""
     services = list_services(apis_dir)
@@ -212,8 +217,15 @@ def get_service_defs(service_name):
 
 @lru_cache()
 def get_openapi_schema():
-    r = requests.get(OPENAPI_SCHEMA_URL)
-    return r.json()
+    try:
+        r = requests.get(OPENAPI_SCHEMA_URL)
+        r.raise_for_status()
+        return r.json()
+    except Exception as e:
+        # Use local copy of the Open API Schema
+        openapi_schema_file = pjoin(get_openapi_schema_dir(), OPENAPI_SCHEMA_FILE)
+        with open(openapi_schema_file) as data:
+            return json.load(data)
 
 
 def validate(spec, uri=None, schema=get_openapi_schema()):
