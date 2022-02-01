@@ -76,14 +76,9 @@ paths:
                   description: A list of message_id and type (associated events or logs)
                   items:
                     $ref: '#/components/schemas/FactModel'
-                correlation:
-                  type: array
-                  description: Only for MANI
-                  items:
-                    type: string
                 datacenter:
                   type: string
-                  description: 'The datacenter that facts are coming from (Ashburn, Denver, Integration, Newport, etc)'
+                  description: 'the datacenter that facts are coming from (Ashburn, Denver, Integration, Newport, etc)'
                 sources:
                   type: array
                   description: 'The Incident Source (MANL for log, MANI for IDS)'
@@ -113,7 +108,6 @@ paths:
                 - classification
                 - time_frame
                 - facts
-                - correlation
                 - datacenter
     parameters:
       - schema:

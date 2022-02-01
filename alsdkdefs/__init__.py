@@ -12,6 +12,7 @@ from functools import reduce, lru_cache
 import requests
 import json
 import re
+from jsonmerge import merge
 
 try:
     import alsdkdefs_dev
@@ -171,13 +172,13 @@ def load_service_spec(service_name, apis_dir=None, version=None):
 
 def load_spec(uri_or_path):
     """Loads spec out of RFC3986 URI, resolves refs, normalizes"""
-    uri_or_path = __normalize_uri(uri_or_path)
+    uri_or_path = normalize_uri(uri_or_path)
     return normalize_spec(uri_or_path, get_spec(uri_or_path))
 
 
 def normalize_spec(uri_or_path, spec):
     """Resolves refs, normalizes"""
-    uri_or_path = __normalize_uri(uri_or_path)
+    uri_or_path = normalize_uri(uri_or_path)
     return __normalize_spec(__resolve_refs(__base_uri(uri_or_path), spec))
 
 
@@ -267,14 +268,14 @@ def make_uri(scheme, netloc, url, query, fragment):
     return urlunsplit((scheme, netloc, url, query, fragment))
 
 
-# Private functions
-
-def __normalize_uri(uri_or_path):
+def normalize_uri(uri_or_path):
     parsed = urlparse(uri_or_path)
     if parsed.scheme not in URI_SCHEMES:
         return make_file_uri(uri_or_path)
     else:
         return uri_or_path
+
+# Private functions
 
 
 def __base_uri(uri):
@@ -324,7 +325,7 @@ def __normalize_node(node):
     if OpenAPIKeyWord.ALL_OF in node:
         __update_dict_no_replace(
             node,
-            dict(reduce(__deep_merge, node.pop(OpenAPIKeyWord.ALL_OF)))
+            dict(reduce(merge, node.pop(OpenAPIKeyWord.ALL_OF)))
         )
 
 
@@ -332,22 +333,3 @@ def __update_dict_no_replace(target, source):
     for key in source.keys():
         if key not in target:
             target[key] = source[key]
-
-
-def __deep_merge(target, source):
-    # Merge source into the target
-    for k in set(target.keys()).union(source.keys()):
-        if k in target and k in source:
-            if isinstance(target[k], dict) and isinstance(source[k], dict):
-                yield (k, dict(__deep_merge(target[k], source[k])))
-            elif type(target[k]) is list and type(source[k]) is list:
-                # TODO: Handle arrays of objects
-                yield (k, list(set(target[k] + source[k])))
-            else:
-                # If one of the values is not a dict,
-                # value from target dict overrides the one in source
-                yield (k, target[k])
-        elif k in target:
-            yield (k, target[k])
-        else:
-            yield (k, source[k])

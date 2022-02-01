@@ -135,6 +135,7 @@ paths:
             enum:
               - alertlogic.com/json
               - alertlogic.com/syslog
+              - snort.org/unified2
           in: header
           name: content-type
           description: |-
@@ -147,6 +148,8 @@ paths:
                 * Use to send `auditmsgs`, `observation` data types
               * alertlogic.com/syslog
                 * Use to send `syslog` data
+              * snort.org/unified2
+                * Use to send `snort unified2` data
           required: true
         - schema:
             type: string
@@ -176,6 +179,9 @@ paths:
           alertlogic.com/syslog:
             schema:
               $ref: '#/components/schemas/SyslogMsg'
+          snort.org/unified2:
+            schema:
+              $ref: '#/components/schemas/SnortUnified2'
         description: ''
         required: true
     parameters:
@@ -196,6 +202,7 @@ paths:
 
           * 'auditmsgs' -> AuditMsgs-0.0.2
           * 'logmsgs' -> SyslogMsg
+          * 'snmsgs' -> SnortUnified2
           * 'observation' -> Observation-1.0.1
 components:
   schemas:
@@ -458,6 +465,11 @@ components:
       type: string
       title: SyslogMsg
       description: "Syslog messages separated by `\\n`"
+      format: binary
+    SnortUnified2:
+      type: string
+      title: SnortUnified2
+      description: "SnortUnified2 records"
       format: binary
     Observation:
       title: Observation

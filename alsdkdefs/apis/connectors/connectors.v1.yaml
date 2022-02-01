@@ -164,7 +164,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActualRequest'
         '201':
-          description: "Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified."
+          description: Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified.
           content:
             application/json:
               schema:
@@ -242,7 +242,7 @@ paths:
         required: true
         description: AIMS Account ID
     get:
-      summary: "List all account's connections"
+      summary: List all account's connections
       tags: []
       responses:
         '200':
@@ -265,6 +265,11 @@ paths:
           in: query
           name: include_sample_payload
           description: Include sample payload in the result?
+        - schema:
+            type: string
+          in: query
+          name: connection_target_id
+          description: Filter by the connection target id
     post:
       summary: Create connection information
       operationId: create_connection
@@ -276,7 +281,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActualRequest'
         '201':
-          description: "Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified."
+          description: Valid only when `dry_run` query parameter isn't specified or `dry_run=false` is specified.
           content:
             application/json:
               schema:
@@ -405,13 +410,8 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
-      - name: type
-        schema:
-          type: string
-        in: query
-        description: 'When present, list only connection target with specified type'
     get:
-      summary: "List all account's connection targets"
+      summary: List all account's connection targets
       tags: []
       responses:
         '200':
@@ -426,6 +426,14 @@ paths:
       description: Returns a list of all connections targets for an account
       security:
         - aims_request_authorizer: []
+      parameters:
+        - name: filter
+          schema:
+            type: object
+          in: query
+          description: 'When present, list only connection targets with the specified values of the given fields. Multiple values can be separated using comma: `param=foo,bar`.'
+          style: form
+          explode: true
     post:
       summary: Create connection target
       operationId: create_connection_target
@@ -461,6 +469,41 @@ paths:
                 - $ref: '#/components/schemas/ConnectionTargetWebhook'
             examples: {}
         description: Valid Integration Connection Objects
+  '/v1/{account_id}/connection_targets_full':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: List Existing Connection Target Full Information
+      tags: []
+      parameters:
+        - name: filter
+          schema:
+            type: object
+          in: query
+          description: 'When present, list only connection targets with the specified values of the given fields. Multiple values can be separated using comma: `param=foo,bar`.'
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+        '403':
+          description: Forbidden
+      operationId: list_connection_targets_full
+      description: Returns A List Of Connection Targets With Full Information
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsFull.Arn}/invocations'
   '/v1/{account_id}/connection_targets_full/{id}':
     parameters:
       - schema:
@@ -613,6 +656,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsGetAccountIntegrationTypeFunction.Arn}/invocations'
+
   /v1/connection_targets:
     get:
       summary: Get a list of supported connection targets
@@ -636,6 +680,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsDefinitionsFunction.Arn}/invocations'
+
   '/v1/connection_targets/{name}':
     parameters:
       - schema:
@@ -662,6 +707,71 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetDefinitionFunction.Arn}/invocations'
+
+  /v1/{account_id}/definitions/connection_targets:
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get a list of supported connection targets for an account
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of ConnectionTarget objects
+                items:
+                  $ref: '#/components/schemas/ConnectionTargetDef'
+        '403':
+          description: Forbidden
+      operationId: list_account_connection_targets_definitions
+      description: Returns definitions of supported connection targets
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListAccountConnectionTargetsDefinitionsFunction.Arn}/invocations'
+
+  '/v1/{account_id}/definitions/connection_targets/{name}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    get:
+      summary: Get a connection target definition by its name for an account
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionTargetDef'
+        '403':
+          description: Forbidden
+      operationId: get_account_connection_target_definition
+      description: Returns connection target definition
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetAccountConnectionTargetDefinitionFunction.Arn}/invocations'
+
   /v1/payload_types:
     get:
       summary: Get a list of supported payload types
@@ -809,11 +919,11 @@ components:
           description: Connection type.
         target_url:
           type: string
-          pattern: "^https?://\\\\S+"
+          pattern: '^https?://\\S+'
           description: Target URL
         headers:
           type: string
-          pattern: "^([-\\w]+:\\s*[^,]+(,\\s*)?)*$"
+          pattern: '^([-\w]+:\s*[^,]+(,\s*)?)*$'
           description: Custom headers to be sent with HTTP POST request
         payload_type:
           type: string
@@ -821,6 +931,7 @@ components:
             - incident
             - observation
             - scheduled_report
+            - health
           description: Alert Logic payload type this connection converts and send to the target URL as HTTP POST request body
         payload_conversion_type:
           type: string
@@ -867,7 +978,7 @@ components:
           description: Type of the connection. Must be `email`
         email:
           type: string
-          pattern: "^[^@]+@[^@]+\\\\.[a-z]+$"
+          pattern: '^[^@]+@[^@]+\\.[a-z]+$'
           description: Email address to send notifications to
         subject_template:
           type: string
@@ -904,7 +1015,7 @@ components:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -933,7 +1044,7 @@ components:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -962,7 +1073,7 @@ components:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -988,7 +1099,7 @@ components:
             - msteams
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         active:
           type: boolean
           description: Active status of the connection
@@ -1012,7 +1123,7 @@ components:
             - slack
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         active:
           type: boolean
           description: Active status of the connection
@@ -1036,7 +1147,7 @@ components:
             - pagerduty
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         routing_key:
           type: string
         active:
@@ -1062,12 +1173,12 @@ components:
             - webhook
         base_url:
           type: string
-          pattern: "^https?://\\S+"
+          pattern: '^https?://\S+'
         auth_header:
           type: string
         headers:
           type: string
-          pattern: "^[-\\w]+:[^\\r\\n]*((\\r?\\n)[-\\w]+:[^\\r\\n]*)*$"
+          pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -1118,6 +1229,18 @@ components:
             default:
               type: string
               description: '`default` (JSON) conversion template'
+        health:
+          type: object
+          minProperties: 1
+          additionalProperties: false
+          description: Health Payload conversion object
+          properties:
+            jq:
+              type: string
+              description: '`jq` conversion template'
+            default:
+              type: string
+              description: '`default` (JSON) conversion template'
     IntegrationType:
       title: IntegrationType
       type: object
@@ -1137,7 +1260,7 @@ components:
           description: Business category an integration type belongs to
         icon:
           type: string
-          description: "An icon from Alert Logic's library of icons to use to display an integration"
+          description: An icon from Alert Logic's library of icons to use to display an integration
         dry_run_message:
           type: string
           description: ''
@@ -1173,7 +1296,7 @@ components:
           description: Business category an integration type belongs to
         icon:
           type: string
-          description: "An icon from Alert Logic's library of icons to use to display an integration"
+          description: An icon from Alert Logic's library of icons to use to display an integration
       required:
         - name
         - display_name
@@ -1193,7 +1316,7 @@ components:
           description: Connection target isplay name
         icon:
           type: string
-          description: "An icon from Alert Logic's library of icons to use to display an integration"
+          description: An icon from Alert Logic's library of icons to use to display an integration
         form:
           type: object
           description: UI Rendering form

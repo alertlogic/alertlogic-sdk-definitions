@@ -205,7 +205,7 @@ paths:
         in: path
         required: true
         description: Notification id
-  '/herald/v2/notifications/type/incidents/alerts/{long_incident_id}':
+  '/herald/v2/{account_id}/notifications/type/incidents/alerts/{long_incident_id}':
     get:
       summary: Get list of sent incident notifications for given incident id
       tags:
@@ -222,16 +222,90 @@ paths:
         '404':
           description: Not Found
       operationId: get_sent_incident_notifications
-      description: Get a notification by ID
+      description: Get list of sent incident notifications for a provided account id and long incident id
       security:
         - X-AIMS-Auth-Token: []
     parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: Account id
       - schema:
           type: string
         name: long_incident_id
         in: path
         required: true
         description: Notification id
+  '/herald/v2/{account_id}/notifications/type':
+    get:
+      summary: Get list of notifications by account and notification type
+      tags:
+        - Notifications
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request
+        '403':
+          description: Forbidden
+      operationId: get_account_notification_by_type
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: type
+        in: path
+        required: true
+        description: A notification type
+      - schema:
+          type: string
+          enum: 
+            - '"desc"'
+            - '"asc"'
+          default: desc 
+        name: sort
+        in: query
+        required: false
+        description: Direction to sort created at by
+      - schema:
+          type: string
+        name: continuation_id
+        in: query
+        required: false
+        description: Continuation id - continue from that result
+      - schema:
+          type: integer
+        name: since
+        in: query
+        required: false
+        description: Show items created since
+      - schema:
+          type: integer
+        name: until
+        in: query
+        required: false
+        description: Show items created until
+      - schema:
+          type: integer
+        name: limit
+        in: query
+        required: false
+        description: Controls the maximum number of items per page.
+      
+
   '/herald/v2/{account_id}/notifications':
     post:
       summary: Send a notification
@@ -799,7 +873,7 @@ components:
       title: Incident-Notification
       type: object
       x-examples:
-        Incident Notificatin Example:
+        Incident Notification Example:
           notifications:
             - id: 78431C7C-F2AC-4748-B70F-BA2332E54811
               type: incidents/alerts

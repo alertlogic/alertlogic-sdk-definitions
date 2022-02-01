@@ -13,7 +13,7 @@ servers:
     description: integration
     x-alertlogic-session-endpoint: true
 paths:
-  /aecontent/v1/audit:
+  '/aecontent/v1/audit':
     get:
       summary: Get aecontent audit
       tags:
@@ -50,7 +50,40 @@ paths:
           description: >-
             Which data type to return in the audit.
             Choices: 'observation-template'
-  /aecontent/v1/observations:
+  '/aecontent/v1/metadata/{type}/{path}':
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - triggers
+            - rta
+        name: type
+        in: path
+        required: true
+        description: Type of the content
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Path of the content
+    get:
+      summary: Get Meta for content
+      tags:
+        - Metadata
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_content_metadata
+      description: >
+        "Returns the metadata for content type"
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aecontent/v1/observations':
     get:
       summary: Get Global Observations
       tags:
@@ -94,6 +127,14 @@ paths:
             type: boolean
           in: query
           name: return_parents
+        - schema:
+            type: string
+            enum:
+              - normal
+              - extended
+          in: query
+          name: format
+          description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this observation became effective for the first time), and expiration_ts.
     post:
       summary: Create Global Observation
       operationId: create_global_observation
@@ -156,7 +197,15 @@ paths:
       description: Returns the observation definition indentified by id.
       security:
         - X-AIMS-Auth-Token: []
-      parameters: []
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - normal
+              - extended
+          in: query
+          name: format
+          description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this observation became effective for the first time), and expiration_ts.
   '/aecontent/v1/observations/paths/{path}':
     parameters:
       - schema:
@@ -202,6 +251,14 @@ paths:
           in: query
           name: ts
           description: The Unix epoch time to use for this request
+        - schema:
+            type: string
+            enum:
+              - normal
+              - extended
+          in: query
+          name: format
+          description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this observation became effective for the first time), and expiration_ts.
     delete:
       summary: Delete Global Observation
       operationId: delete_global_observation
@@ -399,7 +456,7 @@ paths:
       description: Deletes a global observation
       security:
         - X-AIMS-Auth-Token: []
-  /aecontent/v1/validations/observations:
+  '/aecontent/v1/validations/observations':
     post:
       summary: Validate Global Observation
       operationId: validate_global_observation

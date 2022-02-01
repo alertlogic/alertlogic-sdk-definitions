@@ -18,6 +18,9 @@ servers:
   - url: 'http://localhost:3001'
     x-alertlogic-global-endpoint: localhost3001
     description: localhost on port 3001
+  - url: 'http://localhost:3002'
+    x-alertlogic-global-endpoint: localhost3002
+    description: localhost on port 3002
 paths:
   '/v1/{account_id}/analytics':
     get:
@@ -81,7 +84,196 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+  '/v1/{account_id}/tagsets':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: query
+        description: Name of a tagset
+      - schema:
+          type: string
+        name: key
+        in: query
+        description: Key in the tagset
+      - schema:
+          type: boolean
+        name: include_audit_events
+        in: query
+        description: Include audit events
+      - schema:
+          type: integer
+        name: audit_events_limit
+        in: query
+        description: Limit of audit events to include
+      - schema:
+          type: boolean
+        in: query
+        name: explain
+        description: Explain how tunings are calculated or updates
+    get:
+      summary: Get Value of a tagset
+      responses:
+        '200':
+          description: Analytic Information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticInfo'
+      operationId: get_tagset
+      security:
+        - aims_request_authorizer: []
+      description: Returns an analytic for a specific customer
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetTagsetFunction.Arn}/invocations'
+      tags:
+        - aetuner
+    post:
+      summary: Update Tagset
+      operationId: update_tagset
+      responses:
+        '201':
+          description: Ok
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                xtuning:        # TODO: rename
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/XTuning'
+                  description: |-
+                    A list of tunings for the analytic.
+
+                    For visiblity, severity, threshold and handling when the default tagsets are not used it is possible
+                    to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist
+                    tuning a tagset path and key must be provided. Examples explain how to use it.
+
+                    NOTE: Spaces are not allowed between the items of a list.
+
+                    Examples:
+                      Severity
+                       - {"type":"severity","value":"low"}
+                       - {"type":"severity","path":"CustomSeverityMap","key":"windows","value":"low"}
+                      Visibity to incident
+                       - {"type":"visiblity","value":"incident"}
+                       - {"type":"visiblity","path":"CustomVisibilityMap","key":"windows","value":"incident"}
+                      Threshold
+                       - threshold:100
+                      Handling
+                       - {"type":"handling","operation":"add","value":"auto_soc_close"}
+                       - {"type":"handling","operation":"subtract","value":"auto_soc_close"}
+                       - {"type":"handling","operation":"add","path":"CustomHandlingMap","key":"windows","value":"auto_soc_close"}
+                      Whitelist
+                       - {"type":"whitelist","operation":"add","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"whitelist","operation":"subtract","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+                      Blacklist
+                       - {"type":"blacklist","operation":add","path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"blacklist","operation":subtract,"path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+
+                      To specify more than one tuning provide them in list like
+
+                      '[{"type":"severity","value":"incident"},{"type":"visibility","value":"high"},{"type":"threshold","value":"100"}]'
+                dry_run:
+                  type: boolean
+                  description: "DRY RUN only"
+                reason:
+                  type: string
+                  description: Reason for the performing the update. This information is used for auditing purposes.
+              required:
+                - reason
+        required: true
+      description: Update a tagset
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateTagsetFunction.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/analytics/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Analytic Name
+      - schema:
+          type: string
+        in: query
+        name: severity_key
+        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default.
+      - schema:
+          type: string
+        in: query
+        name: visibility_key
+        description: Visiblity tagset tuning key. Used for getting tuning tagset value instead of default.
+      - schema:
+          type: string
+        in: query
+        name: handling_key
+        description: Handling tagset tuning key. Used for getting tuning tagset value instead of default.
+      - schema:
+          type: integer
+        in: query
+        name: audit_events_limit
+        description: Limit the number of audit events to this number
+      - schema:
+          type: boolean
+        in: query
+        name: include_audit_events
+        description: When set to true returns audit events for the tuning tagsets in the analytic
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_path
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_key
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_value
+      - schema:
+          type: boolean
+        in: query
+        name: include_stacktrace
+      - schema:
+          type: boolean
+        in: query
+        name: enable_new
+      - schema:
+          type: object
+        in: query
+        name: sql_field_values
+        description: A map of values for SQL fields, example {"bf_protocol":"windows"}
+      - schema:
+          type: string
+        in: query
+        name: key
+        description: Tuning tagset key, defaults to the analytic name
+      - schema:
+          type: boolean
+        in: query
+        name: explain
+        description: Explain how tunings are calculated or updates
     get:
       summary: Get Analytic for a specific customer
       responses:
@@ -100,29 +292,6 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalyticFunction.Arn}/invocations'
       tags:
         - aetuner
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
-        description: Analytic Fully Qualified Name
-      - schema:
-          type: string
-        in: query
-        name: severity_key
-        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
-      - schema:
-          type: string
-        in: query
-        name: visibility_key
-        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default incident type.
     post:
       summary: Update Analytics
       operationId: update_analytic
@@ -137,6 +306,49 @@ paths:
             schema:
               type: object
               properties:
+                disable_validation:
+                  type: boolean
+                  description: "Disable the check that tuning referes to a tagset referenced by the analytic. Use if there is a tuning tagset that is not detected to be refernced by an analytic"
+                  default: false
+                xtuning:        # TODO: rename
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/XTuning'
+                  description: |-
+                    A list of tunings for the analytic.
+
+                    For visiblity, severity, threshold and handling when the default tagsets are not used it is possible
+                    to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist
+                    tuning a tagset path and key must be provided. Examples explain how to use it.
+
+                    NOTE: Spaces are not allowed between the items of a list.
+
+                    Examples:
+                      Severity
+                       - {"type":"severity","value":"low"}
+                       - {"type":"severity","path":"CustomSeverityMap","key":"windows","value":"low"}
+                      Visibity to incident
+                       - {"type":"visiblity","value":"incident"}
+                       - {"type":"visiblity","path":"CustomVisibilityMap","key":"windows","value":"incident"}
+                      Threshold
+                       - threshold:100
+                      Handling
+                       - {"type":"handling","operation":"add","value":"auto_soc_close"}
+                       - {"type":"handling","operation":"subtract","value":"auto_escalate"}
+                       - {"type":"handling","operation":"add","path":"CustomHandlingMap","key":"windows","value":"auto_soc_close"}
+                      Whitelist
+                       - {"type":"whitelist","operation":"add","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"whitelist","operation":"subtract","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+                      Blacklist
+                       - {"type":"blacklist","operation":add","path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"blacklist","operation":subtract,"path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+
+                      To specify more than one tuning provide them in list like
+
+                      '[{"type":"severity","value":"incident"},{"type":"visibility","value":"high"},{"type":"threshold","value":"100"}]'
+                dry_run:
+                  type: boolean
+                  description: "DRY RUN only"
                 visibility:
                   $ref: '#/components/schemas/IncidentVisibility'
                 visibility_key:
@@ -147,20 +359,23 @@ paths:
                 severity_key:
                   type: string
                   description: Severity tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `severity` is updated.
+                handling:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IncidentTypeHandlingSetting'
+                handling_key:
+                  type: string
+                  description: Handling tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `handling` is updated.
                 tuning:
                   type: object
                   description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
                   additionalProperties: true
-                  type: object
                   properties:
                     threshold:
                       type: integer
                       description: Example of property name
-                  additionalProperties:
-                    true
                 tuning_list:
                   $ref: '#/components/schemas/TuningList'
-                  description: List Tuning Parameters
                 reason:
                   type: string
                   description: Reason for the performing the update. This information is used for auditing purposes.
@@ -210,8 +425,12 @@ paths:
                   description: Reason for the performing the reset. This information is used for auditing purposes.
                 tuning:
                   type: array
-                  example: '["threshold", "whitelist"]'
-                  description: List of tunning keys to reset
+                  items:
+                    type: string
+                  example:
+                    - threshold
+                    - whitelist
+                  description: List of tuning keys to reset
               required:
                 - reason
         required: true
@@ -219,6 +438,111 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAnalyticFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/all_analytics/visibility':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics visibility fields to default
+      operationId: reset_all_analytics_visibility
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handling_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics visibility
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsVisibilityFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/all_analytics/severity':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics severity to defaults
+      operationId: reset_all_analytics_severity
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  severity_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics severity
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsSeverityFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/all_analytics/handling':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics handling to defaults
+      operationId: reset_all_analytics_handling
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handling_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics handling
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsHandlingFunction.Arn}/invocations'
       tags:
         - aetuner
   '/v1/{account_id}/incident_types':
@@ -493,7 +817,78 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
-  /healthcheck:
+  '/v1/tunings/report':
+    get:
+      summary: Tuning report commands
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: tuning_report
+      description: |-
+        Returns a shell command that can be run to produce the desired
+        report.
+
+        Example:
+
+        bash -c "$(alcli aetuner tuning_report --command get_tuning_for_tagset --path IncidentVisibilityMap)"
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerTuningReportFunction.Arn}/invocations'
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - get_tuning_for_tagset
+            - get_tuning_for_analytic
+            - get_tuning_for_account_id
+        name: command
+        in: query
+        required: true
+        description: Command to run
+      - schema:
+          type: string
+        name: cid
+        in: query
+        required: false
+        description: Customer Account ID
+      - schema:
+          type: string
+        name: path
+        in: query
+        required: false
+        description: Path or Name of an analytic or tagset
+      - schema:
+          type: string
+        name: observation_path
+        in: query
+        required: false
+        description: Path or Name of the observation generated by the analytic, defaults to the name of the Analytic
+      - schema:
+          type: boolean
+        name: return_values
+        in: query
+        required: false
+        description: If true return the values of the tagsets, otherwise just return the keys
+      - schema:
+          type: string
+        name: exclude
+        in: query
+        required: false
+        description: Comma separated list of paths to exclude for get_tuning_for_analytic command
+  '/version':
+    get:
+      summary: Get AEtuner version
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: get_version
+      description: Get the AEtuner version
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerVersionFunction.Arn}/invocations'
+  '/healthcheck':
     get:
       summary: Your GET endpoint
       tags: []
@@ -505,6 +900,78 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetHealthcheckFunction.Arn}/invocations'
+  '/v1/{account_id}/incident/{incident_id}/tunables':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: incident_id
+        in: path
+        required: true
+    get:
+      summary: Get Tunables
+      tags: []
+      responses:
+        '200':
+          description: A list of tunable tagsets for the specified incident.
+          headers: {}
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  tunings:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        value:
+                          type: object
+                        type:
+                          type: string
+                          minLength: 1
+                        keys:
+                          type: array
+                          uniqueItems: true
+                          minItems: 1
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                minLength: 1
+                              name:
+                                type: string
+                                minLength: 1
+                            required:
+                              - type
+                              - name
+                        name:
+                          type: string
+                          minLength: 1
+                          description: tagset name
+                        tuning_command:
+                          type: string
+                          minLength: 1
+                          description: alcli sample command
+                      required:
+                        - value
+                        - type
+                        - keys
+                        - name
+                        - tuning_command
+                required:
+                  - tunings
+              examples: {}
+      operationId: get_incident_tunables
+      description: Returns a list of all the tags that can be tuned and sample alcli commands to tune them.
 components:
   securitySchemes:
     aims_request_authorizer:
@@ -586,7 +1053,7 @@ components:
           type: string
           description: Fully qualifed name of an incident type
         incident_handling:
-          $ref: '#/components/schemas/IncidentTypeHandlingInfo'
+          $ref: '#/components/schemas/IncidentTypeHandlingSetting'
     IncidentSeverity:
       type: string
       title: IncidentSeverity
@@ -632,6 +1099,45 @@ components:
         path:
           type: string
           description: Handling preferences path.
+    XTuning:
+      title: XTuning
+      type: object
+      description: Tuning specification
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          description: Type of the tuning
+          enum:
+            - severity
+            - visibility
+            - threshold
+            - handling
+            - whitelist
+            - blacklist
+        operation:
+          type: string
+          description: Operation to perform
+          enum:
+            - add
+            - subtract
+            - write
+            - delete
+        value:
+          description: Value string or a list of string
+          anyOf:
+            - description: String value
+              type: string
+            - description: Number value
+              type: integer
+            - description: List value
+              type: array
+        path:
+          type: string
+          description: Explicit tuning tagset path
+        key:
+          type: string
+          description: Explicit tuning tagset key
     TuningList:
       title: TuningList
       type: object
@@ -657,11 +1163,44 @@ components:
           description: Values to add or remove
           items:
             type: string
+    ResetAllAnalyticsRequestBody:
+      title: ResetAllAnalyticsRequestBody
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Reason for the performing the reset. This information is used for auditing purposes.
+        dry_run:
+          type: boolean
+          description: "DRY RUN only"
       required:
-        - name
-        - key
-        - operation
-        - values
+        - reason
+    ResetAllAnalyticsResponseBody:
+      title: ResetAllAnalyticsResponseBody
+      oneOf:
+        - type: array
+          description: List of tagsets delete results
+          items:
+            type: object
+            properties:
+              tagset_path:
+                type: string
+              operation:
+                type: string
+              status:
+                type: object
+                properties:
+                  stored:
+                    type: string
+                    format: uuid
+        - type: object
+          properties:
+            dry_run:
+              type: boolean
+            tagsets_to_delete:
+              type: array
+              items:
+                type: string
 tags:
   - name: aetuner
     description: aetuner operations

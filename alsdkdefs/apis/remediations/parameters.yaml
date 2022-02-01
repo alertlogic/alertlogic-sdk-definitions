@@ -139,7 +139,7 @@ ParamVulnerabilityIds:
   schema:
     type: string
   in: query
-  name: remediation_ids
+  name: vulnerability_ids
   description: A comma-separated list of vulnerability IDs.
 ParamDisposed:
   schema:
@@ -460,6 +460,29 @@ ParamTopoChain:
     If set to `false`, it will retrieve all matching assets regardless of their topology path.
     Note that `topo_chain=false` may include assets with broken path to the response
     (e.g. a host without a relationship to a subnet).
+ParamScopeBoolean:
+  schema:
+    type: boolean
+    default: false
+  in: query
+  name: scope
+  description: |-
+    Flag that determines whether to apply deployment scope when gathering assets for the
+    query. If set to `true`, only assets in the deployment scope will be returned in the
+    query results.
+ParamIncludeAlertlogicSecurity:
+  schema:
+    type: boolean
+    default: false
+  in: query
+  name: include_alertlogic_security
+  description: |-
+    Flag that determines whether to include hosts with the `alertlogic_security` property
+    set to `true` (that is, hosts that are Alert Logic appliances) when `scope` is set to
+    `true`. By default, these appliances are not returned in query results when `scope` is
+    set to `true`. If `include_alertlogic_security` is set to `true` and `scope` is set to
+    `true`, then the default behavior will be overridden, and Alert Logic appliance hosts
+    will be included in scope (if they are in scope).
 ParamIncludeTaggedAssets:
   schema:
     type: boolean

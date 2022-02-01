@@ -1,0 +1,389 @@
+openapi: 3.0.2
+info:
+  title: Cargo
+  version: '2.0'
+  description: "Report Scheduling and Delivery service designed to manage customer schedule definitions, execute reports and provide access to report artifacts."
+servers:
+  - url: 'https://api.cloudinsight.alertlogic.com'
+    description: US production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.cloudinsight.alertlogic.co.uk'
+    description: UK production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.product.dev.alertlogic.com'
+    description: integration
+    x-alertlogic-session-endpoint: true
+paths:
+  '/cargo/v2/{account_id}/schedule':
+    parameters:
+      - $ref: '#/components/parameters/AccountId'
+    get:
+      summary: List Schedules
+      tags: [Schedules]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schedules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Schedule'
+              examples:
+                List Schedules Response Example:
+                  value:
+                    schedules:
+                      - name: 'Report Name'
+                        account_id: '67000001'
+                        id: '17C13BFD-3953-1005-BD8A-0EB9B569AE5D'
+                        type: 'search'
+                        schedule:
+                          daily:
+                            hour: 15
+                            minute: 5
+                        latest_schedule: 1819108200
+                        is_active: true
+                        notify_behavior: 'always'
+                        delete_empty_result: true
+                        definition:
+                          key: 'value'
+                        created:
+                          at: 1469023199
+                          by: null
+                        modified:
+                          at: 1469023400
+                          by: null
+      operationId: list_schedules
+      description: |-
+        Get list of schedules for given `account_id`. If `type` parameter is not specfied, returns all schedules for account
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: type
+          schema:
+            $ref: '#/components/schemas/Schedule-Type'
+          in: query
+  '/cargo/v2/{account_id}/execution_record':
+    parameters:
+      - $ref: '#/components/parameters/AccountId'
+    get:
+      summary: List Execution Records
+      tags: [Execution Records]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  execution_records:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Execution-Record'
+                  continuation:
+                    type: string
+              examples:
+                List Execution Records Response Example:
+                  value:
+                    execution_records:
+                      - name: 'Report Name'
+                        account_id: '67000001'
+                        id: '20210428-120100-3A37D887-AB7F-1005-8001-0242AC11001F'
+                        schedule_id: '3A37D887-AB7F-1005-8001-0242AC11001F'
+                        type: 'tableau'
+                        status: 'completed'
+                        scheduled_time: 1619611260
+                        schedule:
+                          daily:
+                            hour: 15
+                            minute: 5
+                        run_once: false
+                        retry: 0
+                        published: false
+                        publish_result: null
+                        notify_behavior: 'ifnotempty'
+                        delete_empty_result: false
+                        artifact_data:
+                          result_id: '3535505E-C11B-1005-8001-0242AC11000C'
+                          result_count: 0
+                          metadata:
+                            key: 'value'
+                          is_reference: false
+                          format: 'pdf'
+                          create_time: 1619611265
+                          attachments: []
+                        definition:
+                          key: 'value'
+                        created:
+                          at: 1619611260
+                          by: null
+                        modified:
+                          at: 1619611260
+                          by: null
+      operationId: list_execution_records
+      description: |-
+        List execution records for given `account_id`
+      parameters:
+        - name: schedule_id
+          schema:
+            type: string
+          in: query
+        - name: latest_only
+          schema:
+            type: boolean
+            default: false
+          in: query
+        - name: status
+          schema:
+            $ref: '#/components/schemas/Execution-Record-Status'
+          in: query
+        - name: start_time
+          schema:
+            type: number
+          in: query
+        - name: end_time
+          schema:
+            type: number
+          in: query
+        - name: continuation
+          schema:
+            type: string
+          in: query
+        - name: order
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          in: query
+        - name: type
+          schema:
+            $ref: '#/components/schemas/Schedule-Type'
+          in: query
+        - name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+          in: query
+      security:
+        - X-AIMS-Auth-Token: []
+  '/cargo/v2/{account_id}/execution_record/{exec_id}/rerun':
+    parameters:
+      - $ref: '#/components/parameters/AccountId'
+    post:
+      summary: Re-run Execution Record
+      tags: [Execution Records]
+      responses:
+        '201':
+          description: OK
+      operationId: rerun_execution_record
+      description: |-
+        Re-run execution record for given `account_id` and `exec_id`
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: exec_id
+          schema:
+            type: string
+          in: path
+          required: true
+  '/cargo/v2/{account_id}/execution_record/rerun':
+    parameters:
+      - $ref: '#/components/parameters/AccountId'
+    post:
+      summary: Re-run Execution Records in batch
+      tags: [Execution Records]
+      responses:
+        '201':
+          description: OK
+      operationId: rerun_execution_records
+      description: |-
+        Re-run multiple execution records for given `account_id` and `exec_id`s
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: ids
+          schema:
+            type: string
+          in: query
+          required: true
+components:
+  parameters:
+    AccountId:
+      name: account_id
+      schema:
+        type: string
+      in: path
+      required: true
+      description: AIMS Account Id
+  schemas:
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: string
+        account_id:
+          type: string
+        name:
+          type: string
+        schedule:
+          $ref: '#/components/schemas/Schedule-Spec'
+        type:
+          $ref: '#/components/schemas/Schedule-Type'
+        definition:
+          type: object
+        created:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+        modified:
+          type: object
+          properties:
+            at:
+              type: number
+            by:
+              type: string
+        latest_schedule:
+          type: number
+        is_active:
+          type: boolean
+        notify_behavior:
+          $ref: '#/components/schemas/Notify-Behavior'
+        delete_empty_result:
+          type: boolean
+    Execution-Record:
+      type: object
+      properties:
+        account_id:
+          type: string
+        id:
+          type: string
+        schedule_id:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/Execution-Record-Status'
+        type:
+          $ref: '#/components/schemas/Schedule-Type'
+        definition:
+          type: object
+        artifact_data:
+          type: object
+        created:
+          type: object
+          properties:
+            at:
+              type: integer
+            by:
+              type: string
+        modified:
+          type: object
+          properties:
+            at:
+              type: integer
+            by:
+              type: string
+        schedule:
+          $ref: '#/components/schemas/Schedule-Spec'
+        scheduled_time:
+          type: integer
+        notify_behavior:
+          $ref: '#/components/schemas/Notify-Behavior'
+        delete_empty_result:
+          type: boolean
+        run_once:
+          type: boolean
+        published:
+          type: boolean
+        publish_result:
+          type: object
+          nullable: true
+        retry:
+          type: integer
+    Notify-Behavior:
+      type: string
+      enum:
+        - always
+        - never
+        - ifnotempty
+    Schedule-Type:
+      type: string
+      enum:
+        - tableau
+        - search
+        - search_v2
+    Execution-Record-Status:
+      type: string
+      enum:
+        - scheduled
+        - running
+        - cancelled
+        - failed
+        - completed
+    Schedule-Spec:
+      oneOf:
+        - type: string
+          enum:
+            - every_15_minutes
+        - type: object
+          properties:
+            hourly:
+              type: object
+              properties:
+                minute:
+                  type: integer
+            daily:
+              type: object
+              properties:
+                hour:
+                  type: integer
+                minute:
+                  type: integer
+            weekly:
+              type: object
+              properties:
+                day:
+                  type: string
+                  enum:
+                    - monday
+                    - tuesday
+                    - wednesday
+                    - thursday
+                    - friday
+                    - saturday
+                    - sunday
+                hour:
+                  type: integer
+                minute:
+                  type: integer
+            monthly:
+              type: object
+              properties:
+                day:
+                  type: integer
+                hour:
+                  type: integer
+                minute:
+                  type: integer
+  securitySchemes:
+    X-AIMS-Auth-Token:
+      name: X-AIMS-Auth-Token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+tags:
+  - name: Schedules
+    description: Schedules
+  - name: Execution Records
+    description: Execution Records

@@ -46,7 +46,9 @@ GroupNameParam:
   type: string
   description: |-
     The unique name for the `asset-group` asset, such as `my-group`. This will be the same
-    as the asset `key`.
+    as the asset `key`. The name must be 500 characters or less in length, and may include
+    multilingual letters, numbers, backslash (`\`), colon (`:`), hyphen (`-`), period (`.`),
+    plus sign (`+`), slash (`/`), underscore (`_`), and space (` `).
 GroupPropertiesParam:
   type: object
   description: |-
@@ -435,8 +437,13 @@ DeclareBatchRequestBody:
       items:
         type: object
       description: |-
-        Any combination of `declare_asset`, `declare_properties`, and `declare_relationships`
-        operations.
+        Any combination of `declare_asset`, `declare_properties`,
+        `remove_properties`, `remove_relationships`, and `declare_relationships` operations.
+        Batch operations on the same asset with the same scope may be combined into a single operation.
+        **Note that** you should avoid batching operations that could result in different outcomes if
+        applied in a different order, for instance, you must not declare and remove the same properties
+        or relationships in different operations on the same asset in the same batch. Currently, the API
+        may accept it but in the future this behavior will be rejected.
   required:
     - operation
     - operations

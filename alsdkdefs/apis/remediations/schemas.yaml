@@ -108,7 +108,7 @@ RemediationIds:
     A list of remediation IDs. Note that this parameter is *mutually exclusive* with
     `"vulnerability_ids"`, and any operation that includes both will be rejected.
 VulnerabilityIds:
-  type: string
+  type: array
   description: |-
     A list of vulnerability IDs. Note that this parameter is *mutually exclusive* with
     `"remediation_ids"`, and any operation that includes both will be rejected.
@@ -116,7 +116,9 @@ GroupNameParam:
   type: string
   description: |-
     The unique name for the `asset-group` asset, such as `my-group`. This will be the same
-    as the asset `key`.
+    as the asset `key`. The name must be 500 characters or less in length, and may include
+    multilingual letters, numbers, backslash (`\`), colon (`:`), hyphen (`-`), period (`.`),
+    plus sign (`+`), slash (`/`), underscore (`_`), and space (` `).
 GroupPropertiesParam:
   type: object
   description: |-

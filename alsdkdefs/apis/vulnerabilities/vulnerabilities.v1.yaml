@@ -1,0 +1,529 @@
+openapi: 3.0.3
+info:
+  title: Vulnerability & Remediation Resources
+  version: '1.0.0'
+  description: 'Vulnerability & Remediation OpenAPI'
+  contact:
+    email: support@alertlogic.com
+    name: Alert Logic Support
+servers:
+  - url: 'https://api.cloudinsight.alertlogic.com'
+    description: us-production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.cloudinsight.alertlogic.co.uk'
+    description: uk-production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.product.dev.alertlogic.com'
+    description: integration
+    x-alertlogic-session-endpoint: true
+paths:
+
+  '/remediation/v1/{remediation_id}':
+    get:
+      summary: Get a remediation
+      tags: [Remediation Resources]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemediationObjectResponses'
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '404':
+            description: Not found
+        '500':
+          description: Internal Server Error
+      operationId: get_remediation
+      description: "Returns a remediation by id."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: remediation_id
+          schema:
+            type: string
+          in: path
+          required: true
+    post:
+      summary: update the remediation (privileged only)
+      tags: [Remediation Resources]
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemediationObjectResponses'
+        '400':
+          description: Bad request - invalid/missing fields
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '500':
+          description: Internal Server Error
+      operationId: update_remediation
+      description: "Remediations are updated by posting fields to merge. Returns the updated remediation. This functionality is only available for privileged users/services"
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: remediation_id
+          schema:
+            type: string
+          in: path
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemediationObjectRequest'
+
+  '/remediation/v1':
+    get:
+      summary: list remediations
+      tags: [Remediation Resources]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  remediations:
+                    type: array
+                    nullable: true
+                    items:
+                      $ref: '#/components/schemas/RemediationObjectResponses'
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '404':
+            description: Not found
+        '500':
+          description: Internal Server Error
+      operationId: get_remediation_list
+      description:
+        "Returns a list of remediations. Optionally filtered by vulnerability_ids or remediation_ids."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: remediation_ids
+          schema:
+            type: string
+          in: query
+        - name: vulnerability_ids
+          schema:
+            type: string
+          in: query
+    post:
+      summary: Add a remediation (privileged only)
+      tags: [Remediation Resources]
+      operationId: add_remediation
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    $ref: '#/components/schemas/PropertyRemediationIdRead'
+        '400':
+          description: Bad request - invalid/missing fields
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '500':
+          description: Internal Server Error
+
+      description: Returns the remediation id. If a remediation with the same id already exists in the database no object will be created. This functionality is only available for privileged users/services
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemediationObjectRequest'
+
+  '/remediation/v1/batch':
+    post:
+      summary: Add a list of remediations (privileged only)
+      tags: [Remediation Resources]
+      responses:
+        '201':
+          description: Ok
+        '400':
+          description: Bad request - invalid/missing fields
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '500':
+          description: Internal Server Error
+      operationId: add_remediation_list
+      description:
+        "Creates multiple remediation objects. If a remediation with the same description already exists in the database no object will be created.This functionality is only available for privileged users/services"
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/RemediationObjectResponses'
+
+  '/vulnerability/v1/{vulnerability_id}':
+    get:
+      summary: Get a vulnerability
+      tags: [Vulnerability Resources]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetVulnerabilityObject'
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '404':
+            description: Not found
+        '500':
+          description: Internal Server Error
+      operationId: get_vulnerability
+      description: "Returns a vulnerability by id."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: vulnerability_id
+          schema:
+            type: string
+          in: path
+          required: true
+
+  '/vulnerability/v1':
+    get:
+      summary: get list of vulnerability
+      tags: [Vulnerability Resources]
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vulnerabilities:
+                    type: array
+                    nullable: true
+                    items:
+                      $ref: '#/components/schemas/GetVulnerabilityObject'
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '404':
+            description: Not found
+        '500':
+          description: Internal Server Error
+      operationId: get_vulnerability_list
+      description:
+        "Returns a list of remediations. Optionally filtered by vulnerability_ids or remediation_ids."
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - name: remediation_ids
+          schema:
+            type: string
+          in: query
+        - name: vulnerability_ids
+          schema:
+            type: string
+          in: query
+    post:
+      summary: Create a vulnerability (privileged only).
+      tags: [Vulnerability Resources]
+      operationId: add_vulnerability
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    minLength: 1
+                    example: "27b9eb13e42dd418cbfcae9af5ee2e8a"
+                    readOnly: true
+        '400':
+          description: Bad request - invalid/missing fields
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '500':
+          description: Internal Server Error
+
+      description: Returns the vulnerability id after creation. This functionality is only available for privileged users/services
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostVulnerabilityObject'
+
+  '/vulnerability/v1/batch':
+    post:
+      summary: Add a list of vulnerability (privileged only)
+      tags: [Vulnerability Resources]
+      responses:
+        '201':
+          description: Ok
+        '400':
+          description: Bad request - invalid/missing fields
+        '401':
+          description: Authorization error
+        '403':
+          description: Permission denied
+        '500':
+          description: Internal Server Error
+      operationId: add_vulnerability_list
+      description:
+        "Same as add_vulnerability but for a list.\n This functionality is only available for privileged users/services"
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PostVulnerabilityObject'
+
+
+
+
+components:
+  schemas:
+    RemediationObjectRequest:
+      title: RemediationWrite
+      description:
+        "Remediation definition"
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/PropertyRemediationIdWrite'
+        name:
+          $ref: '#/components/schemas/PropertyRemediationName'
+        description:
+          $ref: '#/components/schemas/PropertyRemediationDescription'
+        vulnerability_ids:
+          $ref: '#/components/schemas/PropertyRemediationVulnerabilityIds'
+
+    RemediationObjectResponses:
+      title: RemediationRead
+      description:
+        "Remediation definition"
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/PropertyRemediationIdRead'
+        name:
+          $ref: '#/components/schemas/PropertyRemediationName'
+        description:
+          $ref: '#/components/schemas/PropertyRemediationDescription'
+        vulnerability_ids:
+          $ref: '#/components/schemas/PropertyRemediationVulnerabilityIds'
+
+    PropertyRemediationIdRead:
+      type: string
+      minLength: 1
+      example: "f728405b92a8456994c1e05bb282e311"
+      readOnly: true
+
+    PropertyRemediationIdWrite:
+      type: string
+      minLength: 1
+      example: "f728405b92a8456994c1e05bb282e311"
+      writeOnly: true
+
+    PropertyRemediationName:
+      type: string
+      nullable: true
+      example: Remove Root API Keys
+
+    PropertyRemediationDescription:
+      type: string
+      nullable: true
+      example: "To remove root API keys: Log into your AWS management console..."
+
+    PropertyRemediationVulnerabilityIds:
+      type: array
+      nullable: true
+      items:
+        format: uuid
+        readOnly: true
+
+    GetVulnerabilityObject:
+      title: Get vulnerability
+      description:
+        "Vulnerability definition for request"
+      allOf:
+          - type: object
+            properties:
+              id:
+                type: string
+                minLength: 1
+                example: "b9baf1f5363c3c7107316bf44e7b6cfb"
+                readOnly: true
+          - $ref: '#/components/schemas/VulnerabilityObject'
+
+    PostVulnerabilityObject:
+        allOf:
+          - type: object
+            properties:
+              id:
+                type: string
+                minLength: 1
+                example: "b9baf1f5363c3c7107316bf44e7b6cfb"
+                writeOnly: true
+          - $ref: '#/components/schemas/VulnerabilityObject'
+
+    VulnerabilityObject:
+      title: Vulnerability object
+      description:
+        "Vulnerability definition"
+      type: object
+      properties:
+        description:
+          type: string
+          example: "Cookie without HTTPOnly attribute can be accessed by scripts"
+        severity:
+          type: string
+          example: "potential"
+        impact:
+          type: string
+          nullable: true
+          example: "cross-site scripting attacks."
+        resolution:
+          type: string
+          nullable: true
+          example: "Modify web applications to set the HTTPOnly attribute..."
+        reference:
+          type: string
+          nullable: true
+          example: "For more information on the HTTPOnly attribute, see..."
+        class:
+          type: string
+          nullable: true
+          example: "General remote services"
+        cwe:
+          type: string
+          nullable: true
+          example: "CWE-426"
+        cwe_name:
+          type: string
+          nullable: true
+          example: "Untrusted Search Path"
+        cwe_type:
+          type: string
+          nullable: true
+          example: "Compound"
+        cwe_url:
+          type: string
+          nullable: true
+          example: "http://cwe.mitre.org/data/definitions/426.html"
+        remediation_id:
+          type: string
+          nullable: true
+          example: "remediation123"
+        pci_severity:
+          type: string
+          nullable: true
+          example: "Passed"
+        cve:
+          type: array
+          nullable: true
+          items:
+            format: string
+            example: '"12213"'
+        bid:
+          type: array
+          nullable: true
+          items:
+            format: string
+            example: '"10183"'
+        osvdb:
+          type: array
+          nullable: true
+          items:
+            format: string
+            example: '"4030"'
+        nsin:
+          type: array
+          nullable: true
+          items:
+            format: string
+            example: "CVE-2016-10009"
+        exposure_id:
+          format: string
+          nullable: true
+          example: '"10183"'
+        cvss_vector:
+          format: string
+          nullable: true
+          example: "(AV:N/AC:L/Au:N/C:N/I:N/A:N/E:ND/RL)"
+        full_description:
+          format: string
+          nullable: true
+          example: "full description"
+        cis_content:
+          format: array
+          nullable: true
+          items:
+            format: object
+            properties:
+              id:
+                type: string
+                minLength: 1
+                example: "cis-3"
+              name:
+                type: string
+                nullable: true
+                example: "CIS 3 ...."
+              spec_id:
+                type: string
+                nullable: true
+                example: "/cis/foundations/v1..."
+              scored:
+                type: boolean
+                nullable: true
+                example: true
+              description:
+                type: string
+                nullable: true
+                example: "CIS description"
+              remediation:
+                type: string
+                nullable: true
+                example: "Remediation definitions"
+
+
+  securitySchemes:
+    X-AIMS-Auth-Token:
+      name: X-AIMS-Auth-Token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token

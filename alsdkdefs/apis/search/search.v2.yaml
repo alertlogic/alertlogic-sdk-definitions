@@ -42,6 +42,7 @@ paths:
                     description: A description of the error that occured
       parameters:
         - $ref: '#/components/parameters/search_type'
+        - $ref: '#/components/parameters/execution_mode'
         - schema:
             type: integer
             minimum: 0
@@ -94,7 +95,7 @@ paths:
             enum:
               - true
               - false
-            default: 'false'
+            default: false
           in: query
           description: Return search execution details
         - name: offset
@@ -105,10 +106,10 @@ paths:
         - name: limit
           schema:
             type: integer
-            default: '100'
+            default: 100
           in: query
           description: Limit the number of elements in the response
-        - name: next_token
+        - name: starting_token
           schema:
             type: string
           in: query
@@ -192,6 +193,8 @@ paths:
           required: true
         - schema:
             type: array
+            items:
+              type: string
           in: query
           name: ids
           description: Comma-separated list of Base64 encoded AMI4 or NSM message IDs. Both Message ID types can be used in the same request.
@@ -270,14 +273,14 @@ paths:
           explode: false
         - schema:
             type: boolean
-            default: 'false'
+            default: false
           in: query
           name: details
           description: Return debugging details of the search
         - schema:
             type: string
           in: query
-          name: next_token
+          name: starting_token
           description: A `next_token` from a previous response to continue paging results
         - $ref: '#/components/parameters/x-invoked-by'
       tags:
@@ -329,13 +332,13 @@ paths:
       parameters:
         - schema:
             type: boolean
-            default: 'false'
+            default: false
           in: query
           name: redefine_now
           description: 'When retry is `false`, you can choose to redefine the value of NOW() to the time this API is called.  If the original search used the `timeframe` query string parameter, the start and end time will be recalculated accordingly.'
         - schema:
             type: boolean
-            default: 'false'
+            default: false
           in: query
           name: retry
           description: Whether to link the given search to the new search in the `retried_by` field of the original search (`true`) or simply copy the search and rerun it (`false`). Defaults to `false`.
@@ -595,6 +598,18 @@ components:
         - stats
         - submit_ts
         - update_ts
+    ExecutionMode:
+      type: string
+      title: ExecutionMode
+      enum:
+        - shared
+        - ecs
+      description: |-
+        The `execution_mode` describes how the user would like the search to execute (using Lambda and/or ECS).
+
+        - `shared` will force a search to execute using both Lambda and ECS resources.
+        - `ecs` will force a search to execute using only ECS resources.
+      default: shared
     ExternalDetailsAttribute:
       title: ExternalDetailsAttribute
       type: string
@@ -740,6 +755,14 @@ components:
       minimum: 0
       maximum: 100
       description: An estimate of the progress of the search completion on a scale of 0-100.
+    SearchStart:
+      type: number
+      title: SearchStart
+      description: Unix timestamp of requested search timeframe beginning
+    SearchEnd:
+      type: number
+      title: SearchEnd
+      description: Unix timestamp of requested search timeframe end
     ReleasedSearchResults:
       title: ReleasedSearchResults
       type: object
@@ -806,6 +829,10 @@ components:
           $ref: '#/components/schemas/DetailsModel'
         external_details:
           $ref: '#/components/schemas/ExternalDetailsAttribute'
+        search_end:
+          $ref: '#/components/schemas/SearchEnd'
+        search_start:
+          $ref: '#/components/schemas/SearchStart'
         search_status:
           $ref: '#/components/schemas/SearchStatus'
         search_uuid:
@@ -914,6 +941,10 @@ components:
           type: number
           minimum: 0
           description: The 0-based offset into the results of the search
+        search_end:
+          $ref: '#/components/schemas/SearchEnd'
+        search_start:
+          $ref: '#/components/schemas/SearchStart'
         search_status:
           $ref: '#/components/schemas/SearchStatus'
         search_uuid:
@@ -1002,6 +1033,11 @@ components:
         maxLength: 9
       required: true
       description: The AIMS account ID
+    execution_mode:
+      name: execution_mode
+      in: query
+      schema:
+        $ref: '#/components/schemas/ExecutionMode'
     search_type:
       name: search_type
       in: query

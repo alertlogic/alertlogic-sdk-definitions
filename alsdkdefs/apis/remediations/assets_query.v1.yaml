@@ -112,6 +112,7 @@ info:
     | Is not                | `!!`           | Scalar               | `x.name=!!Draco`                 |
     | Is null               | `$null`        | None                 | `x.name=$null`                   |
     | Is one of             | `@` or `<<`    | Comma separated list | `x.name=@Harry,Ron,Hermione`     |
+    | Is not one of         | `!@` or `!<<`  | Comma separated list | `x.name=!@Harry,Ron,Hermione`    |
     | List contains         | `>>`           | Scalar               | `x.parents=>>Lilly`              |
     | List does not contain | `!>>`          | Scalar               | `x.parents=!>>Lilly`             |
     | String contains       | `%`            | String               | `x.name=%Percival`               |
@@ -293,6 +294,8 @@ paths:
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
       - $ref: 'parameters.yaml#/ParamTopoChain'
+      - $ref: 'parameters.yaml#/ParamScopeBoolean'
+      - $ref: 'parameters.yaml#/ParamIncludeAlertlogicSecurity'
     get:
       operationId: query_assets
       summary: Query Assets for Account
@@ -472,6 +475,8 @@ paths:
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
       - $ref: 'parameters.yaml#/ParamTopoChain'
+      - $ref: 'parameters.yaml#/ParamScopeBoolean'
+      - $ref: 'parameters.yaml#/ParamIncludeAlertlogicSecurity'
     get:
       operationId: query_deployment_assets
       summary: Query Assets in Deployment
@@ -870,6 +875,24 @@ paths:
         * `ip_address`
         * `network`
 
+        To get details of an asset by `user_id`, specify the following query parameters:
+
+        * `user_id` (note that this query will execute an exact match and will not normalize the input while searching)
+
+        To get details of an asset by `deployment` and `user_id`, specify the following query parameters:
+
+        * `deployment`
+        * `user_id` (note that this query will execute an exact match and will not normalize the input while searching)
+
+        To get details of an asset by `user_name`, specify the following query parameters:
+
+        * `user_name` (note that this query will execute an exact match and will not normalize the input while searching)
+
+        To get details of an asset by `deployment` and `user_id`, specify the following query parameters:
+
+        * `deployment`
+        * `user_name` (note that this query will execute an exact match and will not normalize the input while searching)
+
         Note that when calling this endpoint with query options `deployment`, `network` and `ip_address` set, if a host is found,
         any subnet that the host isn't related to but it could be (the IP address matches the subnet mask) the additional unrelated
         subnet(s) will be returned under the `subnet` key in the response.
@@ -915,6 +938,26 @@ paths:
           label: Remote Source
           source: |-
             curl "ttps://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?uuid=8EB3C34C-4889-4BA1-B615-BAC3FD5138FC&type=remote-source" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: User ID
+          source: |-
+            curl "ttps://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?user_id=AIDAI2INU2Y52FB2B7JOM" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: User Name
+          source: |-
+            curl "ttps://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?user_name=username-5cf2df986ad9411d" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Deployment, User ID
+          source: |-
+            curl "ttps://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?deployment=id:33CB4E47-8FBA-4502-A8F2-F9EE1B566454&user_id=AIDAI2INU2Y52FB2B7JOM" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Deployment, User Name
+          source: |-
+            curl "ttps://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details?deployment=id:33CB4E47-8FBA-4502-A8F2-F9EE1B566454&user_name=username-5cf2df986ad9411d" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       parameters:
         - $ref: 'parameters.yaml#/UrlParamAccountId'
@@ -1004,6 +1047,18 @@ paths:
           description: |-
             The UUID of the asset `type` being elaborated. The host UUID for a `host` is the UUID
             issued to its associated agent or appliance, and contained in its agent certificate.
+        - schema:
+            type: string
+          in: query
+          name: user_id
+          description: |-
+            The user ID of the user asset being elaborated.
+        - schema:
+            type: string
+          in: query
+          name: user_name
+          description: |-
+            The user name of the user asset being elaborated.
       responses:
         "200":
           description: OK
@@ -1022,6 +1077,8 @@ paths:
                   $ref: 'examples.yaml#/AssetDetailsHostByDeploymentIPNetworkExample'
                 Remote Source Details Success Response:
                   $ref: 'examples.yaml#/AssetDetailsRemoteSource'
+                User by ID/name Details Success Response:
+                  $ref: 'examples.yaml#/AssetDetailsUser'
         "400":
           $ref: 'responses.yaml#/AssetDetailsBadRequest'
         "401":
@@ -1072,6 +1129,24 @@ paths:
         * `deployment`
         * `ip_address`
         * `network`
+
+        To get details of an asset by `user_id`, specify the following request body fields:
+
+        * `user_id` (note that this query will execute an exact match and will not normalize the input while searching)
+
+        To get details of an asset by `deployment` and `user_id`, specify the following request body fields:
+
+        * `deployment`
+        * `user_id` (note that this query will execute an exact match and will not normalize the input while searching)
+
+        To get details of an asset by `user_name`, specify the following request body fields:
+
+        * `user_name` (note that this query will execute an exact match and will not normalize the input while searching)
+
+        To get details of an asset by `deployment` and `user_id`, specify the following request body fields:
+
+        * `deployment`
+        * `user_name` (note that this query will execute an exact match and will not normalize the input while searching)
 
         Note that when calling this endpoint with query options `deployment`, `network` and `ip_address` set, if a host is found,
         any subnet that the host isn't related to but it could be (the IP address matches the subnet mask) the additional unrelated
@@ -1165,7 +1240,7 @@ paths:
             }
             EOF
         - lang: Shell
-          label: Remote Source
+          label: 'Remote Source'
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
                  -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
@@ -1174,6 +1249,45 @@ paths:
               "type": "remote-source"
             }
             EOF
+        - lang: Shell
+          label: 'User ID'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "user_id": "AIDAI2INU2Y52FB2B7JOM"
+            }
+            EOF     
+        - lang: Shell
+          label: 'User Name'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "user_name": "username-5cf2df986ad941"
+            }
+            EOF
+        - lang: Shell
+          label: 'Deployment, User ID'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "deployment": "id:33CB4E47-8FBA-4502-A8F2-F9EE1B566454"
+              "user_id": "AIDAI2INU2Y52FB2B7JOM"
+            }
+            EOF
+        - lang: Shell
+          label: 'Deployment, User Name'
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/details" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "deployment": "id:33CB4E47-8FBA-4502-A8F2-F9EE1B566454"
+              "user_naem": "username-5cf2df986ad9411"
+            }
+            EOF
+
       parameters:
         - $ref: parameters.yaml#/UrlParamAccountId
       responses:
@@ -1194,6 +1308,8 @@ paths:
                   $ref: examples.yaml#/AssetDetailsHostByDeploymentIPNetworkExample
                 Remote Source Details Success Response:
                   $ref: examples.yaml#/AssetDetailsRemoteSource
+                User by ID/name Details Success Response:
+                  $ref: 'examples.yaml#/AssetDetailsUser'
         '400':
           $ref: responses.yaml#/AssetDetailsBadRequest
         '401':

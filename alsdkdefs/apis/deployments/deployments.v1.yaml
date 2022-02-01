@@ -38,7 +38,7 @@ paths:
         in: path
         required: true
     post:
-      summary: ''
+      summary: Create deployment
       operationId: create_deployment
       responses:
         '201':
@@ -57,7 +57,7 @@ paths:
               $ref: '#/components/schemas/DeploymentInfo'
   '/deployments/v1/{account_id}/deployments/{deployment_id}':
     get:
-      summary: Your GET endpoint
+      summary: Get deployment
       tags: []
       responses:
         '200':
@@ -82,7 +82,7 @@ paths:
         in: path
         required: true
     delete:
-      summary: ''
+      summary: 'Delete deployment'
       operationId: delete_deployment
       responses:
         '204':
@@ -142,6 +142,15 @@ components:
           type: boolean
           default: true
           description: Whether or not the deployment is discovered. Default is true if not specified.
+        features:
+          type: object
+          properties:
+            abs:
+              $ref: '#/components/schemas/FeatureScopeInfo'
+            scan:
+              $ref: '#/components/schemas/FeatureScopeInfo'
+            fim:
+              $ref: '#/components/schemas/FeatureScopeInfo'
         scan:
           type: boolean
           default: true
@@ -174,6 +183,8 @@ components:
           type: boolean
         ct_install_region:
           type: string
+        preferred_ct_arn:
+          type: string
       required:
         - enabled
         - ct_install_region
@@ -202,6 +213,9 @@ components:
             ct_install_region:
               type: string
               description: 'The AWS region to install CloudTrail in; Required if platform.monitor.enabled == true, Invalid otherwise'
+            preferred_ct_arn:
+              type: string
+              description: 'Trail ARN which should be used for cloud trail collection'
       required:
         - type
     DeploymentScopeInfo:
@@ -248,6 +262,30 @@ components:
               key:
                 type: string
                 description: Asset Key
+    FeatureScopeInfo:
+      title: Feature Scope Info
+      description: "Definition of customer's assets being protected by the particular feature"
+      type: array
+      items:
+        type: object
+        description: List of assets being protected by a feature
+        properties:
+          scope:
+            type: array
+            items:
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - deployment
+                    - region
+                    - vpc
+                    - subnet
+                    - host
+                  description: 'Asset type. Allowed asset types: deployment, region, vpc.'
+                key:
+                  type: string
+                  description: Asset Key
     AzureDeploymentPlatformInfo:
       title: AzureDeploymentPlatformInfo
       type: object
@@ -327,10 +365,15 @@ components:
           type: boolean
         discover:
           type: boolean
-        scan:
-          type: boolean
-        scope:
-          $ref: '#/components/schemas/DeploymentScopeInfo'
+        features:
+          type: object
+          properties:
+            abs:
+              $ref: '#/components/schemas/FeatureScopeInfo'
+            scan:
+              $ref: '#/components/schemas/FeatureScopeInfo'
+            fim:
+              $ref: '#/components/schemas/FeatureScopeInfo'
         cloud_defender:
           type: object
           properties:
