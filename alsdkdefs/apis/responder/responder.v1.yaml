@@ -1,0 +1,5711 @@
+openapi: 3.0.2
+info:
+  title: Responder Service
+  version: '1.0'
+  description: 'Configure response playbooks '
+  contact:
+    name: Usage Services
+    email: usages_services@alertlogic.com
+servers:
+  - url: 'https://api.global-services.global.alertlogic.com'
+    description: production
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.global-integration.product.dev.alertlogic.com'
+    description: integration
+    x-alertlogic-session-endpoint: true
+x-amazon-apigateway-gateway-responses:
+  ACCESS_DENIED:
+    responseTemplates:
+      application/json: |
+        {
+          "message": $context.error.messageString,
+          "details": "$context.authorizer.errorMessage"
+        }
+  BAD_REQUEST_BODY:
+    responseTemplates:
+      application/json: |
+        {
+          "message": $context.error.messageString,
+          "details": "$context.error.validationErrorString"
+        }
+  BAD_REQUEST_PARAMETERS:
+    responseTemplates:
+      application/json: |
+        {
+          "message": $context.error.messageString,
+          "details": "$context.error.validationErrorString"
+        }
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestBody: true
+    validateRequestParameters: true
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true
+paths:
+  '/v1/{account_id}/playbooks':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: List all playbooks
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playbooks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Playbook'
+                  marker:
+                    type: string
+                  summary:
+                    $ref: '#/components/schemas/PlaybooksSummary'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+      operationId: list_playbooks
+      description: Returns the list of playbooks
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-request-validator: params-only
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListPlaybooksFunction.Arn}:responderListPlaybooks/invocations'
+        httpMethod: POST
+        type: aws_proxy
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          in: query
+          name: sort_order
+          description: Sort order
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: Comma-delimited list of types to return.
+        - schema:
+            type: string
+          in: query
+          name: vendors
+          description: Comma-delimited list of action vendors
+        - schema:
+            type: boolean
+          in: query
+          name: enabled
+          description: 'Specify `true` to return enabled playbooks, `false` to return disabled playbooks. Returns enabled and disabled playbooks when not specified.'
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: Number of entries to return.
+        - schema:
+            type: string
+          in: query
+          name: marker
+          description: Specifies a point to resume search from
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: deleted
+          description: Status of playbooks to return
+    post:
+      summary: Create new playbook
+      operationId: create_playbook
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playbook'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '409':
+          description: Playbook with this name already exists
+      description: Creates new playbook and returns created playbook object
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlaybook'
+        description: New Playbook Structure
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderCreatePlaybookFunction.Arn}:responderCreatePlaybook/invocations'
+        httpMethod: POST
+        type: aws_proxy
+      security:
+        - aims_request_authorizer: []
+  '/v1/{account_id}/summary/playbooks':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get playbooks summary
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    $ref: '#/components/schemas/PlaybooksSummary'
+        '401':
+          description: Unauthorized
+      operationId: get_playbooks_summary
+      description: Get playbooks summary
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetPlaybooksSummaryFunction.Arn}:responderGetPlaybooksSummary/invocations'
+  /healthcheck:
+    get:
+      summary: Health Endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: get_healthcheck
+      description: Check health status of the service.
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetHealthcheckFunction.Arn}/invocations'
+  '/v1/{account_id}/definitions/mr_configs':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get a list of supported MR Configs for an account
+      operationId: list_mr_configs_definitions
+      description: Returns the list of supported MR Configs for an account
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: MR Config Definition objects
+                type: object
+                properties:
+                  definitions:
+                    type: array
+                    description: List of MR Config Definition objects
+                    items:
+                      type: object
+                  allowed_values:
+                    type: object
+        '403':
+          description: Forbidden
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderListMrConfigDefinitionsFunction}:responderListMrConfigTypeDefinitions/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+  '/v1/{account_id}/definitions/mr_configs/{mr_type}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: mr_type
+        in: path
+        required: true
+        description: Type of MR config
+    get:
+      summary: Get details for MR Config definition
+      operationId: get_mr_config_definition
+      description: Get details for MR Config definition
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: MR Config Definition objects
+                type: object
+                properties:
+                  form:
+                    type: object
+                  allowed_values:
+                    type: object
+        '403':
+          description: Forbidden
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderGetMrConfigDefinitionFunction}:responderGetMrConfigTypeDefinition/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+          - integration.request.path.mr_type: method.request.path.mr_type
+  '/v1/{account_id}/definitions/mr_devices':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get a list of supported MR Devices for an account
+      operationId: list_mr_devices_definitions
+      description: Returns the list of supported MR Devices for an account
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: List of MR Devices Definition objects
+                type: array
+                items:
+                  type: object
+        '403':
+          description: Forbidden
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderListMrConfigDeviceDefinitionsFunction}:responderListMrConfigDeviceDefinitionsFunction/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+  '/v1/{account_id}/mr_configs':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: List all MR config items for account
+      operationId: list_mr_configs
+      description: Returns the list of MR config items
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mr_configs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MrConfigItem'
+                  summary:
+                    $ref: '#/components/schemas/MrConfigsSummary'
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: Comma-delimited list of types to return
+        - schema:
+            type: string
+          in: query
+          name: category
+          description: Comma-delimited list of categories to return
+        - schema:
+            type: boolean
+          in: query
+          name: enabled
+          description: 'Specify `true` to return enabled configs, `false` to return disabled configs. Returns every config when not specified.'
+        - schema:
+            type: boolean
+          in: query
+          name: deleted
+          description: Specify `true` to include deleted configs
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderListMrConfigsFunction}:responderListMrConfigs/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+    post:
+      summary: Create new MR config item
+      operationId: create_mr_config
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MrConfigItem'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+      description: Creates new ManagedResponse config item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MrConfigItem'
+            x-alertlogic-schema:
+              name: item
+              in: body
+              required: true
+        description: MR config item data
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderCreateMrConfigFunction}:responderCreateMrConfig/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+      security:
+        - aims_request_authorizer: []
+      parameters: []
+  '/v1/{account_id}/mr_configs/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: MR config id
+    get:
+      summary: Get MR config item by id
+      tags: []
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: deleted
+          description: Specify `true` if config is deleted (`false` by default)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MrConfigItem'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      operationId: get_mr_config
+      description: Returns MR config object
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderGetMrConfigFunction}:responderGetMrConfig/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+          - integration.request.path.id: method.request.path.id
+    put:
+      summary: Update existing MR config item
+      operationId: update_mr_config
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MrConfigItem'
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Updates existing MR config item
+      requestBody:
+        content:
+          application/json:
+            x-alertlogic-schema:
+              name: item
+              in: body
+              required: true
+            schema:
+              $ref: '#/components/schemas/MrConfigItem'
+        description: MR config object
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderUpdateMrConfigFunction}:responderUpdateMrConfig/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+          - integration.request.path.id: method.request.path.id
+    delete:
+      summary: Delete existing MR config item
+      operationId: delete_mr_config
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Deletes an existing playbook
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderDeleteMrConfigFunction}:responderDeleteMrConfig/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+          - integration.request.path.id: method.request.path.id
+  '/v1/{account_id}/mr_configs/dry_runs':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Initiate new dry run for specified  MR config
+      operationId: create_mr_dry_run
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Dry run execution id.
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+      description: Creates dry_run execution for provided Managed Response config item specification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MrConfigItem'
+            x-alertlogic-schema:
+              name: item
+              in: body
+              required: true
+        description: MR config item data
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderCreateMrDryRunFunction}:responderCreateMrDryRun/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+      security:
+        - aims_request_authorizer: []
+      parameters: []
+  '/v1/{account_id}/mr_configs/dry_runs/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: MR config dry_run execution id
+    get:
+      summary: Get MR dry_run execution report
+      tags: []
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      operationId: get_mr_dry_run
+      description: Returns MR dry_run report object
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderGetMrDryRunFunction}:responderGetMrDryRun/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+          - integration.request.path.id: method.request.path.id
+  '/v1/{account_id}/actions':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    get:
+      summary: List available actions
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Action'
+        '401':
+          description: Unauthorized
+      operationId: list_actions
+      description: Returns the list of available actions
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListActionsFunction.Arn}:responderListActions/invocations'
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - incident
+              - observation
+              - exposure
+              - remediation
+          in: query
+          name: payload_type
+  '/v1/{account_id}/actions/{action_ref}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: action_ref
+        in: path
+        required: true
+    get:
+      summary: Get details for action
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionDetails'
+        '401':
+          description: Unauthorized
+      operationId: get_action_details
+      description: Returns details for action
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetActionDetailsFunction.Arn}:responderGetActionDetails/invocations'
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - incident
+              - observation
+              - exposure
+              - remediation
+          in: query
+          name: payload_type
+  '/v1/{account_id}/playbook_authorization/{st2_id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: st2_id
+        in: path
+        required: true
+        description: ST2 Parent Playbook ID
+    get:
+      summary: Get Playbook Authorization
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetToken'
+              examples:
+                Issue Token Response:
+                  value:
+                    account_id: '12345678'
+                    entity_type: entity_type
+                    entity_id: 87941EAD-3C7A-458B-9AC4-82ECBD4EEA9D
+                    scope: 'role:2C4C631F-07CD-4818-B5E0-B6C712D122A1'
+                    token: Token==
+                    token_expiration: 1618436471
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_playbook_authorization
+      description: Returns playbook token for execution scope
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetPlaybookRoleAuthenticationFunction.Arn}:responderGetPlaybookRoleAuthentication/invocations'
+  '/v1/{account_id}/playbook_roles':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get Allowed Playbook roles
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaybookAllowedRoles'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      operationId: get_allowed_playbook_roles
+      description: Returns playbook allowed roles
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetPlaybookAllowedRolesFunction.Arn}:responderGetPlaybookAllowedRoles/invocations'
+  '/v1/{account_id}/playbooks/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Playbook ID or Playbook Name
+    get:
+      summary: Get Playbook by id or name
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playbook'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      operationId: get_playbook
+      description: Returns playbook object
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetPlaybookFunction.Arn}:responderGetPlaybook/invocations'
+    put:
+      summary: Update existing playbook
+      operationId: update_playbook
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playbook'
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: 'Updates an existing playbook '
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlaybook'
+        description: Playbook Object
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderUpdatePlaybookFunction.Arn}:responderUpdatePlaybook/invocations'
+    delete:
+      summary: Delete existing playbook
+      operationId: delete_playbook
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Deletes an existing playbook
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDeletePlaybookFunction.Arn}:responderDeletePlaybook/invocations'
+  '/v1/{account_id}/executions':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Execute specified playbook or action
+      operationId: execute
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionRecord'
+      description: Enqueues a playbook to be executed with specified parameters
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExecution'
+        description: 'An incident, observation, vulnerability, etc.'
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderExecuteFunction.Arn}:responderExecute/invocations'
+      parameters: []
+  '/v1/{account_id}/executions/{execution_id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: execution_id
+        in: path
+        required: true
+        description: Execution ID
+    get:
+      summary: Get Execution Details
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - succeeded
+                      - failed
+                      - paused
+                      - running
+                  result:
+                    type: string
+                  start_timestamp:
+                    type: number
+                    format: date-time
+                    description: Start of execution epoch time
+                  end_timestamp:
+                    type: number
+                    format: date-time
+                    description: End of execution epoch time.
+                  parameters:
+                    type: object
+                  elapsed_seconds:
+                    type: number
+                    format: float
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExecutionRecord'
+        '404':
+          description: Created
+      operationId: get_execution
+      security:
+        - aims_request_authorizer: []
+      description: Returns Execution Details
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetExecutionFunction.Arn}:responderGetExecution/invocations'
+    delete:
+      summary: Cancels Execution
+      operationId: cancel_execution
+      responses:
+        '204':
+          description: No Content
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      description: Cancel execution
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderCancelExecutionFunction.Arn}/invocations'
+  '/v1/{account_id}/playbook_incidents/{incident_id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: incident_id
+        in: path
+        required: true
+        description: Iris Incident ID
+    get:
+      summary: Get incident from Iris in responder (bifrost) format
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_payload_incident
+      security:
+        - aims_request_authorizer: []
+      description: Returns incident in bifrost format
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetPlaybookIncidentsFunction.Arn}/invocations'
+  '/v1/{account_id}/payload_samples':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: List per-account payload samples
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload_samples:
+                    type: array
+                    items:
+                      type: object
+      operationId: list_account_payload_samples
+      security:
+        - aims_request_authorizer: []
+      description: Returns payload samples
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListAccountPayloadSamplesFunction.Arn}:responderListAccountPayloadSamples/invocations'
+    post:
+      summary: Create payload sample
+      operationId: create_payload_sample
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+      description: Creates payload sample
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountPayloadSample'
+        description: Create account payload sample
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderCreateAccountPayloadSampleFunction.Arn}:responderCreateAccountPayloadSamples/invocations'
+  '/v1/{account_id}/payload_samples/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Payload sample ID
+    get:
+      summary: Get per-account payload sample
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_account_payload_sample
+      security:
+        - aims_request_authorizer: []
+      description: Returns payload sample
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetAccountPayloadSampleFunction.Arn}:responderGetAccountPayloadSample/invocations'
+    put:
+      summary: Update payload sample
+      operationId: update_account_payload_sample
+      responses:
+        '200':
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                type: object
+      description: Update payload sample
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountPayloadSample'
+        description: Update account payload sample
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderUpdateAccountPayloadSampleFunction.Arn}:responderUpdateAccountPayloadSample/invocations'
+    delete:
+      summary: Delete per-account payload sample
+      operationId: delete_account_payload_sample
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Delete per-account payload sample
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDeleteAccountPayloadSampleFunction.Arn}:responderDeleteAccountPayloadSample/invocations'
+  /v1/payload_samples:
+    get:
+      summary: List system payload samples
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload_samples:
+                    type: array
+                    items:
+                      type: object
+      operationId: list_system_payload_samples
+      security:
+        - aims_request_authorizer: []
+      description: Returns system payload samples
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListSystemPayloadSamplesFunction.Arn}:responderListSystemPayloadSamples/invocations'
+  '/v1/{account_id}/playbook_templates':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: payload_type
+        in: query
+        required: false
+        description: Payload type
+      - schema:
+          type: boolean
+          default: false
+        name: include_parents
+        in: query
+        required: false
+        description: Whether to include parents' shared templates
+    get:
+      summary: List playbook templates
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playbook_templates:
+                    type: array
+                    items:
+                      type: object
+      operationId: list_playbook_templates
+      security:
+        - aims_request_authorizer: []
+      description: Returns playbook templates
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListPlaybookTemplatesFunction.Arn}:responderListPlaybookTemplates/invocations'
+    post:
+      summary: Create playbook template
+      operationId: create_playbook_template
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+      description: Creates playbook template
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlaybookTemplate'
+        description: Create playbook template
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderCreatePlaybookTemplateFunction.Arn}:responderCreatePlaybookTemplate/invocations'
+  '/v1/{account_id}/playbook_templates/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Payload sample ID
+    get:
+      summary: Get playbook template
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_playbook_template
+      security:
+        - aims_request_authorizer: []
+      description: Returns playbook template
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetPlaybookTemplateFunction.Arn}:responderGetPlaybookTemplate/invocations'
+    put:
+      summary: Update playbook template
+      operationId: update_playbook_template
+      responses:
+        '200':
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                type: object
+      description: Update playbook template
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlaybookTemplate'
+        description: Update playbook template
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderUpdatePlaybookTemplateFunction.Arn}:responderUpdatePlaybookTemplate/invocations'
+    delete:
+      summary: Delete playbook template
+      operationId: delete_playbook_template
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Delete playbook template
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDeletePlaybookTemplateFunction.Arn}:responderDeletePlaybookTemplate/invocations'
+  '/v1/{account_id}/workflow/inspect':
+    post:
+      summary: Inspect workflow definition for errors
+      operationId: inspect_workflow
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InspectWorkflow'
+              examples: {}
+      description: Checks workflow document and returns a list of errors if any are found
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Workflow document
+              properties:
+                input_type:
+                  type: string
+                  default: json
+                  enum:
+                    - yaml
+                    - json
+                workflow:
+                  type: string
+                parameters:
+                  type: object
+                  description: Playbook's input parameters
+              required:
+                - input_type
+                - workflow
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderInspectWorkflowFunction.Arn}/invocations'
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: Account ID
+  '/v1/{account_id}/inquiries':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: Account ID
+    get:
+      summary: List all inquiries
+      tags: []
+      operationId: list_inquiries
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inquiries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InquiryRecord'
+                  count:
+                    type: number
+                  marker:
+                    type: string
+      security:
+        - aims_request_authorizer: []
+      description: Returns a list of all inquiries
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListInquiriesFunction.Arn}/invocations'
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: Number of entries to return.
+        - schema:
+            type: string
+          in: query
+          name: marker
+          description: Specifies a point to resume search from.
+        - schema:
+            type: string
+            enum:
+              - pending
+              - completed
+          in: query
+          name: status
+          description: Filter inquiries by status.
+        - schema:
+            type: string
+          in: query
+          name: deployment_id
+          description: Deployment to return inquiries for.
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: Type of inquiries to return.
+        - schema:
+            type: number
+          in: query
+          name: start_timestamp
+          description: Start timestamp filter (epoch time)
+        - schema:
+            type: number
+          in: query
+          name: end_timestamp
+          description: End timestamp filter (epoch time)
+        - schema:
+            type: string
+          in: query
+          name: sort_by
+          description: Field to sort results by
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          in: query
+          name: sort_order
+          description: Sort order
+  '/v1/{account_id}/inquiries/{inquiry_id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: inquiry_id
+        in: path
+        required: true
+    get:
+      summary: Get Inquiry
+      operationId: get_inquiry
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InquiryRecord'
+      security:
+        - aims_request_authorizer: []
+      description: Returns a specific inquiry
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetInquiryFunction.Arn}:responderGetInquiry/invocations'
+    put:
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: do_respond
+      summary: Update Inquiry
+      operationId: update_inquiry
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInquiry'
+      description: Updates an existing inquiry
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderUpdateInquiryFunction.Arn}:responderUpdateInquiry/invocations'
+  '/v1/{account_id}/inquiries/unauthenticated/response/{inquiry_id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: inquiry_id
+        in: path
+        required: true
+    get:
+      summary: ''
+      operationId: unauthenticated_update_inquiry
+      responses:
+        '200':
+          description: OK
+      description: Sets result of the inquiry
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: data
+          required: true
+      security:
+        - NONE: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderUnauthenticatedUpdateInquiryFunction.Arn}:responderUnauthenticatedUpdateInquiry/invocations'
+  '/v1/{account_id}/attachments/{filename}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: filename
+        in: path
+        required: true
+    get:
+      summary: Download a file
+      tags: []
+      responses:
+        '302':
+          description: Found
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Please see the new location for the requested attachment
+      operationId: download_attachment
+      security:
+        - aims_request_authorizer: []
+      description: Downloads an attachment
+      parameters: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDownloadAttachmentFunction.Arn}:responderDownloadAttachmentFunction/invocations'
+  /v1/trigger_definitions:
+    parameters: []
+    get:
+      summary: List supported data type schemas
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TriggerDefinition'
+      operationId: list_trigger_definitions
+      security:
+        - aims_request_authorizer: []
+      description: Returns a list of supported trigger definitions including their dynamic forms
+      parameters: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListTriggerDefinitionsFunction.Arn}:responderTriggerDefinitionsFunction/invocations'
+  '/v1/{account_id}/trigger_roles':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get Allowed Trigger roles
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaybookAllowedRoles'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      operationId: get_allowed_trigger_roles
+      description: Returns trigger allowed roles
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetTriggerAllowedRolesFunction.Arn}:responderGetTriggerAllowedRoles/invocations'
+  '/v1/{account_id}/triggers/recreate_rules':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Recreate trigger rules
+      operationId: recreate_trigger_rules
+      responses:
+        '204':
+          description: No Content
+      description: Recreate trigger rules
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderRecreateTriggerRulesFunction.Arn}:responderRecreateTriggerRules/invocations'
+  '/v1/{account_id}/triggers/send':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Send trigger
+      operationId: send_trigger
+      responses:
+        '202':
+          description: Accepted
+      description: Send trigger
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendTrigger'
+        description: Trigger was accepted for processing
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderSendTriggerFunction.Arn}:responderSendTriggerFunction/invocations'
+  '/v1/{account_id}/triggers':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: List per-account triggers
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  triggers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Trigger'
+                  count:
+                    type: number
+                    description: Number of triggers returned
+                  marker:
+                    description: Marker to be used in subsequent calls to retrieve remaining triggers
+                    oneOf:
+                      - type: string
+      operationId: list_triggers
+      security:
+        - aims_request_authorizer: []
+      description: Returns triggers for given account
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListAccountTriggersFunction.Arn}:responderListAccountTriggers/invocations'
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: Comma-delimited list of trigger types to return.
+        - schema:
+            type: boolean
+          in: query
+          name: enabled
+          description: 'Specify `true` to return enabled triggers, `false` to return disabled  triggers. Returns enabled and disabled playbooks when not specified.'
+        - schema:
+            type: number
+          in: query
+          name: limit
+          description: Number of entries to return.
+        - schema:
+            type: string
+          in: query
+          name: marker
+          description: Specifies a point to resume search from.
+        - schema:
+            type: string
+          in: query
+          name: playbooks
+          description: Comma-separated list of playbooks ids
+        - schema:
+            type: string
+          in: query
+          name: actions
+          description: Comma-separated list of actions refs
+    post:
+      summary: Create a trigger
+      operationId: create_trigger
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+      description: Creates trigger
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trigger'
+            x-alertlogic-schema:
+              name: triggers
+              in: body
+              required: true
+        description: Create account trigger
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderCreateAccountTriggerFunction.Arn}:responderCreateAccountTrigger/invocations'
+  '/v1/{account_id}/triggers/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Trigger ID
+    get:
+      summary: Get a per-account trigger
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+      operationId: get_trigger
+      security:
+        - aims_request_authorizer: []
+      description: Returns trigger
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetAccountTriggerFunction.Arn}:responderGetAccountTrigger/invocations'
+    put:
+      summary: Update a per-account trigger
+      operationId: update_trigger
+      responses:
+        '200':
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+      description: Update trigger
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trigger'
+        description: Update account payload sample
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderUpdateAccountTriggerFunction.Arn}:responderUpdateAccountTrigger/invocations'
+    delete:
+      summary: Delete a per-account trigger
+      operationId: delete_trigger
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Delete per-account trigger
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDeleteAccountTriggerFunction.Arn}:responderDeleteAccountTrigger/invocations'
+  '/v1/{account_id}/triggers/name/{name}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+        description: Trigger name
+    get:
+      summary: Get a per-account trigger by name
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+      operationId: get_trigger_by_name
+      security:
+        - aims_request_authorizer: []
+      description: Returns trigger
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetAccountTriggerByNameFunction.Arn}:responderGetAccountTriggerByName/invocations'
+  '/v1/{account_id}/summary/triggers':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get summary for per-account triggers
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    $ref: '#/components/schemas/TriggersSummary'
+      operationId: get_triggers_summary
+      security:
+        - aims_request_authorizer: []
+      description: Returns triggers summary for given account
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetTriggersSummaryFunction.Arn}:responderGetTriggersSummary/invocations'
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: playbooks
+          description: Comma-separated list of playbooks ids
+        - schema:
+            type: string
+          in: query
+          name: actions
+          description: Comma-separated list of actions refs
+  '/v1/{account_id}/resummary/triggers':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Recalculate triggers summary for account
+      tags: []
+      operationId: resummary_triggers
+      responses:
+        '204':
+          description: Successful
+      security:
+        - aims_request_authorizer: []
+      description: Recalculate triggers summary for account
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderTriggersResummaryFunction.Arn}:responderTriggersResummary/invocations'
+  '/v1/{account_id}/resummary/playbooks':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Recalculate playbooks summary for account
+      tags: []
+      operationId: resummary_playbooks
+      responses:
+        '204':
+          description: Successful
+      security:
+        - aims_request_authorizer: []
+      description: Recalculate playbooks summary for account
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderPlaybooksResummaryFunction.Arn}/invocations'
+  '/v1/{account_id}/schemas':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: List supported data type schemas
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Data type model name
+                    version:
+                      type: string
+                      description: Data type model version
+                    schema:
+                      type: object
+                  required:
+                    - name
+                    - version
+      operationId: list_schemas
+      security:
+        - aims_request_authorizer: []
+      description: Returns a list of supported data types JSON Schemas
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListSchemasFunction.Arn}/invocations'
+      parameters:
+        - schema:
+            type: array
+            items:
+              type: object
+          in: query
+          name: data_types
+          description: Data types to return schemas for
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: include_schema
+          description: Include JSON Schema
+  '/v1/{account_id}/schemas/{data_type}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: data_type
+        in: path
+        required: true
+        description: Data type name to return JSON schema for
+    get:
+      summary: Get data type schema
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data type model JSON schema
+      operationId: get_schema
+      security:
+        - aims_request_authorizer: []
+      description: Returns data type's JSON Schema
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetSchemaFunction.Arn}/invocations'
+  '/v1/{account_id}/executions/{execution_id}/re_run':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: execution_id
+        in: path
+        required: true
+        description: Execution ID
+    post:
+      summary: Re-run previosly executed playbook
+      tags: []
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionRecord'
+      operationId: re_run
+      description: Creates a new exection from a previously run exection.
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RerunExecution'
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderRerunExecutionFunction.Arn}/invocations'
+  '/v1/{account_id}/executions/{execution_id}/pause':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: execution_id
+        in: path
+        required: true
+    post:
+      summary: Pause execution
+      operationId: pause_execution
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+      description: Pauses running execution
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderPauseExecutionFunction.Arn}/invocations'
+  '/v1/{account_id}/executions/{execution_id}/resume':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: execution_id
+        in: path
+        required: true
+    post:
+      summary: Resume Execution
+      operationId: resume_execution
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+      description: Resumes paused execution
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderResumeExecutionFunction.Arn}/invocations'
+  '/v1/{account_id}/executions/history':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    post:
+      summary: Query Executions History
+      operationId: query_executions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/TaskExecutionHistoryResult'
+                  - $ref: '#/components/schemas/PlaybookExecutionHistoryResult'
+      security:
+        - aims_request_authorizer: []
+      description: 'Query executions history for playbooks, tasks or actions'
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/PlaybookExecutionHistoryQuery'
+                - $ref: '#/components/schemas/TaskExecutionHistoryQuery'
+                - $ref: '#/components/schemas/ActionExecutionHistoryQuery'
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderExecutionsHistoryFunction.Arn}:responderQueryExecutionsHistory/invocations'
+  '/v1/{account_id}/executions/history/{type}/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+          enum:
+            - playbook
+            - task
+            - action
+        name: type
+        in: path
+        required: true
+        description: Execution Type
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: Execution ID
+    get:
+      summary: Get Execution Record
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/TaskExecutionRecord'
+                  - $ref: '#/components/schemas/PlaybookExecutionRecord'
+      operationId: get_execution_record
+      description: Get Execution Record for a specific Execution Type
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetExecutionRecordFunction.Arn}:responderGetExecutionRecord/invocations'
+  '/v1/{account_id}/inquiries/history':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    post:
+      summary: Query Inquiries History
+      operationId: query_inquiries
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InquiryHistoryResult'
+      description: Query inquiries history
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InquiryHistoryQuery'
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderInquiriesHistoryFunction.Arn}:responderQueryInquiriesHistory/invocations'
+  '/v1/{account_id}/blocks/history':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+          enum:
+            - "v2"
+        in: query
+        name: summary_ver
+        required: false
+        description: Summary version
+    post:
+      summary: Query Blocks History
+      operationId: query_blocks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlocksHistoryResult'
+      security:
+        - aims_request_authorizer: []
+      description: Query executions history for blocks
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlocksHistoryQuery'
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderBlocksHistoryQueryFunction}:responderBlocksHistoryQuery/invocations'
+  '/v1/{account_id}/blocks/manage':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    post:
+      summary: Manage blocks status
+      operationId: manage_blocks
+      responses:
+        '202':
+          description: OK
+          content:
+            application/json:
+              schema: {}
+      security:
+        - aims_request_authorizer: []
+      description: Modify blocks
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlocksManageRequest'
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderBlocksManageFunction}:responderBlocksManage/invocations'
+  '/v1/management/dlq/reenqueue/{queue}':
+    parameters:
+      - schema:
+          type: string
+        name: queue
+        in: path
+        required: true
+    post:
+      summary: DLQ Reenqueue
+      operationId: dlq_reenqueue
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Takes a given queue name and reenqueues all msgs from dlq to the main related queue
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDLQReenqueueFunction.Arn}/invocations'
+  '/v1/{account_id}/authentication_token':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    get:
+      summary: Get AIMS token for a playbook execution
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - execution
+                      - trigger
+                  aims_token:
+                    type: string
+                required:
+                  - type
+                  - aims_token
+        '403':
+          description: Forbidden
+      operationId: get_authentication_token
+      description: Returns AIMS Token for a playbook's execution
+      security:
+        - aims_request_authorizer: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: execution_id
+          description: Execution ID
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetAuthenticationTokenFunction.Arn}:responderGetAuthenticationToken/invocations'
+  '/responder_private/v1/{account_id}/edge_actions':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    get:
+      summary: List Edge Actions
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inquiries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EdgeActionRecord'
+                  count:
+                    type: number
+                  marker:
+                    type: string
+      operationId: list_edge_actions
+      description: Returns a list of edge actions
+      security:
+        - aims_request_authorizer: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: limit
+          description: Number of entries to return.
+        - schema:
+            type: string
+          in: query
+          name: marker
+          description: Specifies a point to resume search from.
+        - schema:
+            type: string
+            enum:
+              - pending
+              - completed
+          in: query
+          name: status
+          description: Filter edge actions by status.
+        - schema:
+            type: string
+          in: query
+          name: deployment_id
+          description: Deployment to return edge actions for.
+        - schema:
+            type: string
+          in: query
+          name: network_id
+          description: Network to return edge actions for.
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: Type of edge actions to return.
+        - schema:
+            type: number
+          in: query
+          name: start_timestamp
+          description: Start timestamp filter (epoch time)
+        - schema:
+            type: number
+          in: query
+          name: end_timestamp
+          description: End timestamp filter (epoch time)
+        - schema:
+            type: string
+          in: query
+          name: sort_by
+          description: Field to sort results by
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          in: query
+          name: sort_order
+          description: Sort order
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderListEdgeActionsFunction.Arn}/invocations'
+      x-internal: true
+  '/responder_private/v1/{account_id}/edge_actions/dispatch':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    post:
+      summary: Dispatch Edge Actions to be executed by an appliance/agent
+      operationId: dispatch
+      responses:
+        '201':
+          description: Dispatched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdgeActionRecord'
+      description: Dispatch edge actions to be executed
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refs:
+                  type: array
+                  description: Action Refs
+                  items:
+                    type: string
+                target:
+                  type: object
+                  properties:
+                    host_uuid:
+                      type: string
+                    type:
+                      type: string
+                      enum:
+                        - deployment
+                        - network
+                        - host
+                        - cluster
+                      default: network
+              required:
+                - refs
+        description: Criteria for edge actions to be dispatched to an appliance/agent
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDispatchEdgeActionFunction.Arn}:responderDispatchEdgeActionFunction/invocations'
+      x-internal: true
+  '/responder_private/v1/{account_id}/edge_actions/{action_id}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: action_id
+        in: path
+        required: true
+    get:
+      summary: Get Edge Action
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdgeActionRecord'
+      operationId: get_edge_action
+      description: Returns Edge Action
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetEdgeActionFunction.Arn}/invocations'
+      x-internal: true
+    post:
+      summary: Respond to an edge action
+      operationId: respond
+      responses:
+        '202':
+          description: Accepted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      description: Respond to an edge action
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result:
+                  oneOf:
+                   - type: object
+                   - type: string
+                status:
+                  type: string
+                  enum:
+                    - succeeded
+                    - failed
+              required:
+                - status
+      x-internal: true
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderEdgeActionRespondFunction.Arn}/invocations'
+  '/v1/{account_id}/managed_response':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    post:
+      summary: Execute specific managed response
+      operationId: mr_execute
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      description: Execute specific managed response for an incident or an observation
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MrExecute'
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderMrExecuteFunction}:responderMrExecuteFunction/invocations'
+components:
+  schemas:
+    Playbook:
+      title: PlaybookInfo Object
+      type: object
+      description: Playbook Object Definition
+      properties:
+        id:
+          type: string
+          description: Playbook ID
+          readOnly: true
+        name:
+          type: string
+          description: Playbook Name
+          maxLength: 100
+          minLength: 3
+        description:
+          type: string
+          description: Playbook Description
+          maxLength: 1000
+        role_id:
+          type: string
+          description: Role playbook should execute with
+        type:
+          $ref: '#/components/schemas/PlaybookType'
+        enabled:
+          type: boolean
+          description: Is playbook enabled
+        vendors:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        parameters:
+          type: object
+          additionalProperties: true
+          description: Playbook's input parameters
+        output_schema:
+          type: object
+          description: Playbook's output schema
+        workflow:
+          type: object
+          description: Wokrflow defintion
+        created:
+          $ref: '#/components/schemas/UpdateTimestampRecord'
+        modified:
+          $ref: '#/components/schemas/UpdateTimestampRecord'
+        deleted:
+          type: boolean
+          description: Set to `true` if this playbook was deleted
+      required:
+        - name
+        - type
+        - parameters
+    PlaybookAllowedRoles:
+      title: Playbook Roles Allowed Values Object
+      type: object
+      description: Playbook Roles Allowed Values Definition
+      properties:
+        allowed_values:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+              label:
+                type: string
+    UpdatePlaybook:
+      description: Base Playbook Object Definition
+      type: object
+      title: Update Playbook Object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        role_id:
+          type: string
+        enabled:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        parameters:
+          type: object
+        output_schema:
+          type: object
+        workflow:
+          type: object
+        vars:
+          $ref: '#/components/schemas/PlaybookVarsPlaybook'
+    CreatePlaybook:
+      description: Create Playbook Object Definition
+      type: object
+      title: Create Playbook Object
+      properties:
+        name:
+          type: string
+          description: Playbook Name
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          description: Playbook Description
+          maxLength: 1000
+        role_id:
+          type: string
+          description: Role playbook should execute with
+        type:
+          $ref: '#/components/schemas/PlaybookType'
+        enabled:
+          type: boolean
+          description: Enable Playbook
+        tags:
+          type: array
+          description: Tags to assign to this playbook.
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        parameters:
+          type: object
+          description: Playbook Parameters
+          additionalProperties:
+            $ref: '#/components/schemas/PlaybookParameter'
+        output_schema:
+          type: object
+          additionalProperties: true
+          description: Schema for playbook output parameters
+        workflow:
+          type: object
+          description: Workflow Definition
+        vars:
+          $ref: '#/components/schemas/PlaybookVarsPlaybook'
+      required:
+        - name
+        - type
+        - parameters
+        - workflow
+    CreateMrConfigItem:
+      title: Create ManagedResponse config item
+      description: Create ManagedResponse config item
+      $ref: '#/components/schemas/MrConfigItem'
+    UpdateMrConfigItem:
+      title: Update ManagedResponse config item
+      description: Update ManagedResponse config item
+      $ref: '#/components/schemas/MrConfigItem'
+    MrConfigItem:
+      title: ManagedResponse config item
+      description: ManagedResponse config item
+      oneOf:
+        - $ref: '#/components/schemas/MrConfigItemAwsWafIpset'
+        - $ref: '#/components/schemas/MrConfigItemAwsSns'
+        - $ref: '#/components/schemas/MrConfigItemAwsEventbridge'
+        - $ref: '#/components/schemas/MrConfigItemPaloaltoBlock'
+        - $ref: '#/components/schemas/MrConfigItemFortinetBlock'
+        - $ref: '#/components/schemas/MrConfigItemSentinelDisconnect'
+        - $ref: '#/components/schemas/MrConfigItemMsDefenderIsolate'
+        - $ref: '#/components/schemas/MrConfigItemAzureUserDisable'
+        - $ref: '#/components/schemas/MrConfigItemAwsUserDisable'
+        - $ref: '#/components/schemas/MrConfigItemADUserDisable'
+        - $ref: '#/components/schemas/MrConfigItemWSMBlock'
+    MrConfigItemAwsWaf:
+      title: ManagedResponse config item for AWS WAF
+      description: ManagedResponse config item for AWS WAF
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - aws_waf
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        resource_arn:
+          type: string
+          title: Resource ARN
+        resource_scope:
+          type: string
+          title: Resource Scope
+          enum:
+            - REGIONAL
+            - CLOUDFRONT
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Response TTL in seconds
+          default: 300
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external IP addresses detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - resource_arn
+        - resource_scope
+        - connection_target_id
+        - ttl_sec
+    MrConfigItemAwsWafIpset:
+      title: ManagedResponse config item for AWS WAF ipset
+      description: ManagedResponse config item for AWS WAF ipset
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - aws_waf_ipset
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection that grants access to perform this response
+        ip_v4_ipset_arn:
+          type: string
+          title: IPv4 IPSet ARN
+          description: ARN of the AWS WAF IPv4 IP set to which Alert Logic will add addresses for blocking
+        scope:
+          type: string
+          title: IP Set Scope
+          description: Set whether the IP set is for a regional application or an Amazon CloudFront distribution.
+          enum:
+            - REGIONAL
+            - CLOUDFRONT
+        ttl_sec:
+          type: integer
+          title: Block Expiration in Seconds
+          description: Alert Logic deactivates the block after the specified number of seconds.
+          default: 604800
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external IP addresses detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - scope
+        - ip_v4_ipset_arn
+        - ttl_sec
+    MrConfigItemAwsSns:
+      title: ManagedResponse config item for AWS SNS
+      description: ManagedResponse config item for AWS SNS
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - aws_sns
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        topic_arn:
+          type: string
+          title: Topic Arn
+        target_arn:
+          type: string
+          title: Target Arn
+        phone_number:
+          type: string
+          title: Phone Number
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Response TTL in seconds
+          default: 300
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external attackers
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - ttl_sec
+    MrConfigItemAwsEventbridge:
+      title: ManagedResponse config item for AWS Event bridge
+      description: ManagedResponse config item for AWS Event bridge
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - aws_event_bridge
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        event_bus_name:
+          type: string
+          title: Event Bus Name
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Response TTL in seconds
+          default: 300
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external attackers
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - event_bus_name
+        - ttl_sec
+    MrConfigItemPaloaltoBlock:
+      title: ManagedResponse config item for Palo Alto Firewall Block
+      description: ManagedResponse config item for Palo Alto Firewall Block
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - paloalto_block
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        tag:
+          type: string
+          title: Tag
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Response TTL in seconds
+          default: 300
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external IP addresses detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - tag
+        - ttl_sec
+    MrConfigItemFortinetBlock:
+      title: ManagedResponse config item for Fortinet Firewall Block
+      description: ManagedResponse config item for Fortinet Firewall Block
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - fortinet_block
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        policy_name:
+          type: string
+          title: Policy Name
+        group_name:
+          type: string
+          title: Group Name
+        vdoms:
+          type: array
+          title: Virtual Domains
+          description: Comma separated list of virtual domains
+          items:
+            type: string
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Response TTL in seconds
+          default: 300
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external IP addresses detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - policy_name
+        - group_name
+        - ttl_sec
+    MrConfigItemMsDefenderIsolate:
+      title: ManagedResponse config item for MS Defender ATP
+      description: ManagedResponse config item for MS Defender ATP
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - ms_defender_atp_isolate
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        comment:
+          type: string
+          title: Response Comment
+          description: Describe the reason for isolation.
+          default: Alert Logic Response
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Time to wait in seconds before releasing the host from isolation
+          default: 0
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Isolate hosts detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - comment
+        - ttl_sec
+    MrConfigItemSentinelDisconnect:
+      title: ManagedResponse config item for SentinelOne
+      description: ManagedResponse config item for SentinelOne
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - sentinel_disconnect
+          readOnly: true
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Time to wait in seconds before releasing the host from isolation
+          default: 0
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Isolate hosts detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - ttl_sec
+    MrConfigItemAzureUserDisable:
+      title: ManagedResponse config item for Azure
+      description: ManagedResponse config item for Azure
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - azure_user_disable
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Time to wait in seconds before reenabling the user
+          default: 0
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Disable users detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - ttl_sec
+    MrConfigItemAwsUserDisable:
+      title: ManagedResponse config item for AWS User
+      description: ManagedResponse config item for AWS User
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - aws_user_disable
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Time to wait in seconds before reenabling the user
+          default: 0
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Disable users detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - connection_target_id
+        - ttl_sec
+    MrConfigItemADUserDisable:
+      title: ManagedResponse config item for Microsoft Active Directory User
+      description: ManagedResponse config item for Microsoft Active Directory User
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - ad_user_disable
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Disable users detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          default: true
+        connection_target_id:
+          type: string
+          title: Connection
+          description: Connection target to use for the response
+        ttl_sec:
+          type: integer
+          title: Expiration in Seconds
+          description: Response TTL in seconds
+          default: 300
+          minimum: 0
+      required:
+        - type
+        - name
+        - connection_target_id
+        - ttl_sec
+    MrConfigItemWSMBlock:
+      title: ManagedResponse config item for Alert Logic WSM Block
+      description: ManagedResponse config item for Alert Logic WSM Block
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - wsm_block
+        name:
+          type: string
+          title: Response Name
+          pattern: '[\w+=,.@-]+'
+          minLength: 1
+          maxLength: 128
+        cluster_id:
+          type: string
+          title: WAF Cluster
+          description: Alert Logic WAF cluster to use for the response
+        ttl_sec:
+          type: integer
+          title: Block Expiration in Seconds
+          description: Alert Logic deactivates the block after the specified number of seconds.
+          default: 604800
+          minimum: 0
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          description: WSM Cluster ID
+          items:
+            type: string
+        approval_options:
+          type: string
+          title: Require Approval?
+          default: none
+          enum:
+            - none
+            - required_approvals
+        required_approvals:
+          type: array
+          title: User(s)
+          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external IP addresses detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
+        - cluster_id
+        - ttl_sec
+    MrConfigItemName:
+      type: string
+      title: Response Name
+      pattern: '[\w+=,.@-]+'
+      minLength: 1
+      maxLength: 128
+    UpdateTimestampRecord:
+      title: UpdateTimestampRecord
+      type: object
+      description: Timestamp Record that includes the user id
+      properties:
+        at:
+          type: integer
+          format: int32
+          description: Epoch time
+        by:
+          type: string
+          format: uuid
+          description: User ID
+    CreateExecution:
+      type: object
+      properties:
+        ref:
+          type: string
+          description: Playbook ID or Playbook Name or Action ID or Action Reference
+        payload:
+          oneOf:
+            - $ref: '#/components/schemas/ActionPayload'
+            - $ref: '#/components/schemas/IncidentPayload'
+            - $ref: '#/components/schemas/ObservationPayload'
+            - $ref: '#/components/schemas/GenericPayload'
+          description: Payload to be passed to playbook or action
+        trigger_id:
+          type: string
+          format: uuid
+          description: Id of the trigger which created this execution.
+        target_account_id:
+          type: string
+          description: Optinal parameter to specify a valid AIMS Account ID to be passed as an account_id parameter to playbook execution
+      required:
+        - ref
+        - payload
+    RerunExecution:
+      type: object
+      properties:
+        delay:
+          type: integer
+          description: How long (in milliseconds) to delay the execution before scheduling.
+    ExecutionRecord:
+      title: ExecutionRecord
+      type: object
+      description: Playbook Execution Record
+      properties:
+        id:
+          type: string
+          description: Execution ID
+        modified:
+          $ref: '#/components/schemas/UpdateTimestampRecord'
+        created:
+          $ref: '#/components/schemas/UpdateTimestampRecord'
+        playbook_id:
+          type: string
+          description: Playbook ID
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        type:
+          $ref: '#/components/schemas/PayloadType'
+        account_id:
+          type: string
+          description: AIMS Account ID
+        deployment_id:
+          type: string
+          format: uuid
+    InquiryRecord:
+      title: InquiryRecord
+      type: object
+      description: Inquiry Record
+      properties:
+        id:
+          type: string
+          description: Execution ID
+        mode:
+          type: string
+          enum: ["playbook", "simple"]
+        playbook_id:
+          type: string
+          description: Playbook's id if the mode is playbook
+        simple_mode_id:
+          type: string
+          description: Simple Response config's id if the mode is simple
+        status:
+          type: string
+          description: Status of Inquiry
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Inquiry start EPOCH timestamp
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Inquiry end EPOCH timestamp
+        result:
+          type: object
+    PlaybookExecutionRecord:
+      title: PlaybookExecutionRecord
+      type: object
+      description: Playbook Execution Record
+      properties:
+        id:
+          type: string
+          description: Execution ID
+        modified:
+          $ref: '#/components/schemas/UpdateTimestampRecord'
+        created:
+          $ref: '#/components/schemas/UpdateTimestampRecord'
+        playbook_id:
+          type: string
+          description: Playbook ID
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        type:
+          $ref: '#/components/schemas/PayloadType'
+        account_id:
+          type: string
+          description: AIMS Account ID
+        start_timestamp:
+          type: integer
+          minimum: 0
+          format: int32
+          description: Execution start EPOCH timestamp
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Execution end EPOCH timestamp
+        deployment:
+          oneOf:
+            - type: object
+          properties:
+            deployment_id:
+              type: string
+              description: Deployment ID
+            deployment_name:
+              type: string
+              description: Deployment Name
+        parameters:
+          type: object
+          additionalProperties: true
+        result:
+          type: object
+        log:
+          type: array
+          items: {}
+        elapsed_seconds:
+          type: integer
+          description: Execution's elapsed seconds
+          format: int32
+        children:
+          type: array
+          description: Children tasks Executions IDs
+          items:
+            $ref: '#/components/schemas/ExecutionLogEntry'
+    PayloadType:
+      type: string
+      title: PayloadType
+      enum:
+        - incident
+        - observation
+        - vulnerability
+        - remediation
+        - generic
+      description: Payload Type
+    PayloadSampleIncident:
+      title: Incident payload sample
+      description: Incident payload sample
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        payload_type:
+          type: string
+          enum:
+            - incident
+        content:
+          type: string
+      required:
+        - name
+        - payload_type
+        - content
+    PayloadSampleObservation:
+      title: Observation payload sample
+      description: Observation payload sample
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        payload_type:
+          type: string
+          enum:
+            - observation
+        content:
+          type: string
+      required:
+        - name
+        - payload_type
+        - content
+    CreateAccountPayloadSample:
+      title: Payload sample
+      description: Payload sample object
+      oneOf:
+        - $ref: '#/components/schemas/PayloadSampleIncident'
+        - $ref: '#/components/schemas/PayloadSampleObservation'
+    Trigger:
+      title: Trigger
+      description: Trigger object
+      oneOf:
+        - $ref: '#/components/schemas/IncidentTrigger'
+        - $ref: '#/components/schemas/ObservationTrigger'
+        - $ref: '#/components/schemas/CronScheduleTrigger'
+        - $ref: '#/components/schemas/DateTimeScheduleTrigger'
+        - $ref: '#/components/schemas/IntervalScheduleTrigger'
+    UpdateAccountPayloadSample:
+      title: Payload sample
+      description: Payload sample object
+      type: object
+      properties:
+        name:
+          type: string
+        payload_type:
+          $ref: '#/components/schemas/PayloadType'
+        content:
+          type: string
+    PlaybookVarsPlaybook:
+      title: Playbook variables
+      description: Playbook variables and bindings
+      type: array
+      items:
+        $ref: '#/components/schemas/PlaybookVarsItemPlaybook'
+    PlaybookVarsTemplate:
+      title: Playbook template variables
+      description: Playbook template variables and bindings
+      type: array
+      items:
+        $ref: '#/components/schemas/PlaybookVarsItemTemplate'
+    PlaybookVarsItemPlaybook:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        value: {}
+        value_type:
+          $ref: '#/components/schemas/PlaybookVarsValueType'
+        export_to_workflow:
+          type: boolean
+        bind:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaybookVarsBindItem'
+      required:
+        - name
+        - value
+    PlaybookVarsItemTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        value_type:
+          $ref: '#/components/schemas/PlaybookVarsValueType'
+        export_to_workflow:
+          type: boolean
+        bind:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaybookVarsBindItem'
+      required:
+        - name
+    PlaybookVarsBindItem:
+      type: object
+      additionalProperties: false
+      properties:
+        task_name:
+          type: string
+        parameter_name:
+          type: string
+        action_ref:
+          type: string
+      required:
+        - task_name
+    PlaybookVarsValueType:
+      title: value_type
+      description: Value type of variable
+      type: object
+      additionalProperties: false
+      properties:
+        action_ref:
+          type: string
+        parameter_name:
+          type: string
+      required:
+        - action_ref
+        - parameter_name
+    CreatePlaybookTemplate:
+      title: Playbook template
+      description: Playbook template object
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        playbook:
+          type: object
+          additionalProperties: false
+          required:
+            - type
+            - parameters
+            - workflow
+          properties:
+            type:
+              $ref: '#/components/schemas/PayloadType'
+            parameters:
+              type: object
+            workflow:
+              type: object
+            vars:
+              $ref: '#/components/schemas/PlaybookVarsTemplate'
+        payload_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayloadType'
+        shared:
+          type: boolean
+        shared_with:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - playbook
+    UpdatePlaybookTemplate:
+      title: Update playbook template
+      description: Playbook template object
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        playbook:
+          type: object
+          additionalProperties: false
+          properties:
+            type:
+              $ref: '#/components/schemas/PayloadType'
+            parameters:
+              type: object
+            workflow:
+              type: object
+            vars:
+              $ref: '#/components/schemas/PlaybookVarsTemplate'
+          required:
+            - type
+            - parameters
+            - workflow
+        payload_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayloadType'
+        shared:
+          type: boolean
+        shared_with:
+          oneOf:
+            - type: array
+              items:
+                type: string
+    Action:
+      title: Action Object
+      type: object
+      description: Action Object Definition
+      properties:
+        category:
+          type: string
+        action:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            parameters:
+              type: object
+            output_schema:
+              type: object
+    ActionDetails:
+      title: Allowed values for action
+      description: Allowed values for action
+      type: object
+      properties:
+        allowed_values:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+              label:
+                type: string
+        action:
+          type: object
+    ChannelsInquiry:
+      title: ChannelsInquiry
+      type: object
+      description: Approval Channels Inquiry
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+        connection_target_ids:
+          type: array
+          items:
+            type: string
+      required:
+        - connection_target_ids
+    UserInquiry:
+      title: UserInquiry
+      type: object
+      description: Approval User Inquiry
+      properties:
+        user_ids:
+          type: array
+          items:
+            type: string
+        message:
+          type: string
+      required:
+        - user_ids
+        - message
+    IntervalSchedule:
+      title: IntervalSchedule
+      type: object
+      description: '`IntervalSchedule` specifies time interval at which to run a playbook'
+      properties:
+        unit:
+          type: string
+          enum:
+            - seconds
+            - minutes
+            - hours
+            - days
+            - weeks
+        delta:
+          type: number
+          minimum: 1
+        type:
+          type: string
+          enum:
+            - interval
+      required:
+        - unit
+        - delta
+        - type
+    DateTimeScheduleTrigger:
+      title: DateTimeScheduleTrigger
+      type: object
+      description: '`DateTimeScheduleTrigger` specifies date and time at which to run a playbook'
+      properties:
+        name:
+          type: string
+          description: Trigger Name
+        enabled:
+          type: boolean
+        role_id:
+          type: string
+          description: Role ID for playbook execution
+        playbooks:
+          type: array
+          description: List of playbooks and their parameters to be executed
+          items:
+            $ref: '#/components/schemas/TriggerPlaybookParameters'
+        actions:
+          type: array
+          description: List of actions and their parameters to be executed
+          items:
+            $ref: '#/components/schemas/TriggerActionParameters'
+        timezone:
+          type: string
+          description: 'use the pytz format, e.g. America/Chicago'
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum:
+            - datetime
+        description:
+          type: string
+      required:
+        - name
+        - playbooks
+        - date
+        - type
+    CronScheduleTrigger:
+      title: CronScheduleTrigger
+      type: object
+      description: |
+        `CronScheduleTrigger` specifies to run a playbook when current time, in UTC, matches the time constraint defined in UNIX cron format.
+
+        Note that unlike with cron where the first day (0) in day_of_week is a Sunday, in Alert Logic MDR CronTimer first day of the week is always Monday. To make it more explicit and avoid confusion, use the name of the weekdays instead (e.g. mon-fri instead of 0-4, or in cron case, 1-5).
+      properties:
+        timezone:
+          type: string
+          description: 'use the pytz format, e.g. America/Chicago'
+        year:
+          type: string
+        month:
+          type: string
+        day:
+          type: string
+        week:
+          type: string
+        day_of_week:
+          type: string
+        hour:
+          type: string
+        minute:
+          type: string
+        second:
+          type: string
+        type:
+          type: string
+          enum:
+            - cron
+          description: Trigger Type. Must be `cron`
+        name:
+          type: string
+          description: Trigger Name
+        enabled:
+          type: boolean
+        role_id:
+          type: string
+          description: Role ID for playbook execution
+        playbooks:
+          type: array
+          description: List of playbooks and their parameters to be executed. Note that only `generic` playbook types are allowed.
+          items:
+            $ref: '#/components/schemas/TriggerPlaybookParameters'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerActionParameters'
+        description:
+          type: string
+      required:
+        - type
+        - name
+    IntervalScheduleTrigger:
+      title: IntervalScheduleTrigger
+      type: object
+      description: '`IntervalScheduleTrigger` specifies time interval at which to run a playbook'
+      properties:
+        name:
+          type: string
+          description: Trigger Name
+        enabled:
+          type: boolean
+        role_id:
+          type: string
+          description: Role ID for playbook execution
+        playbooks:
+          type: array
+          description: List of playbooks and their parameters to be executed
+          items:
+            $ref: '#/components/schemas/TriggerPlaybookParameters'
+        actions:
+          type: array
+          description: List of actions and their parameters to be executed
+          items:
+            $ref: '#/components/schemas/TriggerActionParameters'
+        unit:
+          type: string
+          enum:
+            - seconds
+            - minutes
+            - hours
+            - days
+            - weeks
+        delta:
+          type: number
+          minimum: 1
+        type:
+          type: string
+          enum:
+            - interval
+          description: Must be `interval`
+      required:
+        - name
+        - unit
+        - delta
+        - type
+    ExecutionStatus:
+      type: string
+      title: ExecutionStatus
+      description: Execution Status
+      enum:
+        - new
+        - requested
+        - scheduled
+        - delayed
+        - running
+        - succeeded
+        - failed
+        - timeout
+        - canceled
+        - pending
+    TaskExecutionRecord:
+      title: TaskExecutionRecord
+      type: object
+      description: Task Execution Record
+      properties:
+        id:
+          type: string
+          description: Task Execution ID
+        task_id:
+          type: string
+        task_name:
+          type: string
+        parent_execution_id:
+          type: string
+        playbook_type:
+          type: string
+        playbook_id:
+          type: string
+        playbook_name:
+          type: string
+        native_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Execution start EPOCH timestamp
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Execution end EPOCH timestamp
+        elapsed_seconds:
+          type: integer
+          format: int32
+        parameters:
+          type: object
+          description: Task input parameters. Returned only when requesting execution record and not returned when querying tasks exections.
+        result:
+          type: object
+          description: Task Execution Result. Returned only when requesting execution record and not returned when querying tasks exections.
+        action:
+          type: object
+          properties:
+            id:
+              type: string
+            ref:
+              type: string
+            pack:
+              type: string
+            name:
+              type: string
+            display_name:
+              type: string
+            vendor:
+              type: string
+            category:
+              type: string
+        log:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExecutionLogEntry'
+        type:
+          type: string
+          description: Playbook Type
+    TaskExecutionHistoryResult:
+      title: TaskExecutionHistoryResult
+      type: object
+      description: Taks Execution History Result Type
+      properties:
+        executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskExecutionRecord'
+        count:
+          type: integer
+          format: int32
+          minimum: 0
+        marker:
+          type: string
+        summary:
+          type: object
+          properties:
+            playbooks:
+              type: array
+              description: Playbook IDs
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            statuses:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            playbook_types:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            tasks:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+        execution_type:
+          type: string
+      required:
+        - executions
+        - count
+        - execution_type
+    ExecutionType:
+      type: string
+      title: ExecutionType
+      enum:
+        - playbook
+        - task
+        - action
+      description: Execution Type
+    PlaybookExecutionHistoryResult:
+      title: PlaybookExecutionHistoryResult
+      type: object
+      description: Playbook Execution History Result Type
+      properties:
+        executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaybookExecutionRecord'
+        count:
+          type: integer
+          format: int32
+          minimum: 0
+        marker:
+          type: string
+        summary:
+          type: object
+          properties:
+            playbook_ids:
+              type: array
+              description: Playbook IDs
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            playbook_names:
+              type: array
+              description: Playbook Names
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            statuses:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            playbook_types:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            deployments:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+        execution_type:
+          type: string
+      required:
+        - executions
+        - count
+        - execution_type
+    BlocksHistoryQuery:
+      type: object
+      additionalProperties: false
+      properties:
+        limit:
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 100
+          description: Number of records to return.
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        aggregations:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlocksHistoryAggregationItem'
+        marker:
+          type: string
+        filter:
+          type: object
+          additionalProperties: false
+          properties:
+            bobj:
+              type: array
+              items:
+                type: string
+            bobj.text:
+              type: string
+            bobj.ip:
+              type: string
+            status:
+              type: array
+              items:
+                type: string
+            incident_id:
+              type: array
+              items:
+                type: string
+            bk_category:
+              $ref: '#/components/schemas/BlocksCategory'
+            bk_location_type:
+              type: array
+              items:
+                type: string
+            bk_location_id:
+              type: array
+              items:
+                type: string
+            human_friendly_id:
+              type: array
+              items:
+                type: string
+            response_name:
+              type: array
+              items:
+                type: string
+    BlocksHistoryResult:
+      type: object
+      additionalProperties: true
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlocksHistoryResultItem'
+        count:
+          type: integer
+        marker:
+          type: string
+        summary:
+          oneOf:
+            - $ref: '#/components/schemas/BlocksHistoryResultSummaryOld'
+            - $ref: '#/components/schemas/BlocksHistoryResultSummaryV2'
+    BlocksHistoryResultItem:
+      type: object
+      properties:
+        block_key:
+          type: string
+        bk_tm_bucket:
+          type: integer
+        bk_category:
+          $ref: '#/components/schemas/BlocksCategory'
+        bk_location_type:
+          type: string
+        bk_location_id:
+          type: string
+        bobj:
+          type: string
+        status:
+          $ref: '#/components/schemas/BlocksStatus'
+        incident_id:
+          type: string
+        human_friendly_id:
+          type: string
+        response_name:
+          type: string
+    BlocksCategory:
+      type: string
+      description: Category of block
+      enum:
+        - MR
+        - EDGE
+        - OTHER
+    BlocksStatus:
+      type: string
+      description: Status
+      enum:
+        - blocking
+        - blocked
+        - unblocking
+        - unblocked
+        - timeout_blocking
+        - timeout_unblocking
+        - block_fail
+        - unblock_fail
+    BlocksHistoryResultSummaryOld:
+      type: object
+      additionalProperties: true
+      properties:
+        statuses:
+          type: array
+          items:
+            type: object
+    BlocksHistoryResultSummaryV2:
+      type: array
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          key:
+            type: string
+          values:
+            type: array
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+                value:
+                  type: string
+                count:
+                  type: integer
+    BlocksManageRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        requests:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              bobjs:
+                type: array
+                items:
+                  type: string
+              block_key:
+                type: string
+              intent:
+                type: string
+                enum:
+                  - block_soft
+                  - unblock_soft
+                  - block_force
+                  - unblock_force
+            required:
+              - bobj
+              - block_key
+              - intent
+    ExecutionLogEntry:
+      title: ExecutionLogEntry
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+      description: Execution log entry
+    IncidentPayload:
+      title: IncidentPayload
+      type: object
+      description: Incident Payload Object
+      properties:
+        type:
+          type: string
+          enum:
+            - incident
+          description: Payload Type. Must be `incident`
+        incident:
+          type: object
+          description: Incident object to be used for a playbook execution
+        parameters:
+          type: object
+          additionalProperties: true
+      required:
+        - type
+        - incident
+    ObservationPayload:
+      title: ObservationPayload
+      type: object
+      description: Observation Payload Object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          enum:
+            - observation
+          description: Payload Type. Must be `observation`
+        observation:
+          type: object
+          description: Observation object to be used for a playbook execution
+        parameters:
+          type: object
+          additionalProperties: true
+      required:
+        - type
+        - observation
+    ActionPayload:
+      title: ActionPayload
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - action
+          description: Payload Type. Must be `action`
+        parameters:
+          type: object
+          description: Parameters to be used for a playbook or an action
+          additionalProperties: true
+      required:
+        - type
+    GenericPayload:
+      title: GenericPayload
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - generic
+          description: Payload Type. Must be `generic`
+        parameters:
+          type: object
+          description: Parameters to be used for a playbook or an action
+          additionalProperties: true
+      required:
+        - type
+    TaskExecutionsFilter:
+      title: TaskExecutionsFilter
+      type: object
+      description: Task Executions Filter
+      properties:
+        task_id:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+        task_name:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+        parent_execution_id:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+        native_id:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+        status:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExecutionStatus'
+    UpdateInquiry:
+      type: object
+      additionalProperties: false
+      properties:
+        is_timeout:
+          type: boolean
+          default: false
+        response:
+          type: object
+          required:
+            - response
+          properties:
+            response:
+              type: string
+              enum:
+                - approve
+                - reject
+          description: inquiry response
+    InquiryExecutionsFilter:
+      title: InquiryExecutionsFilter
+      type: object
+      properties:
+        name:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+          description: Inquiry Name
+        status:
+          oneOf:
+            - type: array
+              items:
+                $ref: '#/components/schemas/ExecutionStatus'
+            - $ref: '#/components/schemas/ExecutionStatus'
+        playbook_id:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+        task_name:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+        type:
+          oneOf:
+            - type: array
+              items:
+                type: string
+                enum:
+                  - email
+                  - push
+                  - user
+                  - channels
+                  - alertlogic_waf_block
+            - type: string
+              enum:
+                - email
+                - push
+                - user
+                - channels
+                - alertlogic_waf_block
+        display_name:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+        response:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+    InquiryHistoryQuery:
+      type: object
+      properties:
+        sort_by:
+          type: string
+          default: start_timestamp
+          enum:
+            - start_timestamp
+            - end_timestamp
+        sort_order:
+          type: string
+          enum:
+            - asc
+            - desc
+          default: desc
+        status:
+          type: array
+          items:
+            type: string
+        limit:
+          type: integer
+          default: 50
+          minimum: 0
+          maximum: 100
+        marker:
+          type: string
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        filter:
+          $ref: '#/components/schemas/InquiryExecutionsFilter'
+        aggregations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InquiryHistoryAggregationItem'
+    InquiryHistoryResult:
+      title: InquiryHistoryResult
+      type: object
+      properties:
+        executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/InquiryRecord'
+        count:
+          type: integer
+          format: int32
+          minimum: 0
+        marker:
+          type: string
+        summary:
+          type: object
+          properties:
+            types:
+              type: array
+              description: ''
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            names:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            display_names:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            statuses:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            playbook_ids:
+              type: array
+              description: Playbook IDs
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+            simple_mode_ids:
+              type: array
+              description: Simple Mode IDs
+              items:
+                type: object
+                additionalProperties:
+                  type: integer
+    InspectWorkflow:
+      description: 'Returns [] if workflow passed validation, otherwise a list of errors.'
+      type: object
+      properties:
+        type:
+          type: string
+        language:
+          type: string
+          enum:
+            - yaml
+        expression:
+          type: string
+        message:
+          type: string
+        schema_path:
+          type: string
+        schema_spec:
+          type: string
+    PlaybookExecutionHistoryQuery:
+      title: PlaybookExecutionHistoryQuery
+      type: object
+      description: ''
+      properties:
+        execution_type:
+          $ref: '#/components/schemas/ExecutionType'
+        sort_by:
+          type: string
+          default: start_timestamp
+          enum:
+            - start_timestamp
+            - end_timestamp
+        sort_order:
+          type: string
+          enum:
+            - asc
+            - desc
+          default: desc
+        limit:
+          type: integer
+          default: 50
+          minimum: 0
+          maximum: 100
+        marker:
+          type: string
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        query_string:
+          type: string
+          description: Optional query string to perform a full text search
+        filter:
+          type: object
+          properties:
+            playbook_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+              description: List of playbook IDs to return
+            playbook_name:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+              description: List of playbook names to return
+            status:
+              oneOf:
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/ExecutionStatus'
+                - type: string
+              description: List of execution statuses to return
+            deployment_name:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+              description: Deployment Names
+            deployment_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            trigger_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+              description: List of trigger IDs to return executions for
+            asset_groups:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+              description: List of Asset Groups to return executions for
+            target_account_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+              description: List of target account IDs to return executions for
+            type:
+              oneOf:
+                - $ref: '#/components/schemas/PlaybookType'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/PlaybookType'
+              description: Execution Payload Type
+        aggregations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaybookHistoryAggregationItem'
+      required:
+        - execution_type
+    TaskExecutionHistoryQuery:
+      title: TaskExecutionHistoryQuery
+      type: object
+      properties:
+        execution_type:
+          type: string
+          enum:
+            - task
+          description: Type of execution requested
+        sort_by:
+          type: string
+          default: start_timestamp
+          enum:
+            - start_timestamp
+            - end_timestamp
+        sort_order:
+          type: string
+          enum:
+            - asc
+            - desc
+          default: desc
+        limit:
+          type: integer
+          default: 50
+          minimum: 10
+          maximum: 100
+        marker:
+          type: string
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+        query_string:
+          type: string
+          description: Optional query string to perform a full text search
+        filter:
+          type: object
+          properties:
+            task_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            task_name:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            parent_execution_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            native_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            status:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExecutionStatus'
+      required:
+        - execution_type
+    PlaybookType:
+      type: string
+      title: PlaybookType
+      enum:
+        - incident
+        - observation
+        - exposure
+        - remediation
+        - generic
+      description: Playbook Type
+    TriggerDefinition:
+      title: TriggerDefinition
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - incident
+            - observation
+        display_name:
+          type: string
+        form:
+          type: object
+          required:
+            - controls
+          description: Dynamic form definitions
+          properties:
+            controls:
+              type: object
+      required:
+        - type
+        - display_name
+        - form
+    IncidentTrigger:
+      title: IncidentTrigger
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Trigger Name
+        description:
+          type: string
+          description: Trigger Description
+        type:
+          type: string
+          enum:
+            - incident
+          description: Trigger Type. Must be `incident`.
+        enabled:
+          type: boolean
+          description: Enable Trigger
+        role_id:
+          type: string
+          description: Role ID for playbook execution
+        escalated:
+          type: boolean
+          description: Execute playbooks on `escalated` incidents.
+        mitre_classifications:
+          type: array
+          description: MITRE Classifications to execute playbooks for
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              tactic:
+                type: string
+                description: The determined MITRE ATT&CK tactics of the enclosing object based on its detection within the customer's environment
+              technique:
+                type: string
+                description: The determined MITRE ATT&CK techniques of the enclosing object based on its detection within the customer's environment
+            required:
+              - tactic
+              - technique
+        analytics:
+          type: array
+          description: Analytics fields to execute playbooks for
+          items:
+            type: string
+        detection_sources:
+          type: array
+          description: Detection Sources to execute playbooks for
+          items:
+            type: string
+            enum:
+              - Network IDS
+              - GuardDuty
+              - Log Mgmt
+              - Web App IDS
+              - Web Log Analytics
+              - Log Review
+              - Correlated Log
+              - Firewall
+              - Manual
+              - N/A
+        threat_levels:
+          type: array
+          description: Threat levels to execute playbooks for.
+          items:
+            type: string
+            enum:
+              - Critical
+              - High
+              - Medium
+              - Low
+              - Info
+        asset_groups:
+          type: object
+          description: Asset groups to execute or not execute playbooks for.
+          properties:
+            member_of:
+              type: boolean
+            groups:
+              type: array
+              items:
+                type: string
+        additional_filters:
+          type: array
+          items:
+            type: object
+            properties:
+              parameter:
+                type: string
+              type:
+                type: string
+              pattern:
+                type: string
+        playbooks:
+          description: The list of playbooks associated with this trigger
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerPlaybookParameters'
+      required:
+        - name
+        - type
+        - enabled
+        - playbooks
+    ObservationTrigger:
+      title: ObservationTrigger
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          description: Trigger Description
+        type:
+          type: string
+          enum:
+            - observation
+        enabled:
+          type: boolean
+        role_id:
+          type: string
+          description: Role ID for playbook execution
+        playbooks:
+          description: The list of playbooks associated
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerPlaybookParameters'
+      required:
+        - name
+        - type
+        - enabled
+        - playbooks
+    SendTrigger:
+      title: SendTrigger
+      oneOf:
+        - $ref: '#/components/schemas/IncidentPayload'
+        - $ref: '#/components/schemas/ObservationPayload'
+    TriggerActionParameters:
+      type: object
+      title: TriggerActionParameters
+      additionalProperties: false
+      properties:
+        ref:
+          type: string
+        parameters:
+          type: array
+          items:
+            type: object
+      required:
+        - ref
+    TriggerPlaybookParameters:
+      type: object
+      title: TriggerPlaybookParameters
+      additionalProperties: false
+      properties:
+        playbook_id:
+          type: string
+        parameters:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              name:
+                type: string
+              value:
+                anyOf:
+                  - type: string
+                  - type: number
+                  - type: integer
+                  - type: boolean
+                  - type: array
+                    items: {}
+                  - type: object
+            required:
+              - name
+              - value
+      required:
+        - playbook_id
+    TriggersSummary:
+      title: TriggersSummary
+      type: object
+      additionalProperties: false
+      properties:
+        playbook_ids:
+          type: array
+          items:
+            type: object
+        action_refs:
+          type: array
+          items:
+            type: object
+        trigger_types:
+          type: array
+          items:
+            type: object
+    MrConfigsSummary:
+      title: MrConfigsSummary
+      type: array
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+          title:
+            type: string
+          values:
+            type: array
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+                value:
+                  type: string
+                count:
+                  type: integer
+    PlaybooksSummary:
+      title: PlaybooksSummary
+      type: object
+      properties:
+        playbook_vendors:
+          type: object
+        playbook_statuses:
+          type: object
+        playbook_types:
+          type: object
+    PlaybookParameter:
+      title: PlaybookParameter
+      type: object
+      properties:
+        description:
+          type: string
+          description: Parameter description
+        required:
+          type: boolean
+          description: Is parameter required
+        type:
+          type: string
+          enum:
+            - boolean
+            - object
+            - array
+            - integer
+            - number
+            - string
+          description: Parameter datatype
+        default:
+          anyOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+              items: {}
+            - type: object
+          description: Parameter default value
+        immutable:
+          type: boolean
+          description: Can parameter be modified during playbook's execution
+        secret:
+          type: boolean
+          description: Hide the value of this parameter in all system logs
+    ActionExecutionHistoryQuery:
+      title: ActionExecutionHistoryQuery
+      type: object
+      properties:
+        execution_type:
+          type: string
+          enum:
+            - action
+          description: Type of execution requested
+        sort_by:
+          type: string
+          default: start_timestamp
+          enum:
+            - start_timestamp
+            - end_timestamp
+          description: Sort By Field
+        sort_order:
+          type: string
+          enum:
+            - asc
+            - desc
+          default: desc
+          description: Sort Order
+        limit:
+          type: integer
+          default: 50
+          minimum: 10
+          maximum: 100
+          description: Number of records to return.
+        marker:
+          type: string
+          description: A marker to be used in subsequent calls to get more records.
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Start timestamp
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: End timestamp
+        query_string:
+          type: string
+          description: Optional query string to perform a full text search
+        filter:
+          type: object
+          description: Filter specification
+          properties:
+            action_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+                - type: object
+            action_name:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+                - type: object
+            parent_execution_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            playbook_id:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            playbook_name:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            category:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            vendor:
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: string
+            status:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExecutionStatus'
+      required:
+        - execution_type
+    PlaybookHistoryAggregationItem:
+      title: PlaybookHistoryAggregationItem
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - status
+            - playbook_id
+            - type
+            - deployment_id
+            - deployment_name
+            - playbook_name
+            - trigger_id
+            - asset_groups
+            - target_account_id
+        interval:
+          type: string
+          pattern: '^[0-9]+[smhdwMqy]'
+          minLength: 2
+        size:
+          type: number
+        aggregations:
+          type: array
+          items:
+            type: object
+      required:
+        - name
+    InquiryHistoryAggregationItem:
+      title: InquiryHistoryAggregationItem
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - status
+            - playbook_id
+            - type
+            - task_name
+            - display_name
+            - response
+        interval:
+          type: string
+          pattern: '^[0-9]+[smhdwMqy]'
+          minLength: 2
+        size:
+          type: number
+        aggregations:
+          type: array
+          items:
+            type: object
+      required:
+        - name
+    BlocksHistoryAggregationItem:
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - status
+            - intent
+            - bobj
+            - bk_category
+            - bk_location_type
+            - bk_location_id
+        interval:
+          type: string
+          pattern: '^[0-9]+[smhdwMqy]'
+          minLength: 2
+        size:
+          type: number
+        aggregations:
+          type: array
+          items:
+            type: object
+      required:
+        - name
+    GetToken:
+      title: Token
+      type: object
+      properties:
+        account_id:
+          type: string
+          description: AIMS Account ID
+        entity_type:
+          type: string
+          description: Entity type of the token
+        entity_id:
+          type: string
+        token:
+          type: string
+          description: Token
+        token_expiration:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Token expiration EPOCH timestamp
+    EdgeActionRecord:
+      title: EdgeActionRecord
+      type: object
+      properties:
+        id:
+          type: string
+          description: Execution ID
+        status:
+          type: string
+          description: Status of Inquiry
+        start_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Inquiry start EPOCH timestamp
+        end_timestamp:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Inquiry end EPOCH timestamp
+        parameters:
+          type: string
+    MrExecute:
+      title: MrExecute
+      type: object
+      description: ''
+      properties:
+        config_ids:
+          type: array
+          format: uuid
+          description: Managed Response Configuration IDs to apply to the payload
+          items:
+            type: string
+        payload:
+          oneOf:
+            - $ref: '#/components/schemas/IncidentPayload'
+            - $ref: '#/components/schemas/ObservationPayload'
+          description: An Incident or an Observation payload object
+        target_account_id:
+          type: string
+      required:
+        - config_ids
+        - payload
+  securitySchemes:
+    aims_request_authorizer:
+      type: apiKey
+      name: X-AIMS-Auth-Token
+      in: header
+      x-amazon-apigateway-authtype: custom
+      x-amazon-apigateway-authorizer:
+        authorizerUri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AIMSTokenAuthorizerFunction.Arn}/invocations'
+        authorizerResultTtlInSeconds: 300
+        identitySource: 'method.request.header.X-AIMS-Auth-Token, context.path'
+        type: request
+  parameters:
+    ExecutionType:
+      name: ExecutionType
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+          - playbook
+          - task
+          - action
