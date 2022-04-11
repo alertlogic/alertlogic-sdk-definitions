@@ -43,19 +43,6 @@ x-amazon-apigateway-request-validators:
     validateRequestBody: false
     validateRequestParameters: true
 paths:
-  '/{proxy+}':
-    options:
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderCorsFunction.Arn}:responderCors/invocations'
-        passthroughBehavior: when_no_match
   '/v1/{account_id}/playbooks':
     parameters:
       - schema:
@@ -4081,7 +4068,6 @@ components:
             - type: array
               items:
                 type: string
-            - type: 'null'
     Action:
       title: Action Object
       type: object
