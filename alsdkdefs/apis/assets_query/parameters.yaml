@@ -256,7 +256,8 @@ ParamQueryRemediationItemsFilter:
   description: |-
     A filter to apply to the `remediation-items` in the account. Multiple filter parameters
     may be supplied. These filters are matched against the `filters` property of the
-    `remediation-item` asset; all given filters must match). **Note** that the `category` filter is applied
+    `remediation-item` asset and takes into consideration the `filter_match_mode` of the remedation-item, if `any`,
+    any given filter must match, otherwise, all given filters must match). **Note** that the `category` filter is applied
     to `exposures` associated with each `remediation-item`, not applied to the `remediation-item`
     asset directly; the `remediation-item` will be included in the result if the combined `categories` of all
     exposures attached to the `remediation-item` match the category filter. See the section on
@@ -293,6 +294,18 @@ ParamQueryRemediationItemsGroupByAuditId:
       * `exposures` from all `remediation-items` are appended together.
       * `asset_count`, `exposures_count`, `severities`, and `vinstances_count` are all
         summed across all grouped `remediation-item`s.
+ParamQueryExposuresBasicDetails:
+  schema:
+    $ref: '#/ExposuresBasicDetails'
+  in: query
+  name: basic_details
+ExposuresBasicDetails:
+  type: boolean
+  default: false
+  description: |-
+    Modifies the `vinstance` `target` asset properties to include a minimal subset of
+    properties. **Note: `vinstances` are only returned if the `details` parameter is
+    `true`.**
 ParamQueryExposuresDetails:
   schema:
     $ref: '#/ExposuresDetails'

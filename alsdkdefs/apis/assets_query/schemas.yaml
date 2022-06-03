@@ -13,9 +13,36 @@ AssetType:
 AssetName:
   type: string
   description: Asset Name
+AppliesToSpecificAssets:
+  type: boolean
+  default: false
+  description: |-
+    [DEPRECATED] Indicates when concluding remediation whether done through checkbox of specific assets.
+    **Note**: this param is deprecated, consider switching to `filter_match_mode` parameter.
+FilterMatchMode:
+  type: string
+  default: all
+  description: |-
+    This setting governs how `filters` will be interpreted. It can be set to `any` or `all`. If `any`,
+    this will generate a single remediation-item that will cover assets matching the given any filter of
+    the given list of filters. Otherwise, the assets associated with the generated remediation-item must
+    match all filters in the list.
 Filters:
   type: array
   description: Filters
+UndisposeFilters:
+  type: array
+  description: |-
+    The list of filters (or a list of lists of filters, a `filters set`) to which the
+    `remediation-item` is being updated to remove. Filters are specified as asset `type:key`
+    pairs, except application, which is always `application:product`. See the above
+    description of [filters](#api-_-remediation-filters). Note that non-asset filters
+    (`deployment_type`, `remediation`, `vulnerability`, `category`,
+    `severity`, `cve`, `cwe` and `asset_type`) will be ignored with the exception of `deployment_id`.
+    If a `filters set` is provided, one `remediation-item` per unique `filters` in the `filters set` will be
+    deleted since partial removal effectively happens for `applies_to_specific_assets=true` flagged `remediation-items`.
+    If all filters match, the `remediation-item` will be deleted. If `filters` is not given or set to `[]`,
+    the `remediation-item` will also be deleted.
 GroupName:
   type: string
   description: |-
@@ -91,8 +118,10 @@ DisposeConcludeFilters:
     description of [filters](#api-_-remediation-filters). Note that non-asset filters
     (`deployment_type`, `remediation`, `vulnerability`, `category`,
     `severity`, `cve`, `cwe` and `asset_type`) will be ignored with the exception of `deployment_id`.
-    If a `filters set` is provided, one `remediation-item` per unique `filters` in the `filters set` will be
-    created. Note that this is permuted with `deployment_ids` (only if a set does not include
+    If a `filters set` is provided and `filter_match_mode` is `all`, one `remediation-item` per
+    unique `filters` in the `filters set` will be created. If `filter_match_mode` is `any`,
+    filter sets will be unique-sorted and merged into one list of filters.
+    Note that this is permuted with `deployment_ids` (only if a set does not include
     `deployment_id`) and `remediation_ids`/`vulnerability_ids` as well.
 DeploymentIds:
   type: array
@@ -681,6 +710,39 @@ DisposeRemediationsResponse:
     rows:
       type: integer
       description: Number of rows in the response.
+UndisposeRemediationsResponse:
+  title: Undispose remediations response
+  type: object
+  properties:
+    assets:
+      type: object
+      description: Asset object.
+      properties:
+        account_id:
+          $ref: '#/AccountId'
+        deployment_id:
+          $ref: '#/DeploymentId'
+        comment:
+          type: string
+          description: User's comment on the disposition.
+        filters:
+          $ref: '#/Filters'
+        item_id:
+          $ref: '#/ItemId'
+        key:
+          $ref: '#/AssetKey'
+        remediation_id:
+          $ref: '#/RemediationId'
+        reason:
+          type: string
+          description: The reason for the disposition.
+        state:
+          $ref: '#/State'
+        user_id:
+          $ref: '#/UserId'
+    rows:
+      type: integer
+      description: Number of rows in the response.
 ConcludeRemediationsResponse:
   title: Conclude remediations response
   type: object
@@ -731,6 +793,8 @@ DisposeRemediationsRequestBody:
 
         `compensating_control` indicates that there's some mitigating factor that the scanner
         doesn't know about which reduces the threat posed by this remediation.
+    filter_match_mode:
+      $ref: '#/FilterMatchMode'
     filters:
       $ref: '#/DisposeConcludeFilters'
     deployment_ids:
@@ -740,9 +804,36 @@ DisposeRemediationsRequestBody:
     vulnerability_ids:
       $ref: '#/VulnerabilityIds'
     applies_to_specific_assets:
-      type: boolean
-      default: false
-      description: Indicates when disposing remediation whether done through checkbox of specific assets.
+      $ref: '#/AppliesToSpecificAssets'
+  required:
+    - operation
+UndisposeRemediationsRequestBody:
+  title: Undispose Remediations Request Body
+  type: object
+  properties:
+    operation:
+      type: string
+      description: This must be `undispose_remediations`.
+      enum:
+        - undispose_remediations
+    filters:
+      $ref: '#/UndisposeFilters'
+    audit_ids:
+      type: array
+      description: |-
+        A comma-separated list of `audit_id`s of `remediation-item`s to undispose/unconclude.
+        Note that exactly one of `remediation_item_ids` or `audit_ids` may be provided. If passed,
+        all `remediation-item`s with any of the given `audit_id`s will be
+        undisposed/unconcluded.
+    deployment_ids:
+      $ref: '#/DeploymentIds'
+    remediation_ids:
+      $ref: '#/RemediationIds'
+    remediation_item_ids:
+      type: array
+      description: A comma-separated list of remediation-item IDs to undispose/unconclude. Note that exactly one of `remediation_item_ids` or `audit_ids` may be provided.
+    vulnerability_ids:
+      $ref: '#/VulnerabilityIds'
   required:
     - operation
 ConcludeRemediationsRequestBody:
@@ -754,6 +845,8 @@ ConcludeRemediationsRequestBody:
       description: This must be `conclude_remediations`.
       enum:
         - conclude_remediations
+    filter_match_mode:
+      $ref: '#/FilterMatchMode'
     filters:
       $ref: '#/DisposeConcludeFilters'
     deployment_ids:
@@ -763,9 +856,7 @@ ConcludeRemediationsRequestBody:
     vulnerability_ids:
       $ref: '#/VulnerabilityIds'
     applies_to_specific_assets:
-      type: boolean
-      default: false
-      description: Indicates when concluding remediation whether done through checkbox of specific assets.
+      $ref: '#/AppliesToSpecificAssets'
   required:
     - operation
 ListAssetGroupsResponse:
