@@ -4,9 +4,7 @@ info:
   version: 3.0.0
   description: |-
       # Otis
-
-      **Note:** The previous v2 API of this service has been deprecated.
-
+      
       The **Otis** service manages tuning options specified by a customer. The defined
       options are consumed by various services to operate in accordance with the
       customer's preferences.
@@ -15,7 +13,7 @@ info:
         * [Scope Resolving Algorithm](#scope-resolving-algorithm)
         * [Supported Options](#supported-options)
 
-      <a name="option-representation"/>
+      <a name="option-representation"></a>
 
       ## Option Representation
 
@@ -61,7 +59,7 @@ info:
       ```
 
       A value depends on the option name and can contain arbitrary JSON data. Please
-      see the section [Supported Option](#supported-options) for information about
+      see the section [Supported Options](#supported-options) for information about
       valid option values.
 
       <a name="scope-resolving-algorithm"/>
@@ -115,6 +113,7 @@ info:
 
       A client is allowed to specify the following options:
 
+      * [abs_follow_internal_scan_schedules](#abs_follow_internal_scan_schedules)
       * [cross_network_protection](#cross_network_protection)
       * [discovery_scan_frequency](#discovery_scan_frequency)
       * [external_scan_frequency](#external_scan_frequency)
@@ -132,6 +131,30 @@ info:
       * [security_resource_tags](#security_resource_tags)
       * [span_port_enabled](#span_port_enabled)
       * [vulnerability_scan_frequency](#vulnerability_scan_frequency)
+
+      <a name="abs_follow_internal_scan_schedules"/>
+
+      ### abs_follow_internal_scan_schedules
+
+      This option tells an ABS agent to follow either internal-network scanning
+      schedules or agent-based scanning schedules configured.
+      
+      For example, a deployment may be configured to apply the same set of schedules
+      defined for internal network scanning. In this case any existing agent-based
+      scanning schedules are ignored. 
+
+      ```
+      {
+          "name": "abs_follow_internal_scan_schedules",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+          },
+          "value": true
+      }
+      ```
+
+      By default, agent configurations are generated out of agent-based scanning
+      schedules, and the assumed value is `false` if the option is undefined.
 
       <a name="cross_network_protection"/>
 
@@ -1003,6 +1026,30 @@ components:
     OptionsReqBody:
       type: object
       oneOf:
+        - type: object
+          title: abs_follow_internal_scan_schedules
+          description: >
+            This option tells an ABS agent to follow internal-network scanning
+            schedules instead of any agent-based scanning schedules configured.
+          properties:
+            name:
+              type: string
+              enum:
+                - abs_follow_internal_scan_schedules
+            value:
+              type: boolean
+            scope:
+              type: object
+              properties:
+                deployment_id:
+                  $ref: '#/components/schemas/DeploymentId'
+              required:
+                - deployment_id
+              additionalProperties: false
+          required:
+            - value
+            - scope
+          additionalProperties: false
         - type: object
           title: custom_routing
           description: Indicates whether custom routing is enabled.
