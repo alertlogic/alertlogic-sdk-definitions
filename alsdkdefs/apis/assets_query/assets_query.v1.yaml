@@ -1496,6 +1496,7 @@ paths:
         - Exposures and Remediations
       parameters:
         - $ref: 'parameters.yaml#/ParamConcluded'
+        - $ref: 'parameters.yaml#/ParamQueryExposuresBasicDetails'
         - $ref: 'parameters.yaml#/ParamQueryExposuresDetails'
         - $ref: 'parameters.yaml#/ParamDisposed'
         - $ref: 'parameters.yaml#/ParamQueryExposuresFilter'
@@ -1622,6 +1623,8 @@ paths:
               properties:
                 concluded:
                   $ref: parameters.yaml#/ExposuresConcluded
+                basic_details:
+                    $ref: parameters.yaml#/ExposuresBasicDetails
                 details:
                   $ref: parameters.yaml#/ExposuresDetails
                 disposed:
@@ -1845,6 +1848,8 @@ paths:
               schema:
                 $ref: 'schemas.yaml#/QueryRemediationItemsResponse'
               examples:
+                Default Response (when existing remediation-item filter_match_mode is any):
+                  $ref: 'examples.yaml#/QueryRemediationItemsFilterMatchModeAnyExample'
                 Default Response (single deployment):
                   $ref: 'examples.yaml#/QueryRemediationItemsSingleDeploymentExample'
                 Default Response (single deployment, details=true):
@@ -2412,18 +2417,8 @@ paths:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
     put:
       operationId: dispose_conclude_remediations
-      summary: Dispose/Conclude Remediations
+      summary: Conclude/Dispose/Undispose Remediations
       description: |-
-        `dispose_remediations` disposes the vulnerability instances (`"vinstances"`) associated with a
-        set of `remediations` or `vulnerabilities` (by ID). A set of `remediation-item`s is created, 1
-        per deployment/remediation_id/vulnerability_id, with the state set to `"disposed"` and all
-        vulnerability instances associated to that `"remediation_id"` or `"vulnerability_id"` on
-        assets described by the given `"filters"` have their `"disposed"` property set to `true`.
-
-        Note that, if the `"expires"` property is set on a `"disposed"` remediation-item, that item will
-        be undisposed when the `"expires"` timestamp is in the past, and all associated vulnerability
-        instances will have their `"disposed"` property set back to `false`.
-
         `conclude_remediations` concludes the vulnerability instances (`"vinstances"`) associated with a
         set of `remediations` or `vulnerabilities` (by ID). A set of `remediation-item`s is created, 1
         per deployment/remediation_id/vulnerability_id, with the state set to `"concluded"` and all
@@ -2436,6 +2431,28 @@ paths:
         *will be* unconcluded (their `"concluded"` property will be set to `false`). If *all*
         existing vulnerability instances are newer than the `remediation-item`, then the
         `remediation-item` will be cleared (deleted).
+
+        `dispose_remediations` disposes the vulnerability instances (`"vinstances"`) associated with a
+        set of `remediations` or `vulnerabilities` (by ID). A set of `remediation-item`s is created, 1
+        per deployment/remediation_id/vulnerability_id, with the state set to `"disposed"` and all
+        vulnerability instances associated to that `"remediation_id"` or `"vulnerability_id"` on
+        assets described by the given `"filters"` have their `"disposed"` property set to `true`.
+
+        Note that, if the `"expires"` property is set on a `"disposed"` remediation-item, that item will
+        be undisposed when the `"expires"` timestamp is in the past, and all associated vulnerability
+        instances will have their `"disposed"` property set back to `false`.
+
+        `undispose_remediations` partially undispose (or unconclude) the given `remediation-item`(s). The
+        `remediation-item`, if it exists, will be updated to only cover filters other than given
+        filters in the request. If all filters match, the `remediation-items` will be deleted.
+        Any vulnerability instances that were concluded or disposed by the remediation-item will be
+        accordingly unconcluded and undisposed (that is, their `concluded` and `disposed` properties
+        will be set to `false`). **Note** that this operation will only effectively partially remove
+        filters if the `remediation-item` has the `filter_match_mode` flag set to `any`. Otherwise,
+        the remediation-item will be deleted. **Note** that because of the way the `remediation_id`
+        is generated, if a remediation-item is partially undisposed/unconcluded, the output
+        remediation-item will contain a diffent `remediation_id`. In other words, the old remediation-item
+        will be deleted an replaced with a remediation-item with a diff of existing filters and request filters.
       tags:
         - Exposures and Remediations
       requestBody:
@@ -2443,8 +2460,9 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: 'schemas.yaml#/DisposeRemediationsRequestBody'
                 - $ref: 'schemas.yaml#/ConcludeRemediationsRequestBody'
+                - $ref: 'schemas.yaml#/DisposeRemediationsRequestBody'
+                - $ref: 'schemas.yaml#/UndisposeRemediationsRequestBody'
       responses:
         "201":
           description: Created
@@ -2452,21 +2470,30 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: 'schemas.yaml#/DisposeRemediationsResponse'
                   - $ref: 'schemas.yaml#/ConcludeRemediationsResponse'
+                  - $ref: 'schemas.yaml#/DisposeRemediationsResponse'
+                  - $ref: 'schemas.yaml#/UndisposeRemediationsResponse'
               examples:
+                Conclude a single remediation:
+                  $ref: 'examples.yaml#/ConcludeSingleRemediationExample'
+                Conclude a single remediation for 2 hosts with a filters set:
+                  $ref: 'examples.yaml#/ConcludeSingleRemediationFiltersSetExample'
+                Conclude a single vulnerability:
+                  $ref: 'examples.yaml#/ConcludeSingleVulnerabilityExample'
                 Dispose a single remediation:
                   $ref: 'examples.yaml#/DisposeSingleRemediationExample'
                 Dispose a single remediation for 2 hosts with a filters set:
                   $ref: 'examples.yaml#/DisposeSingleRemediationFiltersSetExample'
                 Dispose a single vulnerability:
                   $ref: 'examples.yaml#/DisposeSingleVulnerabilityExample'
-                Conclude a single remediation:
-                  $ref: 'examples.yaml#/ConcludeSingleRemediationExample'
-                Conclude a single remediation for 2 hosts with a filters set:
-                  $ref: 'examples.yaml#/ConcludeSingleRemediationFiltersSetExample'
-                Conclude a single vulnerability:
-                  $ref: 'examples.yaml#/ConcludeSingleVulnerabilityExample'  
+                Dispose a single remediation for 2 hosts (filter_match_mode=any):
+                  $ref: 'examples.yaml#/DisposeSingleRemediationFilterMatchModeExample'
+                Partially undispose a single remediation by remediation-item ID:
+                  $ref: 'examples.yaml#/PartiallyUndisposeByRemediationItemId'
+                Partially undispose a remediation-item by audit_id/vulnerability_id:
+                  $ref: 'examples.yaml#/PartiallyUndisposeByAuditId'
+        "204":
+          description: No Content (full undispose remediations response)
         "400":
           $ref: 'responses.yaml#/InvalidValueError'
         "401":
@@ -2550,6 +2577,7 @@ paths:
               "operation": "dispose_remediations",
               "applies_to_specific_assets": true,
               "comment": "Vulnerable database contains automated test data, not customer records.",
+              "filter_match_mode": "all",
               "filters": [
                 "application:Apache",
                 "image:/aws/us-east-1/image/ami-1"
@@ -2557,6 +2585,25 @@ paths:
               "reason": "acceptable_risk",
               "vulnerability_ids": [
                 "b9890b5c62d542c4830b43b53dabcc15"
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: Dispose a single remediation for 2 hosts (filter_match_mod
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
+                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "operation": "dispose_remediations",
+              "comment": "Vulnerable database contains automated test data, not customer records.",
+              "filter_match_mode": "any",
+              "filters": [
+                "host:/aws/us-west-2/host/i-1e272a96c803bf6e1",
+                "host:/aws/us-west-2/host/i-03bf219df1d75f14a"
+              ],
+              "reason": "acceptable_risk",
+              "remediation_ids": [
+                "45af6dc636774a4d822b9eff57b99ae8"
               ]
             }
             EOF
@@ -2630,6 +2677,71 @@ paths:
               "filters": [
                 "application:Apache",
                 "image:/aws/us-east-1/image/ami-1"
+              ],
+              "vulnerability_ids": [
+                "b9890b5c62d542c4830b43b53dabcc15"
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: Partially undispose a single remediation by remediation-item ID
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
+                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "operation": "undispose_remediations",
+              "filters": [
+                "host:host_key_1"
+              ],
+              "remediation_item_ids": [
+                "0536575B914C32C8A5D28415D02E4545"
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: Undispose a single remediation by remediation-item ID (request and existing filters match)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
+                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "operation": "undispose_remediations",
+              "filters": [
+                "host:host_key_1",
+                "host:host_key_2",
+                "host:host_key_3"
+              ],
+              "remediation_item_ids": [
+                "0536575B914C32C8A5D28415D02E4545"
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: Partially undispose a remediation-item by audit_id/vulnerability_id
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
+                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "operation": "undispose_remediations",
+              "filters": [
+                "host:host_key_1"
+              ],
+              "audit_ids": [
+                "37CA08E6-9CC7-4575-BA9B-B6F961976E8D"
+              ],
+              "vulnerability_ids": [
+                "b9890b5c62d542c4830b43b53dabcc15"
+              ]
+            }
+            EOF
+        - lang: Shell
+          label: Undispose a remediation-item by audit_id/vulnerability_id (no filters)
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/remediations" \
+                 -X PUT -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+            {
+              "operation": "undispose_remediations",
+              "audit_ids": [
+                "37CA08E6-9CC7-4575-BA9B-B6F961976E8D"
               ],
               "vulnerability_ids": [
                 "b9890b5c62d542c4830b43b53dabcc15"
