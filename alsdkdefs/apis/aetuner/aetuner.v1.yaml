@@ -286,7 +286,7 @@ paths:
       operationId: get_analytic
       security:
         - aims_request_authorizer: []
-      description: Returns an analytic for a specific customer
+      description: Returns an analytic for a specific customer. Requests without --enable_new=1 will be DEPRECATED
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalyticFunction.Arn}/invocations'
@@ -315,6 +315,8 @@ paths:
                   items:
                     $ref: '#/components/schemas/XTuning'
                   description: |-
+                    NOTE: --tuning is DEPRECATED; --xtuning will renamed to --tuning
+
                     A list of tunings for the analytic.
 
                     For visiblity, severity, threshold and handling when the default tagsets are not used it is possible
@@ -561,7 +563,7 @@ paths:
                 items:
                   type: string
       operationId: list_incident_types
-      description: List all incident types for a specific customer
+      description: DEPRECATED List all incident types for a specific customer
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -586,7 +588,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/IncidentTypeInfo'
       operationId: get_incident_type
-      description: "Return incident type for a specific customer by it's name"
+      description: "DEPRECATED Return incident type for a specific customer by it's name"
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -631,7 +633,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateIncidentTypeFunction.Arn}/invocations'
-      description: Update Incident Type properties
+      description: DEPRECATED Update Incident Type properties
       tags:
         - aetuner
   '/v1/{account_id}/reset/incident_types/{path}':
@@ -675,7 +677,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetIncidentTypeFunction.Arn}/invocations'
-      description: Reset Incident Type properties
+      description: DEPRECATED Reset Incident Type properties
       tags:
         - aetuner
   '/v1/{account_id}/incident_handling/{path}':
@@ -725,7 +727,7 @@ paths:
                     type: string
                     format: uuid
                     description: UUID of the stored record
-      description: Set Incident Type handling setting
+      description: DEPRECATED Set Incident Type handling setting
       security:
         - aims_request_authorizer: []
       requestBody:
@@ -769,7 +771,7 @@ paths:
       responses:
         '201':
           description: OK
-      description: Reset Incident Handling setting
+      description: DEPRECATED Reset Incident Handling setting
       security:
         - aims_request_authorizer: []
       requestBody:
@@ -806,7 +808,7 @@ paths:
       operationId: list_incident_handlings
       security:
         - aims_request_authorizer: []
-      description: Returns a list of all incident handling settings for a given customer
+      description: DEPRECATED Returns a list of all incident handling settings for a given customer
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerListIncidentHandlingsFunction.Arn}/invocations'
@@ -917,7 +919,7 @@ paths:
       tags: []
       responses:
         '200':
-          description: A list of tunable tagsets for the specified incident.
+          description: DEPRECATED A list of tunable tagsets for the specified incident.
           headers: {}
           content:
             application/json:
