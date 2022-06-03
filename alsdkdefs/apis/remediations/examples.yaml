@@ -341,6 +341,13 @@ FindAssetHostMetadataExample:
     metadata_types:
       - asset
     asset:
+      appliance:
+        appliance_name: i-f5e5f192f2c08876a
+        host_uuid: D69141A9-C77B-9B85-8505-5262E1939D6C
+        key: /appliance/D69141A9-C77B-9B85-8505-5262E1939D6C
+        name: i-f5e5f192f2c08876a
+        tags:
+        type: appliance
       version: 1
       asset_id: D69141A9-C77B-9B85-8505-5262E1939D6C
       asset_id_type: al:host_uuid
@@ -3848,6 +3855,7 @@ DisposeSingleRemediationExample:
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       comment: Vulnerable database contains automated test data, not customer records.
       expires: 0
+      filter_match_mode: all
       filters:
       - application:Apache
       - image:/aws/us-east-1/image/ami-1
@@ -3863,6 +3871,7 @@ DisposeSingleRemediationExample:
       deployment_id: FCCA4E48-598A-4946-B2A7-64DBF9E4CCAC
       comment: Vulnerable database contains automated test data, not customer records.
       expires: 0
+      filter_match_mode: all
       filters:
       - application:Apache
       - image:/aws/us-east-1/image/ami-1
@@ -3882,8 +3891,9 @@ DisposeSingleRemediationFiltersSetExample:
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         comment: Vulnerable database contains automated test data, not customer records.
         expires: 0
+        filter_match_mode: all
         filters:
-          - host:host:/aws/us-west-2/host/i-1e272a96c803bf6e1
+          - host:/aws/us-west-2/host/i-1e272a96c803bf6e1
         item_id: 351CA10D72FBB9680B185448AADE4708
         key: /al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/351CA10D72FBB9680B185448AADE4708
         vulnerability_id: b9890b5c62d542c4830b43b53dabcc15
@@ -3896,8 +3906,9 @@ DisposeSingleRemediationFiltersSetExample:
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         comment: Vulnerable database contains automated test data, not customer records.
         expires: 0
+        filter_match_mode: all
         filters:
-          - host:host:/aws/us-west-2/host/i-03bf219df1d75f14a
+          - host:/aws/us-west-2/host/i-03bf219df1d75f14a
         item_id: EE736E1FF37FCE5BF551F27CAEF7335F
         key: /al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/EE736E1FF37FCE5BF551F27CAEF7335F
         vulnerability_id: b9890b5c62d542c4830b43b53dabcc15
@@ -3905,6 +3916,26 @@ DisposeSingleRemediationFiltersSetExample:
         state: disposed
         user_id: 00001111-2222-3333-4444-555566667777
     rows: 2
+DisposeSingleRemediationFilterMatchModeExample:
+  value:
+    assets:
+    - account_id: '12345678'
+      applies_to_specific_assets: true
+      audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
+      deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
+      comment: Vulnerable database contains automated test data, not customer records.
+      expires: 0
+      filter_match_mode: all
+      filters:
+      - host:/aws/us-west-2/host/i-1e272a96c803bf6e1
+      - host:/aws/us-west-2/host/i-03bf219df1d75f14a
+      item_id: 351CA10D72FBB9680B185448AADE4708
+      key: "/al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/351CA10D72FBB9680B185448AADE4708"
+      vulnerability_id: b9890b5c62d542c4830b43b53dabcc15
+      reason: acceptable_risk
+      state: disposed
+      user_id: 00001111-2222-3333-4444-555566667777
+    rows: 1
 DisposeSingleVulnerabilityExample:
   value:
     assets:
@@ -3914,12 +3945,53 @@ DisposeSingleVulnerabilityExample:
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       comment: Vulnerable database contains automated test data, not customer records.
       expires: 0
+      filter_match_mode: all
       filters:
       - application:Apache
       - image:/aws/us-east-1/image/ami-1
       item_id: 351CA10D72FBB9680B185448AADE4708
       key: "/al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/351CA10D72FBB9680B185448AADE4708"
       vulnerability_id: b9890b5c62d542c4830b43b53dabcc15
+      reason: acceptable_risk
+      state: disposed
+      user_id: 00001111-2222-3333-4444-555566667777
+    rows: 1
+PartiallyUndisposeByRemediationItemId:
+  value:
+    assets:
+    - account_id: '12345678'
+      applies_to_specific_assets: true
+      audit_id: 37CA08E6-9CC7-4575-BA9B-B6F961976E8D
+      deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
+      comment: Vulnerable database contains automated test data, not customer records.
+      expires: 0
+      filter_match_mode: any
+      filters:
+      - host:host_key_2
+      - host:host_key_3
+      item_id: 0536575B914C32C8A5D28415D02E4545
+      key: "/al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/0536575B914C32C8A5D28415D02E4545"
+      remediation_id: 45af6dc636774a4d822b9eff57b99ae8
+      reason: acceptable_risk
+      state: disposed
+      user_id: 00001111-2222-3333-4444-555566667777
+    rows: 1
+PartiallyUndisposeByAuditId:
+  value:
+    assets:
+    - account_id: '12345678'
+      applies_to_specific_assets: true
+      audit_id: 37CA08E6-9CC7-4575-BA9B-B6F961976E8D
+      deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
+      comment: Vulnerable database contains automated test data, not customer records.
+      expires: 0
+      filter_match_mode: any
+      filters:
+      - host:host_key_2
+      - host:host_key_3
+      item_id: 0536575B914C32C8A5D28415D02E4545
+      key: "/al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/0536575B914C32C8A5D28415D02E4545"
+      remediation_id: 45af6dc636774a4d822b9eff57b99ae8
       reason: acceptable_risk
       state: disposed
       user_id: 00001111-2222-3333-4444-555566667777
@@ -3932,6 +4004,7 @@ ConcludeSingleRemediationExample:
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       expires: 0
+      filter_match_mode: all
       filters:
       - application:Apache
       - image:/aws/us-east-1/image/ami-1
@@ -3945,6 +4018,7 @@ ConcludeSingleRemediationExample:
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: FCCA4E48-598A-4946-B2A7-64DBF9E4CCAC
       expires: 0
+      filter_match_mode: all
       filters:
       - application:Apache
       - image:/aws/us-east-1/image/ami-1
@@ -3962,8 +4036,9 @@ ConcludeSingleRemediationFiltersSetExample:
         audit_id: 37CA08E6-9CC7-4575-BA9B-B6F961976E8D
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         expires: 0
+        filter_match_mode: all
         filters:
-          - host:host:/aws/us-west-2/host/i-1e272a96c803bf6e1
+          - host:/aws/us-west-2/host/i-1e272a96c803bf6e1
         item_id: 351CA10D72FBB9680B185448AADE4708
         key: /al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/351CA10D72FBB9680B185448AADE4708
         vulnerability_id: b9890b5c62d542c4830b43b53dabcc15
@@ -3974,8 +4049,9 @@ ConcludeSingleRemediationFiltersSetExample:
         audit_id: 37CA08E6-9CC7-4575-BA9B-B6F961976E8D
         deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
         expires: 0
+        filter_match_mode: all
         filters:
-          - host:host:/aws/us-west-2/host/i-03bf219df1d75f14a
+          - host:/aws/us-west-2/host/i-03bf219df1d75f14a
         item_id: EE736E1FF37FCE5BF551F27CAEF7335F
         key: /al/12345678:AF044FD4-5A6E-4EAE-B7A1-0B304034CC34/remediation-item/EE736E1FF37FCE5BF551F27CAEF7335F
         vulnerability_id: b9890b5c62d542c4830b43b53dabcc15
@@ -3990,6 +4066,7 @@ ConcludeSingleVulnerabilityExample:
       audit_id: 6BB1B0E8-14FA-4935-9770-2D339AF756F1
       deployment_id: AF044FD4-5A6E-4EAE-B7A1-0B304034CC34
       expires: 0
+      filter_match_mode: all
       filters:
       - application:Apache
       - image:/aws/us-east-1/image/ami-1
@@ -3999,6 +4076,69 @@ ConcludeSingleVulnerabilityExample:
       state: concluded
       user_id: 00001111-2222-3333-4444-555566667777
     rows: 1
+QueryRemediationItemsFilterMatchModeAnyExample:
+  value:
+    filters:
+    - host:/aws/us-west-2/host/i-1e272a96c803bf6e1
+    - host:/aws/us-west-2/host/i-03bf219df1d75f14a
+    remediation-items:
+      assets:
+      - account_id: '12345678'
+        asset_count: 1
+        audit_id: 88D80089-EED6-4BE9-B854-A0C99846062A
+        comment: Example of a remediation-item disposed by remediation ID
+        created_on: 1428707198110
+        deployment_id: 347203EF-134C-1005-8499-1289DB15AB31
+        expires: 0
+        exposures:
+        - asset_count: 1
+          categories:
+          - security
+          name: ELB Listener Security (1 of 4)
+          severity: high
+          threat_score: 10
+          threatiness: 24
+          vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
+        exposures_count: 1
+        filter_match_mode: any
+        filters:
+        - host:/aws/us-west-2/host/i-1e272a96c803bf6e1
+        - host:/aws/us-west-2/host/i-03bf219df1d75f14a
+        item_id: 6A74878A5BBC9DCE29289258D11D0937
+        key: "/al/12345678:347203EF-134C-1005-8499-1289DB15AB31/remediation-item/6A74878A5BBC9DCE29289258D11D0937"
+        modified_on: 1428707198879
+        reason: acceptable_risk
+        remediation:
+          account_id: '12345678'
+          categories:
+          - security
+          deployment_id: 347203EF-134C-1005-8499-1289DB15AB31
+          key: "/al/12345678:347203EF-134C-1005-8499-1289DB15AB31/remediation/9bccdb1d7ee02c690638e5932d387155"
+          name: It is recommended that users use the most current predefined security
+            policy.
+          remediation_id: 9bccdb1d7ee02c690638e5932d387155
+          threat_level: 1
+          threatiness: 24
+          type: remediation
+        remediation_id: 9bccdb1d7ee02c690638e5932d387155
+        severities:
+          all: 1
+          high: 1
+          info: 0
+          low: 0
+          medium: 0
+        state: disposed
+        type: remediation-item
+        user_id: E33F8C23-1321-1005-84D9-0E96AE6DBD5E
+        vinstances_count: 1
+      rows: 1
+    summary:
+      severities:
+        all: 1
+        high: 1
+        info: 1
+        low: 0
+        medium: 0
 QueryRemediationItemsSingleDeploymentExample:
   value:
     filters:
@@ -4023,6 +4163,7 @@ QueryRemediationItemsSingleDeploymentExample:
           threatiness: 24
           vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-east-1
         item_id: 6A74878A5BBC9DCE29289258D11D0937
@@ -4075,6 +4216,7 @@ QueryRemediationItemsSingleDeploymentExample:
           vinstances_count: 1
           vulnerability_id: 41ce89114e033ec6c357bfd1cf8b5efc
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-west-2
         item_id: 8291953C08AEDEC18A5189C80D72C045
@@ -4164,6 +4306,7 @@ QueryRemediationItemsSingleDeploymentDetailsExample:
           vinstances_count: 1
           vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-east-1
         item_id: 6A74878A5BBC9DCE29289258D11D0937
@@ -4219,6 +4362,7 @@ QueryRemediationItemsMultipleDeploymentsExample:
           vinstances_count": 1
           vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-east-1
         item_id: 6A74878A5BBC9DCE29289258D11D0937
@@ -4258,6 +4402,7 @@ QueryRemediationItemsMultipleDeploymentsExample:
           vinstances_count: 1
           vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-east-1
         item_id: 6A74878A5BBC9DCE29289258D11D0937
@@ -4331,6 +4476,7 @@ QueryRemediationItemsMultipleDeploymentsDetailsExample:
           vinstances_count: 1
           vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-east-1
         item_id: 6A74878A5BBC9DCE29289258D11D0937
@@ -4392,6 +4538,7 @@ QueryRemediationItemsMultipleDeploymentsDetailsExample:
           vinstances_count: 1
           vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-east-1
         item_id: 6A74878A5BBC9DCE29289258D11D0937
@@ -4462,6 +4609,7 @@ QueryRemediationItemsSingleDeploymentsDetailedFiltersExample:
           vinstances_count: 1
           vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-east-1
         item_id: 6A74878A5BBC9DCE29289258D11D0937
@@ -4514,6 +4662,7 @@ QueryRemediationItemsSingleDeploymentsDetailedFiltersExample:
           vinstances_count: 1
           vulnerability_id: 41ce89114e033ec6c357bfd1cf8b5efc
         exposures_count: 1
+        filter_match_mode: all
         filters:
         - region:/aws/us-west-2
         item_id: 8291953C08AEDEC18A5189C80D72C045
@@ -4594,6 +4743,7 @@ QueryRemediationItemsMultipleDeploymentsGroupByAuditIdExample:
               vinstances_count: 1
               vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
           exposures_count: 2
+          filter_match_mode: all
           filters:
             - - region:/aws/us-east-1
           item_ids:
@@ -4675,6 +4825,7 @@ QueryRemediationItemsMultipleDeploymentsGroupByAuditIdDetailsExample:
               vinstances_count: 1
               vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
           exposures_count: 1
+          filter_match_mode: all
           filters:
             - - region:/aws/us-east-1
           item_ids:
