@@ -564,6 +564,8 @@ paths:
                     type: string
                 required:
                   - stored
+        '400':
+          description: Bad request. Check repsonse body for validation errors
       description: Create new or update existing tagset
       security:
         - X-AIMS-Auth-Token: []
@@ -695,6 +697,8 @@ paths:
                 properties:
                   stored:
                     type: string
+        '400':
+          description: Bad request. Check repsonse body for validation errors
       description: >-
         Create or update (overwrite) a tuning tagset. A tuning tag set is used
         by a trigger definition. This endpoint is intended for internal use
@@ -739,6 +743,8 @@ paths:
                 properties:
                   stored:
                     type: string
+        '400':
+          description: Bad request. Check repsonse body for validation errors
       description: >-
         Create or update (overwrite) customer's tuning tagset. A tuning tagset
         is used by a trigger definition. This endpoint is intended for internal
@@ -794,6 +800,8 @@ paths:
                 properties:
                   stored:
                     type: string
+        '400':
+          description: Bad request. Check repsonse body for validation errors
       security:
         - X-AIMS-Auth-Token: []
       description: >-
@@ -877,7 +885,8 @@ paths:
                     type: boolean
         '204':
           description: Key or Value Not Found
-
+        '400':
+          description: Bad request. See details in the response body
       security:
         - X-AIMS-Auth-Token: [ ]
       parameters:
@@ -962,6 +971,8 @@ paths:
                 properties:
                   stored:
                     type: string
+        '400':
+          description: Bad request. Check repsonse body for validation errors
       tags:
         - Definitions Resources
       description: >-
@@ -1822,6 +1833,11 @@ components:
           enum:
             - "and"
             - "or"
+        operation:
+          type: string
+          enum:
+            - "equals"
+            - "cidr_match"
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
