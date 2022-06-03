@@ -44,6 +44,13 @@ paths:
         - $ref: '#/components/parameters/search_type'
         - $ref: '#/components/parameters/execution_mode'
         - schema:
+            type: array
+            items:
+              type: string
+          in: query
+          name: child_accounts
+          description: 'Option to specify child accounts and run a search in cross-account mode. It can be either `all` or a comma-separated list of accounts. `all` option forces the Search to get all children of `account_id` by itself.'
+        - schema:
             type: integer
             minimum: 0
           in: query
@@ -76,53 +83,6 @@ paths:
       description: Request the execution of a new search. Accepts either SQL or JSON form of search request. Details on how the SQL statements look will be given in a separate document.
       tags:
         - general-purpose
-  '/search/v2/{account_id}/searches/{query_execution_id}':
-    get:
-      summary: Get Search Results
-      tags: []
-      responses:
-        '200':
-          description: OK
-        '301':
-          description: This search failed but successfully retried.  This response redirects to the successful retry of this search.
-        '404':
-          description: Not Found
-      operationId: get_query_results
-      parameters:
-        - name: details
-          schema:
-            type: boolean
-            enum:
-              - true
-              - false
-            default: false
-          in: query
-          description: Return search execution details
-        - name: offset
-          schema:
-            type: integer
-          in: query
-          description: offset within a set of results
-        - name: limit
-          schema:
-            type: integer
-            default: 100
-          in: query
-          description: Limit the number of elements in the response
-        - name: starting_token
-          schema:
-            type: string
-          in: query
-          description: A `next_token` from a previous request to continue paging results
-      description: Returns the results of a query execution specified by `query_execution_id`.  This is deprecated in favor of the `get_search_results` operation which has a better definition.  The two are functionally equivalent.
-      deprecated: true
-    parameters:
-      - $ref: '#/components/parameters/account_id'
-      - name: query_execution_id
-        schema:
-          type: string
-        in: path
-        required: true
   '/search/v1/{account_id}/messages/{datatype}':
     post:
       summary: Read Messages
@@ -246,10 +206,17 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/ResultsResponse'
-      description: Get the paginated results of a search.
+        '301':
+          description: This search failed but successfully retried.  This response redirects to the successful retry of this search.
+        '404':
+          description: No such search was found.
+      description: |-
+        Returns the paginated results of a query execution specified by `search_uuid`.
+
+        Paging can be controlled with the `limit` and `offset` parameters.  The `next_token` field in the response can also be passed to this endpoint as the `starting_token` parameter to avoid having to manage the `limit` and `offset` parameters.
       parameters:
         - schema:
-            type: number
+            type: integer
             minimum: 0
             default: 100
             maximum: 100000
@@ -257,7 +224,7 @@ paths:
           name: limit
           description: Limit the number of elements in the response
         - schema:
-            type: number
+            type: integer
             minimum: 0
           in: query
           name: offset
@@ -515,6 +482,63 @@ paths:
         This API is used internally to the search project and is subject to change without notice to customers.
       parameters:
         - $ref: '#/components/parameters/x-invoked-by'
+  /search/v2/convert-from-v1:
+    post:
+      summary: SIEMless to EM query converter
+      operationId: convert_from_v1
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                example-1:
+                  value: 'SELECT field_a, field_b FROM logmsgs WHERE time_recv BETWEEN 1230065 AND 1230078'
+          headers: {}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: A description of the error that occured
+              examples:
+                example-1:
+                  value:
+                    error: invalid json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: object
+            examples:
+              example-1:
+                value:
+                  query:
+                    select:
+                      - field_a
+                      - field_b
+                    from: logmsgs
+                    where:
+                      between:
+                        - source: time_recv
+                        - 1230065
+                        - 1230078
+      description: |-
+        Convert a SIEMless query to Expert Mode (i.e. v2) format.
+
+        Returns:
+
+        - 200 - if the query was successfully converted to Expert Mode format;
+        - 400 - if the query cannot be converted for whatever reason.
 components:
   schemas:
     MessagesResponse:
@@ -831,6 +855,8 @@ components:
           $ref: '#/components/schemas/ExternalDetailsAttribute'
         search_end:
           $ref: '#/components/schemas/SearchEnd'
+        search_progress:
+          $ref: '#/components/schemas/SearchProgress'
         search_start:
           $ref: '#/components/schemas/SearchStart'
         search_status:
@@ -870,6 +896,25 @@ components:
       title: Pending Searches List
       items:
         $ref: '#/components/schemas/PendingSearchDescription'
+    SearchProgress:
+      type: object
+      properties:
+        input_scanned_bytes:
+          type: number
+          minimum: 0
+          description: Size of data scanned by the given search.
+        input_scanned_records:
+          type: number
+          minimum: 0
+          description: Number of records scanned by the given search.
+        estimated_output_records:
+          type: number
+          minimum: 0
+          description: Estimated number of resulting records.
+      required:
+        - input_scanned_bytes
+        - input_scanned_records
+        - estimated_output_records
     SearchResultsCore:
       title: Search Results Core
       type: object
