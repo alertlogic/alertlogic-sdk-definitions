@@ -919,7 +919,7 @@ components:
           description: Connection type.
         target_url:
           type: string
-          pattern: '^https?://\\S+'
+          pattern: '^https?:\/\/(?:[a-zA-Z0-9#.\-]{2,256})+\.(?:[a-zA-Z]{2,63}):?[0-9]*(?:\/[0-9a-zA-Z\-@?=_&%.:]*)*$'
           description: Target URL
         headers:
           type: string
@@ -1099,7 +1099,7 @@ components:
             - msteams
         base_url:
           type: string
-          pattern: '^https?://\S+'
+          pattern: '^https?:\/\/(?:[a-zA-Z0-9#.\-]{2,256})+\.(?:[a-zA-Z]{2,63}):?[0-9]*(?:\/[0-9a-zA-Z\-@?=_&%.:]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -1123,7 +1123,7 @@ components:
             - slack
         base_url:
           type: string
-          pattern: '^https?://\S+'
+          pattern: '^https?:\/\/(?:[a-zA-Z0-9#.\-]{2,256})+\.(?:[a-zA-Z]{2,63}):?[0-9]*(?:\/[0-9a-zA-Z\-@?=_&%.:]*)*$'
         active:
           type: boolean
           description: Active status of the connection
@@ -1147,7 +1147,7 @@ components:
             - pagerduty
         base_url:
           type: string
-          pattern: '^https?://\S+'
+          pattern: '^https?:\/\/(?:[a-zA-Z0-9#.\-]{2,256})+\.(?:[a-zA-Z]{2,63}):?[0-9]*(?:\/[0-9a-zA-Z\-@?=_&%.:]*)*$'
         routing_key:
           type: string
         active:
@@ -1173,7 +1173,7 @@ components:
             - webhook
         base_url:
           type: string
-          pattern: '^https?://\S+'
+          pattern: '^https?:\/\/(?:[a-zA-Z0-9#.\-]{2,256})+\.(?:[a-zA-Z]{2,63}):?[0-9]*(?:\/[0-9a-zA-Z\-@?=_&%.:]*)*$'
         auth_header:
           type: string
         headers:
