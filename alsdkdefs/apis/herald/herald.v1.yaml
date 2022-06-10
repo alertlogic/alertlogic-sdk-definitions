@@ -238,7 +238,7 @@ paths:
         in: path
         required: true
         description: Notification id
-  '/herald/v2/{account_id}/notifications/type':
+  '/herald/v2/{account_id}/notifications/{type}':
     get:
       summary: Get list of notifications by account and notification type
       tags:
@@ -252,58 +252,62 @@ paths:
                 $ref: '#/components/schemas/Notification'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                 $ref: '#/components/schemas/Basic-Error-Response'
         '403':
           description: Forbidden
       operationId: get_account_notification_by_type
       security:
         - X-AIMS-Auth-Token: []
-      parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: type
-        in: path
-        required: true
-        description: A notification type
-      - schema:
-          type: string
-          enum: 
-            - '"desc"'
-            - '"asc"'
-          default: desc 
-        name: sort
-        in: query
-        required: false
-        description: Direction to sort created at by
-      - schema:
-          type: string
-        name: continuation_id
-        in: query
-        required: false
-        description: Continuation id - continue from that result
-      - schema:
-          type: integer
-        name: since
-        in: query
-        required: false
-        description: Show items created since
-      - schema:
-          type: integer
-        name: until
-        in: query
-        required: false
-        description: Show items created until
-      - schema:
-          type: integer
-        name: limit
-        in: query
-        required: false
-        description: Controls the maximum number of items per page.
+    parameters:
+    - schema:
+        type: string
+      name: account_id
+      in: path
+      required: true
+      description: AIMS Account ID
+    - schema:
+        type: string
+      name: type
+      in: path
+      required: true
+      description: A notification type
+    - schema:
+        type: string
+        enum: 
+          - '"desc"'
+          - '"asc"'
+        default: desc 
+      name: sort
+      in: query
+      required: false
+      description: Direction to sort created at by
+    - schema:
+        type: string
+      name: continuation_id
+      in: query
+      required: false
+      description: Continuation id - continue from that result
+    - schema:
+        type: integer
+      name: since
+      in: query
+      required: false
+      description: Show items created since
+    - schema:
+        type: integer
+      name: until
+      in: query
+      required: false
+      description: Show items created until
+    - schema:
+        type: integer
+      name: limit
+      in: query
+      required: false
+      description: Controls the maximum number of items per page.
       
 
   '/herald/v2/{account_id}/notifications':
@@ -517,6 +521,146 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+    post:
+      summary: Add subscriber to a subscription
+      tags:
+        - Subscribers
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscriber'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Basic-Error-Response'
+                  - $ref: '#/components/schemas/Validation-Error-Response'
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '413':
+          description: Request Entity Too Large
+      operationId: add_subscriber
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Add subscriber to a subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscriber-Request-Extra'
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: subscription_id
+        in: path
+        required: true
+  '/herald/v2/{account_id}/subscriptions/{subscription_id}/subscribers/{subscriber_type}/{subscriber}':
+    delete: 
+      summary: Remove a subscriber from a subscription
+      tags:
+        - Subscribers
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: remove_subscriber
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Remove a subscriber from a subscription
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: subscription_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: subscriber_type
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: subscriber
+        in: path
+        required: true
+  '/herald/v2/{account_id}/subscriptions/{subscription_id}/subscribers/batch/update':
+    post:
+      summary: Update subscribers to a subscription in a batch
+      tags:
+        - Subscribers
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Basic-Error-Response'
+                  - $ref: '#/components/schemas/Validation-Error-Response'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '413':
+          description: Request Entity Too Large
+      operationId: batch_update_subscribers
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Update subscribers to a subscription in a batch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscribers:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/Subscriber-Request'
+                      - type: object
+                        properties:
+                          action:
+                            type: string
+                            enum:
+                              - delete
+                              - add
+                    required:
+                      - action
+              required:
+                - subscribers
+            examples:
+              Subscriber List:
+                value:
+                  - subscriber: 664A8FDE-B9EA-4DAC-8E0C-041F845CCF8D
+                    subscriber_type: user
+                    action: delete
+                  - subscriber: 7DF5B263-3A50-40E3-9950-D52277C3AF1B
+                    subscriber_type: connection
+                    action: add
+
     parameters:
       - schema:
           type: string
@@ -610,6 +754,150 @@ paths:
           in: query
           name: include_subscribers
           description: Includes subscribers per corresponding Subscription ID
+    post:
+      summary: Create new subscription for an account
+      tags:
+        - Subscriptions
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Basic-Error-Response'
+                  - $ref: '#/components/schemas/Validation-Error-Response'
+        '413':
+          description: Request Entity Too Large
+      operationId: create_subscription
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Create new subscription for an account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                class:
+                  type: string
+                notification_type:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Notification-Type'
+                external_id:
+                  type: string
+                subscribers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Subscriber-Request'
+                active:
+                  type: boolean
+                options:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Options'
+                filters:
+                  type: object
+                  additionalProperties: true
+                template:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Template-Key'
+                system:
+                  type: string
+                  enum:
+                    - responder
+                suppression_interval:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Suppression-Interval'
+              required:
+                - name
+                - class
+                - notification_type
+            examples:
+              Sparse Example:
+                value:
+                  name: Incident Alert Test
+                  class: event
+                  notification_type: incidents/alert
+              Full Example:
+                value:
+                  name: Notification Test
+                  class: schedule
+                  notification_type: report/scheduled
+                  external_id: 8BBC2DE2-A331-1005-8001-0242AC110002
+                  subscribers:
+                    - subscriber: CD1D0C0A-7D83-469C-A752-C23FBD2BDA46
+                      subscriber_type: user
+                  active: true
+                  options:
+                    include_attachments: true
+                  filters:
+                    '=':
+                      - source: notification.schedule_id
+                      - F6103D82-A358-1005-8001-0242AC110020
+                  template: scheduled_report_template
+                  system: responder
+                  suppression_interval: 2400
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+  '/herald/v2/{account_id}/subscriptions/batch/delete':
+    post:
+      summary: Delete multiple subscriptions in a batch
+      tags:
+        - Subscriptions
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Basic-Error-Response'
+                  - $ref: '#/components/schemas/Validation-Error-Response'
+                  - type: object
+                    title: Partial-Deletion-Response
+                    properties:
+                      error:
+                        type: string
+                        enum:
+                          - delete_failed
+                      unprocessed_items: {}
+                    required:
+                      - error
+                      - unprocessed_items
+        '413':
+          description: Request Entity Too Large
+      operationId: batch_delete_subscriptions
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Delete multiple subscriptions in a batch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+              required:
+                - ids
+            examples:
+              Subscriptions List:
+                value:
+                  - 02AF2BD2-E775-4E89-BB26-4A67D73D5681
+                  - 86B8A354-0363-4FC2-82D3-0BB492DFD8B4
     parameters:
       - schema:
           type: string
@@ -619,7 +907,8 @@ paths:
   '/herald/v2/{account_id}/subscriptions/{subscription_id}':
     get:
       summary: List subscriptions for an account by subscription id
-      tags: []
+      tags:
+        - Subscriptions
       responses:
         '200':
           description: OK
@@ -642,6 +931,82 @@ paths:
           in: query
           name: include_subscribers
           description: Includes subscribers per corresponding Subscription ID
+    post:
+      summary: Update subscription for an account
+      tags:
+        - Subscriptions
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Basic-Error-Response'
+                  - $ref: '#/components/schemas/Validation-Error-Response'
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '413':
+          description: Request Entity Too Large
+      operationId: update_subscription
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Update subscription for an account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                notification_type:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Notification-Type'
+                external_id:
+                  type: string
+                active:
+                  type: boolean
+                options:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Options'
+                filters:
+                  type: object
+                  additionalProperties: true
+                template:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Template-Key'
+                suppression_interval:
+                  $ref: '#/components/schemas/Subscription-Request-Field-Suppression-Interval'
+            examples:
+              Set Subscription Inactive:
+                value:
+                  active: false
+              Update Subscription Name and Options:
+                value:
+                  name: New Notification Name
+                  options:
+                    email_subject: false
+    delete:
+      summary: Delete subscription from an account
+      tags:
+        - Subscriptions
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: delete_subscription
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Delete subscription from an account
     parameters:
       - schema:
           type: string
@@ -1082,6 +1447,111 @@ components:
         subscriber_count:
           type: number
           description: Available in List subscriptions for an account by subscription id
+    Basic-Error-Response:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      x-examples:
+        Invalid Json:
+          error: invalid_json
+    Validation-Error-Response:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+        path:
+          type: string
+      required:
+        - error
+      x-examples:
+        Details:
+          error: missing_required_property
+          details: notification_type
+        Path:
+          error: wrong_type
+          path: options.include_attachments
+        Both:
+          path: subscribers.
+          error: missing_required_property
+          details: subscriber
+    Subscriber-Type:
+      type: string
+      enum:
+        - user
+        - connection
+        - response.playbook
+      x-examples:
+        User:
+          user
+    Subscriber-Request:
+      type: object
+      properties:
+        subscriber:
+          type: string
+        subscriber_type:
+          $ref: '#/components/schemas/Subscriber-Type'
+      required:
+        - subscriber
+        - subscriber_type
+      x-examples:
+        Subscriber Request:
+          subscriber: e4f32e01-de26-4fe2-83da-dada3f76e2e2
+          subscriber_type: user
+    Subscriber-Request-Extra:
+      allOf:
+        - $ref: '#/components/schemas/Subscriber-Request'
+        - type: object
+          properties:
+            subscription_id:
+              type: string
+            account_id:
+              type: string
+          required:
+            - subscription_id
+            - account_id
+      x-examples:
+        Subscriber Request Extra:
+          subscriber: 82FB03F2-3FEC-411B-82A2-904F68BFCC74
+          subscriber_type: connection
+          account_id: 134047511
+          subscription_id: 2306AD6F-EC8F-40B4-AC86-7C5D4FFC1597
+    Subscription-Request-Field-Notification-Type:
+      type: string
+      pattern: "^[^/]+/[^/]+$"
+    Subscription-Request-Field-Suppression-Interval:
+      type: integer
+      minimum: 0
+      maximum: 10080
+      x-examples:
+        Set Interval:
+          120
+    Subscription-Request-Field-Options:
+      type: object
+      properties:
+        include_attachments:
+          type: boolean
+        email_subject:
+          type: string
+      additionalProperties: true
+      x-examples:
+        Set Options:
+          include_attachments: true
+    Subscription-Request-Field-Template-Key:
+      type: string
+      enum:
+        - log_review_created
+        - fim_report_template
+        - scheduled_report_template
+        - observation_template
+        - incidents_template
+      x-examples:
+        Incidents Template:
+          incidents_template
   securitySchemes:
     X-AIMS-Auth-Token:
       name: ' X-AIMS-Auth-Token'
