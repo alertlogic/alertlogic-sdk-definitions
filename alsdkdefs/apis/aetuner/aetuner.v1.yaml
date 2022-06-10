@@ -149,10 +149,16 @@ paths:
             schema:
               type: object
               properties:
-                xtuning:        # TODO: rename
+                xtuning:        # TODO: remove
                   type: array
                   items:
-                    $ref: '#/components/schemas/XTuning'
+                    $ref: '#/components/schemas/Tuning'
+                  description: |-
+                    --xtuning is DEPRECATED; please use --tuning instead
+                tuning:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Tuning'
                   description: |-
                     A list of tunings for the analytic.
 
@@ -310,13 +316,17 @@ paths:
                   type: boolean
                   description: "Disable the check that tuning referes to a tagset referenced by the analytic. Use if there is a tuning tagset that is not detected to be refernced by an analytic"
                   default: false
-                xtuning:        # TODO: rename
+                xtuning:        # TODO: remove
                   type: array
                   items:
-                    $ref: '#/components/schemas/XTuning'
+                    $ref: '#/components/schemas/Tuning'
                   description: |-
-                    NOTE: --tuning is DEPRECATED; --xtuning will renamed to --tuning
-
+                    --xtuning is DEPRECATED; please use --tuning instead
+                tuning:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Tuning'
+                  description: |-
                     A list of tunings for the analytic.
 
                     For visiblity, severity, threshold and handling when the default tagsets are not used it is possible
@@ -351,33 +361,6 @@ paths:
                 dry_run:
                   type: boolean
                   description: "DRY RUN only"
-                visibility:
-                  $ref: '#/components/schemas/IncidentVisibility'
-                visibility_key:
-                  type: string
-                  description: Visibility tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `visibility` is updated.
-                severity:
-                  $ref: '#/components/schemas/IncidentSeverity'
-                severity_key:
-                  type: string
-                  description: Severity tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `severity` is updated.
-                handling:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/IncidentTypeHandlingSetting'
-                handling_key:
-                  type: string
-                  description: Handling tagset tuning key. Used for setting tuning tagset value instead of default incident type. If observation tuning specifies custom `key` value - this parameter is needed if `handling` is updated.
-                tuning:
-                  type: object
-                  description: Tuning Parameters. The list of tuning parameters depends on the analytic being tuned. Tunable options can be seen in `tuning_properties` property of the `analytic` object returned by get_analytic for the analytic.
-                  additionalProperties: true
-                  properties:
-                    threshold:
-                      type: integer
-                      description: Example of property name
-                tuning_list:
-                  $ref: '#/components/schemas/TuningList'
                 reason:
                   type: string
                   description: Reason for the performing the update. This information is used for auditing purposes.
@@ -547,278 +530,6 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsHandlingFunction.Arn}/invocations'
       tags:
         - aetuner
-  '/v1/{account_id}/incident_types':
-    get:
-      summary: List Incident Types
-      tags:
-        - aetuner
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                description: List of incident types
-                items:
-                  type: string
-      operationId: list_incident_types
-      description: DEPRECATED List all incident types for a specific customer
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerListIncidentTypesFunction.Arn}/invocations'
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-  '/v1/{account_id}/incident_types/{path}':
-    get:
-      summary: Get Incident Type by Name
-      tags:
-        - aetuner
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IncidentTypeInfo'
-      operationId: get_incident_type
-      description: "DEPRECATED Return incident type for a specific customer by it's name"
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetIncidentTypeFunction.Arn}/invocations'
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
-        description: Incident Type Fully Qualified Name
-    post:
-      summary: Update Incident Type properties
-      operationId: update_incident_type
-      responses:
-        '200':
-          description: OK
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                severity:
-                  $ref: '#/components/schemas/IncidentSeverity'
-                visibility:
-                  $ref: '#/components/schemas/IncidentVisibility'
-                reason:
-                  type: string
-                  description: Reason for a change
-              required:
-                - reason
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateIncidentTypeFunction.Arn}/invocations'
-      description: DEPRECATED Update Incident Type properties
-      tags:
-        - aetuner
-  '/v1/{account_id}/reset/incident_types/{path}':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
-        description: Incident Type Fully Qualified Name
-    post:
-      summary: Reset Incident Type properties
-      operationId: reset_incident_type
-      responses:
-        '200':
-          description: OK
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason:
-                  type: string
-                  description: Reason for a change.
-                exclude:
-                  type: string
-                  enum:
-                    - severity
-                    - visibility
-              required:
-                - reason
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetIncidentTypeFunction.Arn}/invocations'
-      description: DEPRECATED Reset Incident Type properties
-      tags:
-        - aetuner
-  '/v1/{account_id}/incident_handling/{path}':
-    get:
-      summary: Get Incident Type Handling Setting
-      tags:
-        - aetuner
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IncidentTypeHandlingInfo'
-      operationId: get_incident_handling
-      security:
-        - aims_request_authorizer: []
-      description: Return incident type handling setting
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetIncidentHandlingFunction.Arn}/invocations'
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
-        description: Incident Type Fully Qualified Name
-    post:
-      summary: Update Incident Type Handling Setting
-      operationId: update_incident_handling
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  stored:
-                    type: string
-                    format: uuid
-                    description: UUID of the stored record
-      description: DEPRECATED Set Incident Type handling setting
-      security:
-        - aims_request_authorizer: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                setting:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/IncidentTypeHandlingSetting'
-                reason:
-                  type: string
-                  description: Reason for a change
-              required:
-                - setting
-                - reason
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateIncidentHandlingFunction.Arn}/invocations'
-      tags:
-        - aetuner
-  '/v1/{account_id}/reset/incident_handling/{path}':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: path
-        in: path
-        required: true
-        description: Incident Type Fully Qualified Name
-    post:
-      summary: Reset Incident Handling Setting
-      operationId: reset_incident_handling
-      responses:
-        '201':
-          description: OK
-      description: DEPRECATED Reset Incident Handling setting
-      security:
-        - aims_request_authorizer: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason:
-                  type: string
-                  description: Reason for a change
-              required:
-                - reason
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetIncidentHandlingFunction.Arn}/invocations'
-      tags:
-        - aetuner
-  '/v1/{account_id}/incident_handling':
-    get:
-      summary: Get a list of all incident handling settings for a customer
-      tags:
-        - aetuner
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                description: List of incident handling settings
-                items:
-                  $ref: '#/components/schemas/IncidentTypeHandlingInfo'
-      operationId: list_incident_handlings
-      security:
-        - aims_request_authorizer: []
-      description: DEPRECATED Returns a list of all incident handling settings for a given customer
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerListIncidentHandlingsFunction.Arn}/invocations'
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
   '/v1/tunings/report':
     get:
       summary: Tuning report commands
@@ -902,78 +613,6 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetHealthcheckFunction.Arn}/invocations'
-  '/v1/{account_id}/incident/{incident_id}/tunables':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: incident_id
-        in: path
-        required: true
-    get:
-      summary: Get Tunables
-      tags: []
-      responses:
-        '200':
-          description: DEPRECATED A list of tunable tagsets for the specified incident.
-          headers: {}
-          content:
-            application/json:
-              schema:
-                description: ''
-                type: object
-                properties:
-                  tunings:
-                    type: array
-                    uniqueItems: true
-                    minItems: 1
-                    items:
-                      type: object
-                      properties:
-                        value:
-                          type: object
-                        type:
-                          type: string
-                          minLength: 1
-                        keys:
-                          type: array
-                          uniqueItems: true
-                          minItems: 1
-                          items:
-                            type: object
-                            properties:
-                              type:
-                                type: string
-                                minLength: 1
-                              name:
-                                type: string
-                                minLength: 1
-                            required:
-                              - type
-                              - name
-                        name:
-                          type: string
-                          minLength: 1
-                          description: tagset name
-                        tuning_command:
-                          type: string
-                          minLength: 1
-                          description: alcli sample command
-                      required:
-                        - value
-                        - type
-                        - keys
-                        - name
-                        - tuning_command
-                required:
-                  - tunings
-              examples: {}
-      operationId: get_incident_tunables
-      description: Returns a list of all the tags that can be tuned and sample alcli commands to tune them.
 components:
   securitySchemes:
     aims_request_authorizer:
@@ -1037,72 +676,8 @@ components:
           type: object
         parents:
           type: string
-    IncidentTypeInfo:
-      title: IncidentTypeInfo
-      type: object
-      description: Incident Type Object
-      properties:
-        analytics:
-          type: array
-          description: List of Analytics that can generate this incident type
-          items:
-            type: string
-        severity:
-          $ref: '#/components/schemas/IncidentSeverity'
-        visibility:
-          $ref: '#/components/schemas/IncidentVisibility'
-        path:
-          type: string
-          description: Fully qualifed name of an incident type
-        incident_handling:
-          $ref: '#/components/schemas/IncidentTypeHandlingSetting'
-    IncidentSeverity:
-      type: string
-      title: IncidentSeverity
-      description: Severity of an incident
-      enum:
-        - info
-        - low
-        - medium
-        - high
-        - critical
-    IncidentVisibility:
-      type: string
-      title: IncidentVisibility
-      description: Visibility of an incident
-      enum:
-        - observation
-        - incident
-        - test
-    IncidentTypeHandlingSetting:
-      type: string
-      title: IncidentTypeHandlingSetting
-      description: |-
-        * `auto_soc_close` - is only relevant to incident being shown to SOC or not, no other behaviour or values are affected.
-            If True, will bypass the SOC and become available in the Customer Console.
-        * `auto_escalate` - is only relevant to whether the customer receives an email notification or not, no other behaviour or values are affected.
-            If an incident is escalated, and becomes soc-closed, a notification will be generated with the escalations flag set to True.
-        * `auto_customer_close` - is only relevant to whether the customer sees the incident as “Closed” in the Customer Console or not, no other behaviour or values are affected.
-            If True, the incident will only show in the Customer Console under the 'Closed' filter.
-      enum:
-        - auto_soc_close
-        - auto_escalate
-        - auto_customer_close
-    IncidentTypeHandlingInfo:
-      title: IncidentTypeHandlingInfo
-      type: object
-      description: Incident Type Handling information.
-      properties:
-        settings:
-          type: array
-          description: List of applicable handling settings
-          items:
-            $ref: '#/components/schemas/IncidentTypeHandlingSetting'
-        path:
-          type: string
-          description: Handling preferences path.
-    XTuning:
-      title: XTuning
+    Tuning:
+      title: Tuning
       type: object
       description: Tuning specification
       additionalProperties: false
@@ -1140,31 +715,6 @@ components:
         key:
           type: string
           description: Explicit tuning tagset key
-    TuningList:
-      title: TuningList
-      type: object
-      description: Object to update a tuning with a list of values
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-          description: Name of the tuning tagset
-          example: Authentication/UserLoginFailures/CountryWhitelist
-        key:
-          type: string
-          description: Key in the tuning tagset
-          example: CountryWhitelist
-        operation:
-          type: string
-          description: Name of the Operation
-          enum:
-            - add
-            - subtract
-        values:
-          type: array
-          description: Values to add or remove
-          items:
-            type: string
     ResetAllAnalyticsRequestBody:
       title: ResetAllAnalyticsRequestBody
       type: object
