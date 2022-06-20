@@ -811,18 +811,6 @@ paths:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsListPayloadTypesFunction.Arn}/invocations'
       parameters: []
-  /healthcheck:
-    get:
-      summary: Your GET endpoint
-      tags: []
-      responses:
-        '200':
-          description: OK
-      operationId: get_healthcheck
-      description: Check health status of the service.
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetHealthcheckFunction.Arn}/invocations'
   '/v1/{account_id}/migrate/connection_targets':
     parameters:
       - schema:
