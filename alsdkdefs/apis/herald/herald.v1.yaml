@@ -16,134 +16,6 @@ servers:
     description: Production
     x-alertlogic-session-endpoint: true
 paths:
-  '/herald/v2/{account_id}/integrations/{id}':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-        name: id
-        in: path
-        required: true
-        description: Entity ID
-    get:
-      summary: Get account integrations for the specified account
-      deprecated: true
-      tags:
-        - Integrations
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/Integration-Webhook'
-              examples:
-                Webhook Response Example:
-                  value:
-                    id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
-                    account_id: '12345678'
-                    target_url: 'https://www.example.com'
-                    name: My Webhook
-                    type: webhook
-                    headers:
-                      X-Header: HeaderValue
-                    created:
-                      at: 1517452871
-                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-                    modified:
-                      at: 1517452871
-                      by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
-      operationId: get_account_integration
-      description: Get the specified account integration
-      security:
-        - X-AIMS-Auth-Token: []
-  '/herald/v2/{account_id}/integrations':
-    get:
-      deprecated: true
-      summary: List account integrations for the specified account
-      tags:
-        - Integrations
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  integrations:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Integration-Webhook' 
-              examples:
-                List account Integrations for the Specified Account Response Example:
-                  value:
-                    integrations:
-                      - id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
-                        account_id: '12345678'
-                        target_url: 'https://www.example.com'
-                        name: My Webhook
-                        type: webhook
-                        headers:
-                          X-Header: HeaderValue
-                        created:
-                          at: 1517452871
-                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-                        modified:
-                          at: 1517452871
-                          by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-        '403':
-          description: Forbidden
-      operationId: get_account_integrations
-      security:
-        - X-AIMS-Auth-Token: []
-      description: List the specified account integration
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-  /herald/v2/integration_types:
-    get:
-      deprecated: true
-      summary: List available integration types
-      tags:
-        - Integrations
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  integration_types:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Integration-Type'
-              examples:
-                List Available Integration Types Response:
-                  value:
-                    integration_types:
-                      - name: webhook
-        '403':
-          description: Forbidden
-      operationId: get_integration_types
-      description: Get the list of available integration types
-      security:
-        - X-AIMS-Auth-Token: []
   '/herald/v2/notifications/{notification_id}':
     get:
       summary: Get a notification
@@ -1020,55 +892,6 @@ paths:
         required: true
 components:
   schemas:
-    Integration-Webhook:
-      title: Integration-Webhook
-      type: object
-      properties:
-        id:
-          type: string
-        account_id:
-          type: string
-        target_url:
-          type: string
-        name:
-          type: string
-        type:
-          type: string
-        header:
-          type: object
-          properties:
-            X-Header:
-              type: string
-        created:
-          type: object
-          properties:
-            at:
-              type: number
-            by:
-              type: string
-        modified:
-          type: object
-          properties:
-            at:
-              type: number
-            by:
-              type: string
-      x-examples:
-        Integration Webhook Example:
-          id: E31302AE-C9B7-4A4B-BC83-85806383D3FE
-          account_id: '12345678'
-          target_url: 'https://www.example.com'
-          name: My Webhook
-          type: webhook
-          headers:
-            X-Header: HeaderValue
-          created:
-            at: 1517452871
-            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-          modified:
-            at: 1517452871
-            by: 3B8EAFA0-1E1A-4744-AB53-0EE45EA8B102
-      description: ''
     Notification:
       title: Notification
       type: object
@@ -1257,26 +1080,6 @@ components:
                 - destination: oliver.zuluaga@alertlogic.com
                   status: SENT
                   sent_at: 1536094181
-              integration_statuses:
-                - type: webhook
-                  status: QUEUED
-                  integration_id: 857625F7-BAC7-4A90-9FAD-CB829D2ADC83
-                  queue_data:
-                    id: E53E01A6-43D3-41EE-8E53-81BAE6025B47
-                    config:
-                      type: webhook
-                      target_url: 'https://example.com'
-                - type: webhook
-                  status: SENT
-                  integration_id: 713CB1FD-D010-4A98-8D53-BF5B3F1F882C
-                  queue_data:
-                    id: BA46561C-5ECE-4423-9C6C-D550E24966B1
-                    config:
-                      type: webhook
-                      target_url: 'https://example.com/webhook/endpoint'
-                  integration_response:
-                    code: 200
-                    body: null
             - id: 53EA67BA-16DF-4E25-A590-A26FC74272DA
               feature: incidents
               subkey: escalated/primary
@@ -1319,39 +1122,6 @@ components:
                         - '"FAILED"'
                     sent_at:
                       type: number
-              integration_statuses:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                    integration_id:
-                      type: string
-                    status:
-                      type: string
-                      enum:
-                        - '"QUEUED"'
-                        - '"SENT"'
-                    queue_data:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        config:
-                          type: object
-                          properties:
-                            type:
-                              type: string
-                            target_url:
-                              type: string
-                    integration_response:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                        body:
-                          type: string
     Subscriber:
       title: Subscriber
       type: object
@@ -1396,15 +1166,6 @@ components:
             - Log Review Escalated
           default_email_subject: Incidents Template Email Subject
       description: ''
-    Integration-Type:
-      title: Integration-Type
-      type: object
-      properties:
-        name:
-          type: string
-      x-examples:
-        Integration Type Example:
-          name: webhook
     Subscription:
       title: Subscription
       type: object
@@ -1558,8 +1319,6 @@ components:
       type: apiKey
       in: header
 tags:
-  - name: Integrations
-    description: Integrations
   - name: Notification Types
     description: Notification Types
   - name: Notifications
