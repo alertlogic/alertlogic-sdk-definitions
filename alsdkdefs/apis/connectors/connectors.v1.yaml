@@ -69,6 +69,8 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+        '410':
+          description: Deleted
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -124,6 +126,8 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+        '410':
+          description: Deleted
       operationId: get_connection
       description: Returns Connection Information
       security:
@@ -145,8 +149,6 @@ paths:
           description: No Content
         '401':
           description: Unauthorized
-        '404':
-          description: Not Found
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -178,6 +180,8 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+        '410':
+          description: Deleted
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -225,6 +229,8 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+        '410':
+          description: Deleted
       operationId: get_connection_by_id
       description: Returns Connection Information
       security:
@@ -361,8 +367,6 @@ paths:
           description: No Content
         '401':
           description: Unauthorized
-        '404':
-          description: Not Found
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
