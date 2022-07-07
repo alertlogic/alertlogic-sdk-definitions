@@ -1839,6 +1839,7 @@ paths:
         - $ref: 'parameters.yaml#/ParamIncludeExposuresQRI'
         - $ref: 'parameters.yaml#/ParamIncludeFilters'
         - $ref: 'parameters.yaml#/ParamQueryRemediationItemsDetails'
+        - $ref: 'parameters.yaml#/ParamQueryRemediationItemsBasicDetails'
         - $ref: 'parameters.yaml#/ParamQueryRemediationItemsGroupByAuditId'
       responses:
         "200":
