@@ -262,12 +262,26 @@ ParamQueryRemediationItemsFilter:
     asset directly; the `remediation-item` will be included in the result if the combined `categories` of all
     exposures attached to the `remediation-item` match the category filter. See the section on
     [remediation filters](#section/Remediation-filters) which covers filters in detail.
+ParamQueryRemediationItemsBasicDetails:
+  schema:
+    $ref: '#/RemediationItemsBasicDetails'
+  in: query
+  name: basic_details
+RemediationItemsBasicDetails:
+  type: boolean
+  default: false
+  description: |-
+    Modifies the `vinstance` `target` asset properties to include a minimal subset of
+    properties. **Note: `vinstances` are only returned if the `details` parameter is
+    `true`.**
 ParamQueryRemediationItemsDetails:
   schema:
-    type: boolean
-    default: false
+    $ref: '#/RemediationItemsDetails'
   in: query
   name: details
+RemediationItemsDetails:
+  type: boolean
+  default: false
   description: |-
     Controls whether `vinstances` are returned in the response (inside each `exposure`
     in the `exposures` property of each `remediation-item`. In order to work,
