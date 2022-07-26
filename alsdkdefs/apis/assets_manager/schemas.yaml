@@ -1,3 +1,86 @@
+CreateNetwork:
+  description: A network to be created
+  type: object
+  properties:
+    network_name:
+      $ref: '#/AssetName'
+    cidr_ranges:
+      type: array
+      items:
+        $ref: '#/CidrBlock'
+    public_cidr_ranges:
+      type: array
+      items:
+        $ref: '#/CidrBlock'
+    span_port_enabled:
+      $ref: '#/SpanPortEnabled'
+  required:
+    - network_name
+    - cidr_ranges
+
+UpdateNetwork:
+  description: A network to be updated
+  type: object
+  properties:
+    network_name:
+      $ref: '#/AssetName'
+    cidr_ranges:
+      type: array
+      items:
+        $ref: '#/CidrBlock'
+    public_cidr_ranges:
+      type: array
+      items:
+        $ref: '#/CidrBlock'
+    span_port_enabled:
+      $ref: '#/SpanPortEnabled'
+
+Network:
+  description: A network
+  type: object
+  properties:
+    key:
+      $ref: '#/AssetKey'
+    network_name:
+      $ref: '#/AssetName'
+    network_uuid:
+      $ref: '#/UUID'
+    cidr_ranges:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/CidrBlock'
+    claim_key:
+      $ref: '#/ClaimKey'
+    public_cidr_ranges:
+      type: array
+      items:
+        $ref: '#/CidrBlock'
+    span_port_enabled:
+      $ref: '#/SpanPortEnabled'
+  required:
+    - key
+    - network_name
+    - cidr_ranges
+    - claim_key
+    - span_port_enabled
+
+ErrorTooLargeNetwork:
+  title: Too large network
+  type: object
+  properties:
+    errorinfo:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - too_large_network
+        description:
+          type: string
+        error_id:
+          $ref: '#/UUID' 
+
 ImportSummary:
   description: 'Import result summary'
   type: object
@@ -98,3 +181,13 @@ AssetType:
 AssetName:
   type: string
   description: Asset Name
+
+ClaimKey:
+  type: string
+
+SpanPortEnabled:
+  type: boolean
+  default: false
+
+UUID:
+  type: string
