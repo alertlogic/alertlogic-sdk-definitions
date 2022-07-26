@@ -154,3 +154,87 @@ paths:
           $ref: 'responses.yaml#/Forbidden'
         '404':
           $ref: 'responses.yaml#/DeploymentNotFound'
+  /assets_manager/v1/{account_id}/deployments/{deployment_id}/networks:
+    post:
+      tags:
+        - Network Operations
+      operationId: create_network
+      summary: Create Network
+      description: Create network
+      security:
+        - x-aims-auth-token: []
+      parameters:
+        - $ref: 'parameters.yaml#/UrlParamAccountId'
+        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+        - $ref: 'parameters.yaml#/ForceLargeNetwork'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              JSON:
+                $ref: 'examples.yaml#/CreateNetworkJSON'
+            schema:
+              $ref: 'schemas.yaml#/CreateNetwork'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                JSON:
+                  $ref: 'examples.yaml#/NetworkJSON'
+              schema:
+                $ref: 'schemas.yaml#/Network'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: 'responses.yaml#/CreateNetworkError'
+            text/plain:
+              schema:
+                type: string
+
+  /assets_manager/v1/{account_id}/deployments/{deployment_id}/networks/{network_uuid}:
+    put:
+      tags:
+        - Network Operations
+      operationId: update_network
+      summary: Update Network
+      description: Update network
+      security:
+        - x-aims-auth-token: []
+      parameters:
+        - $ref: 'parameters.yaml#/UrlParamAccountId'
+        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+        - $ref: 'parameters.yaml#/UrlParamNetworkUuid'
+        - $ref: 'parameters.yaml#/ForceLargeNetwork'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              JSON:
+                $ref: 'examples.yaml#/UpdateNetworkJSON'
+            schema:
+              $ref: 'schemas.yaml#/UpdateNetwork'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                JSON:
+                  $ref: 'examples.yaml#/NetworkJSON'
+              schema:
+                $ref: 'schemas.yaml#/Network'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: 'responses.yaml#/UpdateNetworkError'
+            text/plain:
+              schema:
+                type: string

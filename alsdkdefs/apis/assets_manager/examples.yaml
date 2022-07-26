@@ -1,3 +1,21 @@
+CreateNetworkJSON:
+  value:
+    network_name: Network
+    cidr_ranges: ['10.0.0.0/16']
+
+UpdateNetworkJSON:
+  value:
+    cidr_ranges: ['10.0.0.0/16', '10.1.0.0/16']
+
+NetworkJSON:
+  value:
+    key: /dc/network/2C6B298D-B6C6-4798-B498-2180FC1F4996
+    network_name: Network
+    network_uuid: 88FCC8F6-EEE8-EE07-6AC5-3E88E85AE310
+    cidr_ranges: ['10.0.0.0/16']
+    claim_key: e318c8e213d3accf26aa07fc33e6154b055135862c49b8c5e1
+    span_port_enabled: false
+
 ScopeJSON:
   value:
     - deployment_id: 843BD5F3-583D-48D7-B929-616B100D6B7B
