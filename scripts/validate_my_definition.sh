@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set +e
+set -e
 
 export TEMP=$(mktemp -d -t alertlogic-sdk-definitions-validation-XXXX)
 
@@ -16,14 +16,13 @@ else
   exit 1
 fi
 
-if $PYTHON -m venv $TEMP; then
-  source $TEMP/bin/activate
-  pip3 install alertlogic-sdk-definitions --no-cache-dir --ignore-requires-python
-  curl https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.py -o $TEMP/validate_my_definition.py
-  if [ $# -eq 0 ]
-  then
-    $PYTHON $TEMP/validate_my_definition.py && rm -rf $TEMP
-  else
-    $PYTHON $TEMP/validate_my_definition.py -d $1 && rm -rf $TEMP
-  fi
+$PYTHON -m venv $TEMP
+source $TEMP/bin/activate
+pip3 install alertlogic-sdk-definitions --no-cache-dir --ignore-requires-python
+curl https://raw.githubusercontent.com/alertlogic/alertlogic-sdk-definitions/master/scripts/validate_my_definition.py -o $TEMP/validate_my_definition.py
+if [ $# -eq 0 ]
+then
+  $PYTHON $TEMP/validate_my_definition.py && rm -rf $TEMP
+else
+  $PYTHON $TEMP/validate_my_definition.py -d $1 && rm -rf $TEMP
 fi
