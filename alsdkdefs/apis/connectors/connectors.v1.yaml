@@ -46,6 +46,11 @@ paths:
         in: path
         required: true
         description: Integration Connection ID
+      - schema:
+          type: boolean
+        name: x-errorinfo
+        in: header
+        description: enforce modern error response format
     post:
       summary: Send notification to a given connection
       operationId: send_notification
@@ -68,9 +73,17 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: Connection Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionNotFoundError'
         '410':
-          description: Deleted
+          description: Connection Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionDeletedError'
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -109,6 +122,11 @@ paths:
         in: path
         required: true
         description: Integration Connection ID
+      - schema:
+          type: boolean
+        name: x-errorinfo
+        in: header
+        description: enforce modern error response format
     get:
       summary: Get Existing Connection Information
       tags: []
@@ -125,9 +143,17 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: Connection Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionNotFoundError'
         '410':
-          description: Deleted
+          description: Connection Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionDeletedError'
       operationId: get_connection
       description: Returns Connection Information
       security:
@@ -176,12 +202,26 @@ paths:
                     type: string
                   modified:
                     $ref: '#/components/schemas/ChangeRecord'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: Connection Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionNotFoundError'
         '410':
-          description: Deleted
+          description: Connection Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionDeletedError'
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -211,6 +251,11 @@ paths:
         in: path
         required: true
         description: Integration Connection ID
+      - schema:
+          type: boolean
+        name: x-errorinfo
+        in: header
+        description: enforce modern error response format
     get:
       summary: Get existing connection Information by its ID
       tags: []
@@ -228,9 +273,17 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: Connection Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionNotFoundError'
         '410':
-          description: Deleted
+          description: Connection Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionDeletedError'
       operationId: get_connection_by_id
       description: Returns Connection Information
       security:
@@ -247,6 +300,11 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+      - schema:
+          type: boolean
+        name: x-errorinfo
+        in: header
+        description: enforce modern error response format
     get:
       summary: List all account's connections
       tags: []
@@ -294,12 +352,14 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/WebhookConnection'
                   - $ref: '#/components/schemas/EmailConnection'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '403':
           description: Forbidden
-        '404':
-          description: Not Found
-        '409':
-          description: Conflict
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -337,6 +397,11 @@ paths:
         in: path
         required: true
         description: Connection Target ID
+      - schema:
+          type: boolean
+        name: x-errorinfo
+        in: header
+        description: enforce modern error response format
     get:
       summary: Get Existing Connection Target Information
       tags: []
@@ -351,7 +416,11 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: Connection Target Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionTargetNotFoundError'
       operationId: get_connection_target
       description: Returns Connection Target Information
       security:
@@ -386,7 +455,11 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: Connection Target Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionTargetNotFoundError'
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -414,6 +487,11 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+      - schema:
+          type: boolean
+        name: x-errorinfo
+        in: header
+        description: enforce modern error response format
     get:
       summary: List all account's connection targets
       tags: []
@@ -448,10 +526,14 @@ paths:
             application/json:
               schema:
                 type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '403':
           description: Forbidden
-        '404':
-          description: Not Found
       security:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
@@ -537,7 +619,11 @@ paths:
         '403':
           description: Forbidden
         '404':
-          description: Not Found
+          description: Connection Target Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionTargetNotFoundError'
       operationId: get_connection_target_full
       description: Returns Connection Target Full Information
       security:
@@ -835,6 +921,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConnectionTarget'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationError'
       description: Migrates accounts connections to connection targets
       security:
         - aims_request_authorizer: []
@@ -1388,6 +1480,77 @@ components:
         routing_key:
           type: string
       description: Connection Target schema
+    ConnectionNotFoundError:
+      title: ConnectionNotFoundError
+      properties:
+        errorinfo:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - connection_not_found
+            error_id:
+              type: string
+            description:
+              type: string
+    ConnectionDeletedError:
+      title: ConnectionDeletedError
+      properties:
+        errorinfo:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - connection_deleted
+            error_id:
+              type: string
+            description:
+              type: string
+    ConnectionTargetNotFoundError:
+      title: ConnectionTargetNotFoundError
+      properties:
+        errorinfo:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - connection_target_not_found
+            error_id:
+              type: string
+            description:
+              type: string
+    MigrationError:
+      title: MigrationError
+      properties:
+        errorinfo:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - already_migrated
+                - migration_conflict
+            error_id:
+              type: string
+            description:
+              type: string
+    ValidationError:
+      title: ValidationError
+      properties:
+        errorinfo:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - invalid_object
+            error_id:
+              type: string
+            description:
+              type: string
   securitySchemes:
     aims_request_authorizer:
       type: apiKey
