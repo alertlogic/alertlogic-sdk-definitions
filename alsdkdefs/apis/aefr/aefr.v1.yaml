@@ -49,7 +49,396 @@ paths:
           name: data_type
           description: >-
             Which data type to return in the audit.
-            Choices: 'filter', 'trigger'
+            Choices: 'filter', 'trigger', 'evolution_rule'
+  /aefr/v1/evolution_rules:
+    get:
+      summary: List Global Evolution Rules
+      tags:
+        - Evolution Rule Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_evolution_rules
+      description: >-
+        Return a map of evolution rules defined at the global level. Important:
+        Instead of a 404, this endpoint return an empty JSON document (i.e., {})
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+  '/aefr/v1/evolution_rules/datatypes/{data_type}':
+    get:
+      summary: List Global Evolution Rules by Data Type
+      tags:
+        - Evolution Rule Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_evolution_rules_by_data_type
+      security:
+        - X-AIMS-Auth-Token: []
+      description: >-
+        Return a map of evolution rules defined at the global level by data type.
+        Important: Instead of a 404, this endpoint return an empty JSON document
+        (i.e., {})
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - logmsgs
+            - observations
+            - telemetry
+        name: data_type
+        in: path
+        required: true
+        description: >-
+          One of the data types supported by ingestion (for example logmsgs,
+          telemetry, etc)'
+  '/aefr/v1/evolution_rules/paths/{path}':
+    get:
+      summary: Get Global Evolution Rule by Path
+      tags:
+        - Evolution Rule Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get_global_evolution_rules_by_path
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Returns evolution rule global definition by path
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Evolution Rule Path
+    delete:
+      summary: Delete Global Evolution Rule
+      operationId: delete_global_evolution_rule
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Evolution Rule Resources
+      description: Delete a global evolution rule.
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aefr/v1/evolution_rules/ids/{evolution_rule_id}':
+    get:
+      summary: Get Evolution Rule by ID
+      tags:
+        - Evolution Rule Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_evolution_rule_by_id
+      security:
+        - X-AIMS-Auth-Token: []
+      description: Get the evolution rule identified by `evolution_rule_id`
+    parameters:
+      - schema:
+          type: string
+        name: evolution_rule_id
+        in: path
+        required: true
+        description: Evolution Rule ID
+  '/aefr/v1/evolution_rules/ids/{evolution_rule_id}/expiration':
+    parameters:
+      - schema:
+          type: string
+        name: evolution_rule_id
+        in: path
+        required: true
+        description: Evolution Rule ID
+    get:
+      summary: Get Evolution Rule Expiration
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_evolution_rule_expiration
+      description: "Return an evolution rule's expiration timestamp"
+      security:
+        - X-AIMS-Auth-Token: []
+      tags:
+        - Expiration
+    post:
+      summary: Expire Evolution Rule
+      operationId: expire_evolution_rule
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: string
+      tags:
+        - Evolution Rule Resources
+      description: >-
+        Set an evolution rule's expiration timestamp.
+
+
+        Note that setting expiration is effective immediately, just like if it
+        was set up at the evolution rule's creation time. This means that queries for
+        the evolution rule having an associated timestamp posterior to the expiration
+        time will suddenly not receive the evolution rule. This is by design and is
+        intended as a way to prevent bad evolution rules from being used by the ae
+        system as soon as possible.
+
+
+        If the content_id being expired is not the first version of the evolution rule
+        that was posted, the evolution rule will NOT revert to its previous content_id;
+        it will simply disappear (it IS expired) until the next version of the
+        evolution rule is posted. If you find yourself in need of expiring a bad
+        content_id and have a good copy of the evolution rule on hand, you can post it
+        as early as possible: expiring an earlier content_id does not affect
+        newer ones. As to what happen to data that would have been processed by
+        an expired evolution rule, depending if they are processed before or after the
+        expiration is propagated through the AE system, they will see the
+        expired evolution rule or not.
+
+
+        Note that because expiration done after the fact is done outside of
+        regular content updates and because of caching, it may take a few
+        minutes for the expiration to propagate throughout the AE system.
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+  '/aefr/v1/{account_id}/evolution_rules':
+    get:
+      summary: List Evolution Rules
+      tags:
+        - Evolution Rule Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_evolution_rules
+      description: >-
+        Return a map of evolution rules. Important: Instead of a 404, this
+        endpoint return an empty JSON document (i.e., {})
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_parents
+          description: Include evolution rules applied from parent account rules
+        - schema:
+            type: number
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: number
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+  '/aefr/v1/{account_id}/evolution_rules/datatypes/{data_type}':
+    get:
+      summary: List Evolution Rules by Data Type
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_evolution_rules_by_datatype
+      description: >-
+        Return a map of evolution rules by data type. Important: Instead of a 404,
+        this endpoint return an empty JSON document (i.e., {})
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+        - schema:
+            type: boolean
+          in: query
+          name: include_parents
+          description: >-
+            Include parent account analytics applied to this account as well
+      tags:
+        - Trigger Resources
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+          enum:
+            - logmsgs
+            - observation
+            - telemetry
+        name: data_type
+        in: path
+        required: true
+        description: >-
+          One of the data types supported by ingestion (for example logmsgs,
+          telemetry, etc)
+  '/aefr/v1/{account_id}/evolution_rules/paths/{path}':
+    get:
+      summary: Get Evolution Rule by Path
+      tags:
+        - Evolution Rule Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_evolution_rule_by_path
+      description: Returns evolution rule definition for specific customer by path
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+            default: 'true'
+            enum:
+              - 'true'
+              - 'false'
+          in: query
+          name: include_parents
+          description: >-
+            Return evolution rules applied to this customer from the parent level
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: A positive integer representing an epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: A unix epoch timestamp
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Evolution Rule Path
+    delete:
+      summary: Delete Evolution Rule
+      operationId: delete_evolution_rule
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Evolution Rule Resources
+      description: Delete an evolution rule.
+      security:
+        - X-AIMS-Auth-Token: []
   /aefr/v1/triggers:
     get:
       summary: List Global Triggers
@@ -785,7 +1174,7 @@ paths:
         If the content_id being expired is not the first version of the filter
         that was posted, the filter will NOT revert to its previous content_id;
         it will simply disappear (it IS expired) until the next version of the
-        filter is posted. If you find yourself in need of expiring a bad 
+        filter is posted. If you find yourself in need of expiring a bad
         ontent_id and have a good copy of the filter on hand, you can post it as
         early as possible: expiring an earlier content_id does not affect newer
         ones. As to what happen to data that would have been processed by an
@@ -1108,6 +1497,7 @@ paths:
               - aefr_eng_observation
               - aefr_eng_telemetry
               - aetrigger_eng
+              - aegraph_eng
           in: query
           name: engine
           required: true
@@ -1224,97 +1614,6 @@ paths:
                 - end_ts
                 - replay_ts
         description: ''
-  '/aefr/v1/rtas/firehose/{data_type}/replay':
-    parameters:
-      - schema:
-          type: string
-        name: data_type
-        in: path
-        required: true
-        description: >-
-          One of the data types supported by ingestion (for example logmsgs,
-          telemetry, etc)
-    post:
-      summary: Regenerate firehose files data
-      operationId: regenerate_firehose_data
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success_count:
-                    type: integer
-                  error_count:
-                    type: integer
-                  actual_paths:
-                    type: array
-                    items:
-                      type: string
-                  actual_intervals:
-                    type: array
-                    items:
-                      type: integer
-                  actual_cids:
-                    type: array
-                    items:
-                      type: integer
-      tags:
-        - Firehose
-      description: >-
-        Reprocess rta data to regenerate one or many firehose files. Requires
-        Returns the number of successful and erroneous kinesis posts, and the
-        actual paths, cids, and intervals for which replay requests were
-        submitted to kinesis (successfully or not).
-      security:
-        - X-AIMS-Auth-Token: []
-      parameters:
-        - schema:
-            type: integer
-          in: query
-          name: start_ts
-          description: A unix epoch timestamp
-          required: true
-        - schema:
-            type: integer
-          in: query
-          name: end_ts
-          description: A unix epoch timestamp
-          required: true
-        - schema:
-            type: boolean
-          in: query
-          name: dryrun
-          description: if actual action is simulated
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                cids:
-                  type: array
-                  description: >-
-                    in body: List of cids to replay (as integers), or the
-                    string "all" for all active cids
-                  items:
-                    type: string
-                stream:
-                  type: string
-                  description: >-
-                    in body: Name of the kinesis stream associated with the
-                    firehose.
-                path:
-                  type: string
-                  description: >-
-                    in body: List of paths, or string containing a regex
-                    expression filtering paths
-              required:
-                - cids
-                - stream
-                - path
 components:
   schemas:
     Trigger:
