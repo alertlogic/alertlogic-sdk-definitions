@@ -175,6 +175,7 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/AuditMsg'
                   - $ref: '#/components/schemas/FimData'
+                  - $ref: '#/components/schemas/ScmData'
                   - $ref: '#/components/schemas/Observation'
           alertlogic.com/syslog:
             schema:
@@ -230,6 +231,7 @@ components:
       properties:
         ts:
           type: integer
+          format: int64
         host_id:
           type: string
         event_type:
@@ -252,10 +254,13 @@ components:
           type: integer
         file_ctime:
           type: integer
+          format: int64
         file_atime:
           type: integer
+          format: int64
         file_mtime:
           type: integer
+          format: int64
         sha1_hash:
           type: string
       required:
@@ -266,6 +271,26 @@ components:
         - file_owner
         - file_permissions
         - sha1_hash
+    ScmData:
+      title: ScmData
+      type: object
+      description: SCM Data Type
+      x-examples:
+        FIM Event Example:
+          ts: 1583953656
+          assets_id: 4a053698-59e2-4a82-b781-edb5e66715ca
+          data: example SCM data bundle
+      properties:
+        ts:
+          type: integer
+          format: int64
+        asset_id:
+          type: string
+        data:
+          type: object
+      required:
+        - ts
+        - data
     AuditMsg:
       title: AuditMsg
       description: Audit Messages Data Type
