@@ -529,3 +529,20 @@ ParamReturnAllProperties:
   description: |-
     When true, causes the inclusion of all asset properties in the response.
     By default, the assets in the response only includes summary properties.
+ParamContinue:
+  schema:
+    type: string
+  in: query
+  name: continue
+  description: |-
+    A UUID returned from a previous call to GET assets. When provided to subsequent
+    GET assets calls, the next set of results and a new `continue` UUID will be
+    returned.
+ParamPageSize:
+  schema:
+    type: integer
+  in: query
+  name: page_size
+  description: |-
+    The number of results to be returned, default is 50. page_size is only valid
+    on initial calls to GET assets and will have no effect on subsequent calls.
