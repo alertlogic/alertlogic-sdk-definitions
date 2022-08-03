@@ -308,8 +308,8 @@ components:
       title: FimData
       type: object
       description: |-
-        File Integrity Manager datas which carry information about files 
-        on the operating system including, but not limited to creation, 
+        File Integrity Manager datas which carry information about files
+        on the operating system including, but not limited to creation,
         modification, and deletion information.
       x-examples:
         FIM Event Example:
@@ -436,7 +436,7 @@ components:
     AuditMsgs:
       title: AuditMsgs
       description: |-
-        Audit Message from internal services containing information about actions 
+        Audit Message from internal services containing information about actions
         taken by actors within the backend.
       type: object
       x-examples:
@@ -571,7 +571,7 @@ components:
     BdrMsgs:
       title: BdrMsgs
       description: |-
-        Billing data reports created by BOSS (bill of service service) 
+        Billing data reports created by BOSS (bill of service service)
         via processing of udrmsgs.
       type: object
       properties:
