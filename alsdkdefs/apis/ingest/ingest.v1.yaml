@@ -45,7 +45,7 @@ paths:
 
 
       security:
-        - X-AIMS-Auth-Token: []
+        - x-aims-auth-token: []
   '/ingest/v1/type/{type}':
     get:
       summary: Get Type Attributes
@@ -60,7 +60,7 @@ paths:
       operationId: get_type_attributes
       description: "Return the attributes of a data type.\n\nAll type attributes are static with the exception of packet and packet_versions. \nAs such, defining <<\\\"latest\\\">> as the version to fetch for packet will return the most recent version. Leaving version undefined while fetching packet will also return the same as <<\\\"latest\\\">>"
       security:
-        - X-AIMS-Auth-Token: []
+        - x-aims-auth-token: []
       parameters:
         - schema:
             type: array
@@ -171,7 +171,7 @@ paths:
                     description: The reason for the temporary inability to complete the request.
       description: Send data to the Ingest Service
       security:
-        - X-AIMS-Auth-Token: []
+        - x-aims-auth-token: []
       parameters:
         - schema:
             type: string
