@@ -903,8 +903,8 @@ components:
         - keys
         - properties
   securitySchemes:
-    X-AIMS-Auth-Token:
-      name: X-AIMS-Auth-Token
+    x-aims-auth-token:
+      name: x-aims-auth-token
       type: apiKey
       in: header
 
