@@ -95,6 +95,10 @@ paths:
       responses:
         '200':
           description: received
+          content:
+            text/plain:
+              schema:
+                type: string
         '307':
           description: Temporary Redirect
         '400':
