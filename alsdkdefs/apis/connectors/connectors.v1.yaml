@@ -13,7 +13,7 @@ servers:
   - url: 'https://connectors.mdr.product.dev.alertlogic.com'
     description: integration
 paths:
-  /v1/connections/notifications/reenqueue:
+  '/v1/connections/notifications/reenqueue':
     post:
       summary: Reenqueue the broken notifications from DLQ
       operationId: reenqueue_notification
@@ -36,6 +36,30 @@ paths:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsReenqueueNotificationsDLQFunction.Arn}/invocations'
       description: Reenqueue the broken notifications from DLQ
+      parameters: []
+  '/v1/connections/audit/reenqueue':
+    post:
+      summary: Reenqueue the broken audit messages from DLQ
+      operationId: reenqueue_audit_messages
+      responses:
+        '200':
+          description: The messages were enqueued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reenqueued_num:
+                    type: integer
+                    description: The number of reenqueued messages
+        '403':
+          description: Forbidden
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsReenqueueAuditMessagesDLQFunction.Arn}/invocations'
+      description: Reenqueue the broken audit messages from DLQ
       parameters: []
   '/v1/connections/{id}/notification':
     parameters:
