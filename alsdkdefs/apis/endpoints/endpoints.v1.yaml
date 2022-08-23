@@ -1,0 +1,241 @@
+openapi: 3.0.2
+info:
+  title: Endpoints Service
+  version: 1.0.0
+  description: Global endpoints management service
+  contact:
+    name: Alert Logic Support
+    email: support@alertlogic.com
+  x-alertlogic-iws-service:
+    type: public
+servers:
+  - url: 'https://api.product.dev.alertlogic.com'
+    description: Integration
+    x-alertlogic-session-endpoint: true
+  - url: 'https://api.cloudinsight.alertlogic.com'
+    description: Production
+    x-alertlogic-session-endpoint: true
+tags:
+  - name: endpoints
+    description: Query endpoints for multiple services
+paths:
+  '/endpoints/v1/{account_id}/residency/{residency}/endpoints':
+    parameters:
+      - $ref: '#/components/parameters/AIMSAccountId'
+      - $ref: '#/components/parameters/Residency'
+    post:
+      summary: Query multiple endpoints
+      tags:
+        - endpoints
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_endpoints
+      description: |-
+        Return the current API endpoint (DNS name) for the provided account ID and services. The JSON request body contains a list of service names. If any service generates an error, the request will fail.
+
+        Note: This endpoint returns all endpoints that an account can access, but data should only be written to an account's default residency endpoint.
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      security:
+        - x-aims-auth-token: []
+  '/endpoints/v1/{account_id}/services/{service_name}/endpoint/{endpoint_type}':
+    parameters:
+      - $ref: '#/components/parameters/AIMSAccountId'
+      - $ref: '#/components/parameters/ServiceName'
+      - $ref: '#/components/parameters/EndpointType'
+    get:
+      summary: Get accessible endpoints with type
+      tags:
+        - endpoint
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_accessible_endpoints_by_type
+      description: |-
+        Return the accessible API endpoints (FQDNs) for the provided account ID and service.
+
+        Note: This endpoint returns all endpoints that an account can access, but data should only be written to an account's default residency endpoint.
+      parameters: []
+      security:
+        - x-aims-auth-token: []
+  '/endpoints/v1/{account_id}/services/{service_name}/endpoint':
+    parameters:
+      - $ref: '#/components/parameters/AIMSAccountId'
+      - $ref: '#/components/parameters/ServiceName'
+    get:
+      summary: Get accessible endpoints
+      tags:
+        - endpoint
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_accessible_endpoints
+      description: |-
+        Return the accessible API endpoints (FQDNs) for the provided account ID and service.
+
+        Note: This endpoint returns all endpoints that an account can access, but data should only be written to an account's default residency endpoint.
+      parameters: []
+      security:
+        - x-aims-auth-token: []
+  '/endpoints/v1/{account_id}/residency/{residency}/services/{service_name}/endpoint/{endpoint_type}':
+    parameters:
+      - $ref: '#/components/parameters/AIMSAccountId'
+      - $ref: '#/components/parameters/Residency'
+      - $ref: '#/components/parameters/ServiceName'
+      - $ref: '#/components/parameters/EndpointType'
+    get:
+      summary: Get endpoint with type
+      tags:
+        - endpoint
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_endpoint_by_type
+      description: Return the current API or UI endpoint (FQDN) for the provided account ID, residency, service, and endpoint type.
+      parameters: []
+      security:
+        - x-aims-auth-token: []
+  '/endpoints/v1/{account_id}/residency/{residency}/services/{service_name}/endpoint':
+    parameters:
+      - $ref: '#/components/parameters/AIMSAccountId'
+      - $ref: '#/components/parameters/Residency'
+      - $ref: '#/components/parameters/ServiceName'
+    get:
+      summary: Get endpoint
+      tags:
+        - endpoint
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      operationId: get_endpoint
+      description: Return the current API or UI endpoint (FQDN) for the provided account ID, residency, service, and endpoint type.
+      parameters: []
+      security:
+        - x-aims-auth-token: []
+components:
+  securitySchemes:
+    x-aims-auth-token:
+      name: AuthenticationToken returned by AIMS service
+      type: apiKey
+      in: header
+  parameters:
+    AIMSAccountId:
+      schema:
+        type: string
+      name: account_id
+      in: path
+      required: true
+      description: AIMS Account ID
+    Residency:
+      schema:
+        type: string
+        title: residency
+        enum:
+          - default
+          - emea
+          - us
+      in: path
+      name: residency
+      required: true
+      description: Endpoint Residency
+    ServiceName:
+      schema:
+        type: string
+      name: service_name
+      in: path
+      required: true
+      description: Name of service being queried
+    EndpointType:
+      schema:
+        type: string
+        title: EndpointType
+        enum:
+          - api
+          - ui
+          - internal_api
+      name: endpoint_type
+      in: path
+      required: true
+      description: Type of endpoint
