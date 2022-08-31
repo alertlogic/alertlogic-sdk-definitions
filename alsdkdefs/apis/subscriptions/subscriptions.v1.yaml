@@ -108,6 +108,7 @@ paths:
               - threat_manager
               - log_manager
               - active_watch_premier
+              - active_watch
               - web_security_managed
               - cloud_defender
               - ids_data_retention
@@ -200,6 +201,7 @@ paths:
             - threat_manager
             - log_manager
             - active_watch_premier
+            - active_watch
             - web_security_managed
             - cloud_defender
             - ids_data_retention
