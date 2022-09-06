@@ -12,11 +12,53 @@ servers:
     description: production
   - url: 'https://connectors.mdr.product.dev.alertlogic.com'
     description: integration
+x-amazon-apigateway-gateway-responses:
+  ACCESS_DENIED:
+    responseTemplates:
+      application/json: |
+        {
+          "message": $context.error.messageString,
+          "details": "$context.authorizer.errorMessage"
+        }
+  BAD_REQUEST_BODY:
+    responseTemplates:
+      application/json: |
+        {
+          "message": $context.error.messageString,
+          "details": "$context.error.validationErrorString"
+        }
+  BAD_REQUEST_PARAMETERS:
+    responseTemplates:
+      application/json: |
+        {
+          "message": $context.error.messageString,
+          "details": "$context.error.validationErrorString"
+        }
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestBody: true
+    validateRequestParameters: true
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true
 paths:
-  '/v1/connections/notifications/reenqueue':
+  '/{proxy+}':
+    options:
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsPreflightCorsFunction.Arn}/invocations'
+        passthroughBehavior: when_no_match
+  '/v1/connections/management/reenqueue':
     post:
-      summary: Reenqueue the broken notifications from DLQ
-      operationId: reenqueue_notification
+      summary: Reenqueue a DLQ
+      operationId: reenqueue_dlq
       responses:
         '200':
           description: The messages were enqueued
@@ -27,39 +69,35 @@ paths:
                 properties:
                   reenqueued_num:
                     type: integer
-                    description: The number of reenqueued messages
+                    description: The number of re-enqueued messages
         '403':
           description: Forbidden
       security:
         - aims_request_authorizer: []
+      x-amazon-apigateway-request-validator: all
       x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsReenqueueNotificationsDLQFunction.Arn}/invocations'
-      description: Reenqueue the broken notifications from DLQ
-      parameters: []
-  '/v1/connections/audit/reenqueue':
-    post:
-      summary: Reenqueue the broken audit messages from DLQ
-      operationId: reenqueue_audit_messages
-      responses:
-        '200':
-          description: The messages were enqueued
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  reenqueued_num:
-                    type: integer
-                    description: The number of reenqueued messages
-        '403':
-          description: Forbidden
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsReenqueueAuditMessagesDLQFunction.Arn}/invocations'
-      description: Reenqueue the broken audit messages from DLQ
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsReenqueueDLQFunction.Arn}/invocations'
+      description: Reenqueue a DLQ
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  description: The identifier for the dlq to re-enqueue.
+                  enum:
+                    - notifications
+                    - audit_messages
+                max_messages:
+                  type: integer
+                  description: The maximum number of messages to re-enqueue
+              required:
+                - key
       parameters: []
   '/v1/connections/{id}/notification':
     parameters:
@@ -112,7 +150,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsSendNotificationFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsSendNotification.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       description: Send notification for the given connection
       requestBody:
         content:
@@ -184,7 +224,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsGetConnectionFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       parameters:
         - schema:
             type: boolean
@@ -203,7 +245,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsDeleteConnectionFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsDeleteConnectionFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       description: Deletes existing connection
     put:
       summary: Update existing connection information
@@ -250,7 +294,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsUpdateConnectionFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsUpdateConnectionFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       description: Updates existing connection information
       requestBody:
         content:
@@ -314,7 +360,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsGetConnectionByIdFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionByIdFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       parameters: []
   '/v1/{account_id}/connections':
     parameters:
@@ -347,6 +395,11 @@ paths:
       description: Returns a list of all integration connections for an account
       security:
         - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionsFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       parameters:
         - schema:
             type: boolean
@@ -388,7 +441,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsUpdateConnectionFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsCreateConnectionFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       description: Create connection
       requestBody:
         content:
@@ -452,6 +507,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTarget.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
     delete:
       summary: Delete existing connection target
       operationId: delete_connection_target
@@ -465,6 +522,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsDeleteConnectionTargetFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       description: Deletes existing connection target
     put:
       summary: Update existing connection target
@@ -489,6 +548,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsUpdateConnectionTarget.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       description: Updates existing connection target
       requestBody:
         content:
@@ -532,6 +593,11 @@ paths:
       description: Returns a list of all connections targets for an account
       security:
         - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargets.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       parameters:
         - name: filter
           schema:
@@ -563,6 +629,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsCreateConnectionTarget.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       description: Create connection target
       requestBody:
         content:
@@ -614,6 +682,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsFull.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
   '/v1/{account_id}/connection_targets_full/{id}':
     parameters:
       - schema:
@@ -655,6 +725,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetFull.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
   '/v1/integration_types/{name}':
     parameters:
       - schema:
@@ -683,7 +755,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsGetIntegrationTypeFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetIntegrationTypeFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
   /v1/integration_types:
     get:
       summary: Get a list of supported integration types
@@ -724,7 +798,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsListIntegrationTypesFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListIntegrationTypesFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       parameters:
         - schema:
             type: string
@@ -769,7 +845,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsGetAccountIntegrationTypeFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetAccountIntegrationTypeFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
 
   /v1/connection_targets:
     get:
@@ -793,7 +871,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetsDefinitionsFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetDefinitionsFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
 
   '/v1/connection_targets/{name}':
     parameters:
@@ -821,6 +901,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetDefinitionFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
 
   /v1/{account_id}/definitions/connection_targets:
     parameters:
@@ -851,7 +933,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListAccountConnectionTargetsDefinitionsFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListAccountConnectionTargetDefinitionsFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
 
   '/v1/{account_id}/definitions/connection_targets/{name}':
     parameters:
@@ -885,6 +969,8 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetAccountConnectionTargetDefinitionFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
 
   /v1/payload_types:
     get:
@@ -923,7 +1009,9 @@ paths:
         - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${integrationsListPayloadTypesFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListPayloadTypesFunction.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
       parameters: []
   '/v1/{account_id}/migrate/connection_targets':
     parameters:
@@ -954,6 +1042,11 @@ paths:
       description: Migrates accounts connections to connection targets
       security:
         - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsMigrateToConnectionTarget.Arn}/invocations'
+        httpMethod: POST
+        type: aws_proxy
 components:
   schemas:
     EmailConnection:
