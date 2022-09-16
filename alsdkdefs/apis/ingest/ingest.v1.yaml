@@ -5,10 +5,10 @@ info:
   description: |-
     The ingest service is a multi-region IWS web service that receives Alertlogic customer data and routes it to any number of destinations including:
 
-    Real-Time Export (RTE) json data sent to kinesis streams for
+    * Real-Time Export (RTE) json data sent to kinesis streams for
     processing by internal teams for Alertlogic products
     use by customers for custom value add
-    The daccess service for long-term storage and search
+    * The daccess service for long-term storage and search
   contact:
     name: Alert Logic Support
     email: support@alertlogic.com
@@ -63,7 +63,7 @@ paths:
         - X-AIMS-Auth-Token: []
       parameters:
         - schema:
-            type: array
+            type: Array
             enum:
               - name
               - encodings
@@ -84,6 +84,12 @@ paths:
     parameters:
       - schema:
           type: string
+        name: accept
+        in: header
+        required: true
+        description: The client must indicate the willingness to (at least) accept resources represented as application/json document in response to requests to this resource in order to understand response and/or error details.
+      - schema:
+          type: string
         name: type
         in: path
         required: true
@@ -101,8 +107,68 @@ paths:
                 type: string
         '307':
           description: Temporary Redirect
+          headers:
+            location:
+              schema:
+                type: string
+              description: New URI
+            retry-after:
+              schema:
+                type: integer
+              description: Number of seconds the client should wait before retrying the request at the new location
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Error Return Object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the failure in interpreting the entity body according to the parameter specified.
+        '403':
+          description: Invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Error Return Object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the reason for the request being considered invalid.
+        '404':
+          description: Type Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Error Return Object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the type name which was invalid.
+        '413':
+          description: Payload Too Large
+        '415':
+          description: Invalid Encoding
+        '503':
+          description: Temporary Failure
+          headers:
+            retry-after:
+              schema:
+                type: integer
+              description: Retry the same request after the number of seconds indicated.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Error Return Object
+                properties:
+                  error:
+                    type: string
+                    description: The reason for the temporary inability to complete the request.
       description: Send data to the Ingest Service
       security:
         - X-AIMS-Auth-Token: []
@@ -149,7 +215,19 @@ paths:
 
             Below is a list of supported content-types:
               * alertlogic.com/json
-                * Use to send `auditmsgs`, `observation` data types
+                * Use to send data types:
+                  * `auditmsgs`
+                  * `bdrmsgs`
+                  * `fimdata`
+                  * `hostmeta`
+                  * `hoststate`
+                  * `idsmsgs`
+                  * `idsstats`
+                  * `lmcstats`
+                  * `logmsgs`
+                  * `observation`
+                  * `scmmsgs`
+                  * `udrmsgs`
               * alertlogic.com/syslog
                 * Use to send `syslog` data
               * snort.org/unified2
@@ -177,16 +255,31 @@ paths:
               description: Data to send to the Ingest service
               items:
                 oneOf:
-                  - $ref: '#/components/schemas/AuditMsg'
+                  - $ref: '#/components/schemas/AuditMsgs'
+                  - $ref: '#/components/schemas/BdrMsgs'
                   - $ref: '#/components/schemas/FimData'
-                  - $ref: '#/components/schemas/ScmData'
+                  - $ref: '#/components/schemas/HostMeta'
+                  - $ref: '#/components/schemas/HostState'
+                  - $ref: '#/components/schemas/IdsMsgs'
+                  - $ref: '#/components/schemas/IdsStats'
+                  - $ref: '#/components/schemas/IngestTypeInfo'
+                  - $ref: '#/components/schemas/LmcStats'
+                  - $ref: '#/components/schemas/LogMsgs'
                   - $ref: '#/components/schemas/Observation'
+                  - $ref: '#/components/schemas/ScmMsgs'
+                  - $ref: '#/components/schemas/UdrMsgs'
           alertlogic.com/syslog:
             schema:
-              $ref: '#/components/schemas/SyslogMsg'
+              type: binary
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/SyslogMsgs'
           snort.org/unified2:
             schema:
-              $ref: '#/components/schemas/SnortUnified2'
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/SnortUnified2'
         description: ''
         required: true
     parameters:
@@ -214,7 +307,10 @@ components:
     FimData:
       title: FimData
       type: object
-      description: FIM Event Data Type
+      description: |-
+        File Integrity Manager datas which carry information about files 
+        on the operating system including, but not limited to creation, 
+        modification, and deletion information.
       x-examples:
         FIM Event Example:
           ts: 1583953656
@@ -269,16 +365,10 @@ components:
           type: string
       required:
         - ts
-        - event_type
-        - path
-        - file_name
-        - file_owner
-        - file_permissions
-        - sha1_hash
-    ScmData:
-      title: ScmData
+    ScmMsgs:
+      title: ScmMsgs
       type: object
-      description: SCM Data Type
+      description: Scan data sent from the tripwire agent containing scan results.
       x-examples:
         FIM Event Example:
           ts: 1583953656
@@ -295,9 +385,59 @@ components:
       required:
         - ts
         - data
-    AuditMsg:
-      title: AuditMsg
-      description: Audit Messages Data Type
+    IdsMsgs:
+      title: IdsMsgs
+      description: |-
+        Business Intelligence, Search, SOC Support, Threat Intelligence
+      type: object
+      properties:
+        ts:
+          type: integer
+        ts_us:
+          type: integer
+        event_id:
+          type: integer
+        orig:
+          type: boolean
+        sig_rev:
+          type: integer
+        sig_id:
+          type: integer
+        sig_gen:
+          type: integer
+        ip_src:
+          type: string
+        ip_proxy:
+          type: string
+        ip_proxy_client:
+          type: string
+        ip_dst:
+          type: string
+        srcport:
+          type: integer
+        dstport:
+          type: integer
+        proto:
+          type: integer
+        class:
+          type: integer
+        priority:
+          type: integer
+        vlan:
+          type: integer
+        mpls:
+          type: integer
+        payload:
+          type: object
+        asset_id:
+          type: string
+      required:
+        - ts
+    AuditMsgs:
+      title: AuditMsgs
+      description: |-
+        Audit Message from internal services containing information about actions 
+        taken by actors within the backend.
       type: object
       x-examples:
         aetuner service audit message:
@@ -376,19 +516,180 @@ components:
           type: string
           description: IP of the client which initiated an action
       required:
-        - actor_alrn
-        - reporter_alrn
-        - event_name
-        - event_type
         - event_ts
-        - object_alrn
-        - object_name
-        - facility_type
         - facility
         - data
-    LogMsg:
-      title: LogMsg
-      description: Log Messages Data Type
+    UdrMsgs:
+      title: UdrMsgs
+      description: |-
+        Usage Data Records to be consumed for creating bdrmsgs.
+      type: object
+      properties:
+        entity_account_id:
+          type: string
+        entity_type:
+          type: string
+        entity_key_type:
+          type: string
+        entity_key:
+          type: string
+        entity_deployment_type:
+          type: string
+        entity_deployment_key:
+          type: string
+        entity_deployment_id:
+          type: string
+        actor_type:
+          type: string
+        actor_id_type:
+          type: string
+        actor_id:
+          type: string
+        reporter_type:
+          type: string
+        reporter_id_type:
+          type: string
+        reporter_id:
+          type: string
+        metric:
+          type: string
+        units:
+          type: string
+        data:
+          type: string
+        value:
+          type: integer
+          format: int64
+        start_ts:
+          type: integer
+          format: int64
+        end_ts:
+          type: integer
+          format: int64
+      required:
+        - start_ts
+    BdrMsgs:
+      title: BdrMsgs
+      description: |-
+        Billing data reports created by BOSS (bill of service service) 
+        via processing of udrmsgs.
+      type: object
+      properties:
+        entity_account_id:
+          type: string
+        entity_type:
+          type: string
+        entity_key_type:
+          type: string
+        entity_key:
+          type: string
+        entity_deployment_id:
+          type: string
+        udr_ingest_id:
+          type: string
+        billing_account_id:
+          type: string
+        subscription_id:
+          type: string
+        entitlement_type:
+          type: string
+        entitlement_dimension:
+          type: string
+        entitlement_value:
+          type: integer
+          format: int64
+        billing_period_size:
+          type: string
+        billing_period_id:
+          type: string
+        metric:
+          type: string
+        units:
+          type: string
+        data:
+          type: string
+        value:
+          type: integer
+          format: int64
+      required:
+        - billing_ts
+    IdsStats:
+      title: IdsStats
+      description: Statistics on IDS events counts
+      type: object
+      properties:
+        create_ts:
+          type: integer
+          format: int64
+        host_id:
+          type: string
+        appliance_id:
+          type: string
+        stats_type:
+          type: string
+        stats:
+          type: string
+      required:
+        - create_ts
+        - stats
+    HostMeta:
+      title: HostMeta
+      description: Host meta data
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+        account_id:
+          type: string
+        host_uuid:
+          type: string
+        host_type:
+          type: string
+        data:
+          type: string
+        data_checksum:
+          type: string
+      required:
+        - data
+        - data_checksum
+        - host_uuid
+        - timestamp
+    LmcStats:
+      title: LmcStats
+      description: Log message collect statistics sent from remote collectors.
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+        host_id:
+          type: string
+        inst_type:
+          type: string
+        physical_appliance_id:
+          type: string
+        appliance_id:
+          type: string
+        source_id:
+          type: string
+        source_type:
+          type: string
+        stream_id:
+          type: string
+        event_count:
+          type: integer
+          format: int64
+        byte_count:
+          type: integer
+          format: int64
+        application_id:
+          type: string
+      required:
+        - timestamp
+    LogMsgs:
+      title: LogMsgs
+      description: Log messages data typically sent directly from agents or from remote collectors.
       type: object
       properties:
         time_recv:
@@ -410,6 +711,27 @@ components:
       required:
         - time_recv
         - message
+    HostState:
+      title: HostState
+      description: Endpoint security
+      type: object
+      properties:
+        state_data:
+          type: object
+        host_id:
+          type: string
+        finding_type:
+          type: string
+        finding_source_version:
+          type: string
+        finding_source_type:
+          type: string
+        date_created:
+          type: integer
+          format: int64
+      required:
+        - date_created
+        - state_data
     IngestTypeInfo:
       title: IngestTypeInfo
       type: object
@@ -490,9 +812,9 @@ components:
             type: string
         searchable:
           type: boolean
-    SyslogMsg:
+    SyslogMsgs:
       type: string
-      title: SyslogMsg
+      title: SyslogMsgs
       description: "Syslog messages separated by `\\n`"
       format: binary
     SnortUnified2:
@@ -503,7 +825,8 @@ components:
     Observation:
       title: Observation
       type: object
-      description: Observation Data Type
+      description: |-
+        Analytic events defining a finding based on telemetry triggered in analytics engine
       x-examples:
         Excessive Logins Observation Example:
           type: 'security:bf/excessive-logins'
@@ -589,17 +912,8 @@ components:
           type: string
       required:
         - type
-        - ts
-        - id
-        - cid
-        - severity
-        - authority
-        - scope
-        - start_ts
-        - end_ts
-        - visibility
-        - class
-        - path
+        - keys
+        - properties
   securitySchemes:
     X-AIMS-Auth-Token:
       name: X-AIMS-Auth-Token
