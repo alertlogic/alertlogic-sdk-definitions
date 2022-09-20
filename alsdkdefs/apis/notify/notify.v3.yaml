@@ -87,7 +87,7 @@ paths:
                         type: string
                       url:
                         type: string
-                      '':
+                      description:
                         type: string
                     required:
                       - name
@@ -161,6 +161,16 @@ paths:
                   description: List of attachment objects
                   items:
                     type: object
+                    properties:
+                      name:
+                        type: string
+                      url:
+                        type: string
+                      description:
+                        type: string
+                    required:
+                      - name
+                      - url
               required:
                 - to_email_addresses
                 - template_name
@@ -231,6 +241,16 @@ components:
           description: List of attachment objects
           items:
             type: object
+            properties:
+              name:
+                type: string
+              url:
+                type: string
+              description:
+                type: string
+            required:
+              - name
+              - url
       required:
         - to_email_address
         - subject
@@ -291,6 +311,16 @@ components:
           description: List of attachment objects
           items:
             type: object
+            properties:
+              name:
+                type: string
+              url:
+                type: string
+              description:
+                type: string
+            required:
+              - name
+              - url
       required:
         - to_email_addresses
         - subject
