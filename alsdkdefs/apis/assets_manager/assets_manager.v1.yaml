@@ -21,13 +21,6 @@ servers:
     x-alertlogic-session-endpoint: true
   - url: https://api.product.dev.alertlogic.com
     description: integration
-components:
-  securitySchemes:
-    x-aims-auth-token:
-      name: x-aims-auth-token
-      type: apiKey
-      in: header
-      description: AIMS Authentication Token
 paths:
   /assets_manager/v1/{account_id}/deployments/{deployment_id}/scope/export:
     post:
@@ -41,8 +34,8 @@ paths:
         if no `Accept` header specified.
         cURL example:
       parameters:
-        - $ref: 'parameters.yaml#/UrlParamAccountId'
-        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
       security:
         - x-aims-auth-token: []
       x-codeSamples:
@@ -65,22 +58,22 @@ paths:
           content:
             text/csv:
               schema:
-                $ref: 'schemas.yaml#/AssetsProtection'
+                $ref: '#/components/schemas/AssetsProtection'
               examples:
                 CSV:
-                  $ref: 'examples.yaml#/ScopeCSV'
+                  $ref: '#/components/examples/ScopeCSV'
             application/json:
               schema:
-                $ref: 'schemas.yaml#/AssetsProtection'
+                $ref: '#/components/schemas/AssetsProtection'
               examples:
                 JSON:
-                  $ref: 'examples.yaml#/ScopeJSON'
+                  $ref: '#/components/examples/ScopeJSON'
         '401':
-          $ref: 'responses.yaml#/Unauthorized'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: 'responses.yaml#/Forbidden'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          $ref: 'responses.yaml#/DeploymentNotFound'
+          $ref: '#/components/responses/DeploymentNotFound'
   /assets_manager/v1/{account_id}/deployments/{deployment_id}/scope/import:
     post:
       operationId: import_scope
@@ -104,22 +97,22 @@ paths:
           text/csv:
             examples:
               CSV:
-                $ref: 'examples.yaml#/ScopeCSV'
+                $ref: '#/components/examples/ScopeCSV'
             schema:
-              $ref: 'schemas.yaml#/AssetsProtection'
+              $ref: '#/components/schemas/AssetsProtection'
           application/json:
             examples:
               JSON:
-                $ref: 'examples.yaml#/ScopeJSON'
+                $ref: '#/components/examples/ScopeJSON'
             schema:
-              $ref: 'schemas.yaml#/AssetsProtection'
+              $ref: '#/components/schemas/AssetsProtection'
       summary: Import protection scope
       description: |-
         Endpoint for importing the protection scope of a deployment.
       parameters:
-        - $ref: 'parameters.yaml#/UrlParamAccountId'
-        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
-        - $ref: 'parameters.yaml#/WriteOption'
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
+        - $ref: '#/components/parameters/WriteOption'
       security:
         - x-aims-auth-token: []
       x-codeSamples:
@@ -145,15 +138,15 @@ paths:
             application/json:
               examples:
                 JSON:
-                  $ref: 'examples.yaml#/ImportSummary'
+                  $ref: '#/components/examples/ImportSummary'
               schema:
-                $ref: 'schemas.yaml#/ImportSummary'
+                $ref: '#/components/schemas/ImportSummary'
         '401':
-          $ref: 'responses.yaml#/Unauthorized'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          $ref: 'responses.yaml#/Forbidden'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          $ref: 'responses.yaml#/DeploymentNotFound'
+          $ref: '#/components/responses/DeploymentNotFound'
   /assets_manager/v1/{account_id}/deployments/{deployment_id}/networks:
     post:
       tags:
@@ -164,18 +157,18 @@ paths:
       security:
         - x-aims-auth-token: []
       parameters:
-        - $ref: 'parameters.yaml#/UrlParamAccountId'
-        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
-        - $ref: 'parameters.yaml#/ForceLargeNetwork'
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
+        - $ref: '#/components/parameters/ForceLargeNetwork'
       requestBody:
         required: true
         content:
           application/json:
             examples:
               JSON:
-                $ref: 'examples.yaml#/CreateNetworkJSON'
+                $ref: '#/components/examples/CreateNetworkJSON'
             schema:
-              $ref: 'schemas.yaml#/CreateNetwork'
+              $ref: '#/components/schemas/CreateNetwork'
       responses:
         '200':
           description: OK
@@ -183,15 +176,15 @@ paths:
             application/json:
               examples:
                 JSON:
-                  $ref: 'examples.yaml#/NetworkJSON'
+                  $ref: '#/components/examples/NetworkJSON'
               schema:
-                $ref: 'schemas.yaml#/Network'
+                $ref: '#/components/schemas/Network'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: 'responses.yaml#/CreateNetworkError'
+                $ref: '#/components/schemas/CreateNetworkError'
             text/plain:
               schema:
                 type: string
@@ -206,19 +199,19 @@ paths:
       security:
         - x-aims-auth-token: []
       parameters:
-        - $ref: 'parameters.yaml#/UrlParamAccountId'
-        - $ref: 'parameters.yaml#/UrlParamDeploymentId'
-        - $ref: 'parameters.yaml#/UrlParamNetworkUuid'
-        - $ref: 'parameters.yaml#/ForceLargeNetwork'
+        - $ref: '#/components/parameters/UrlParamAccountId'
+        - $ref: '#/components/parameters/UrlParamDeploymentId'
+        - $ref: '#/components/parameters/UrlParamNetworkUuid'
+        - $ref: '#/components/parameters/ForceLargeNetwork'
       requestBody:
         required: true
         content:
           application/json:
             examples:
               JSON:
-                $ref: 'examples.yaml#/UpdateNetworkJSON'
+                $ref: '#/components/examples/UpdateNetworkJSON'
             schema:
-              $ref: 'schemas.yaml#/UpdateNetwork'
+              $ref: '#/components/schemas/UpdateNetwork'
       responses:
         '200':
           description: OK
@@ -226,15 +219,371 @@ paths:
             application/json:
               examples:
                 JSON:
-                  $ref: 'examples.yaml#/NetworkJSON'
+                  $ref: '#/components/examples/NetworkJSON'
               schema:
-                $ref: 'schemas.yaml#/Network'
+                $ref: '#/components/schemas/Network'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: 'responses.yaml#/UpdateNetworkError'
+                $ref: '#/components/schemas/UpdateNetworkError'
             text/plain:
               schema:
                 type: string
+components:
+  securitySchemes:
+    x-aims-auth-token:
+      name: x-aims-auth-token
+      type: apiKey
+      in: header
+      description: AIMS Authentication Token
+  parameters:
+    ForceLargeNetwork:
+      schema:
+        type: boolean
+        default: false
+      description: |-
+        The option is used to suppress the network size validation if specified as
+        `true`. By default the service checks if the number of IP addresses is that
+        big for a typical appliance to complete network discovery scans within a
+        reasonable time.
+      name: force_large_network
+      in: query
+      required: false
+
+    WriteOption:
+      schema:
+        type: boolean
+        default: false
+      description: |-
+        The option is used to perform write operation if specified as `true`.
+        Otherwise the endpoint works in dry-run mode.
+        If no option specified the `false` is assumed.
+      name: write
+      in: query
+      required: false
+
+    UrlParamAccountId:
+      schema:
+        type: string
+      name: account_id
+      in: path
+      required: true
+      description: |-
+        The AIMS account ID whose assets are being accessed. Only valid account IDs are acceptable.
+        Invalid account IDs result in an `HTTP 404 Not Found` or `HTTP 403 Forbidden`, depending on
+        the client's access level.
+
+    UrlParamDeploymentId:
+      schema:
+        type: string
+      name: deployment_id
+      in: path
+      required: true
+      description: The ID of the deployment source as represented in the deployments service (uppercase UUID).
+
+    UrlParamNetworkUuid:
+      schema:
+        type: string
+      name: network_uuid
+      in: path
+      required: true
+      description: The UUID of the network asset as represented in the assets service (uppercase UUID).
+  schemas:
+    CreateNetwork:
+      description: A network to be created
+      type: object
+      properties:
+        network_name:
+          $ref: '#/components/schemas/AssetName'
+        cidr_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/CidrBlock'
+        public_cidr_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/CidrBlock'
+        span_port_enabled:
+          $ref: '#/components/schemas/SpanPortEnabled'
+      required:
+        - network_name
+        - cidr_ranges
+
+    UpdateNetwork:
+      description: A network to be updated
+      type: object
+      properties:
+        network_name:
+          $ref: '#/components/schemas/AssetName'
+        cidr_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/CidrBlock'
+        public_cidr_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/CidrBlock'
+        span_port_enabled:
+          $ref: '#/components/schemas/SpanPortEnabled'
+
+    Network:
+      description: A network
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/AssetKey'
+        network_name:
+          $ref: '#/components/schemas/AssetName'
+        network_uuid:
+          $ref: '#/components/schemas/UUID'
+        cidr_ranges:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/CidrBlock'
+        claim_key:
+          $ref: '#/components/schemas/ClaimKey'
+        public_cidr_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/CidrBlock'
+        span_port_enabled:
+          $ref: '#/components/schemas/SpanPortEnabled'
+      required:
+        - key
+        - network_name
+        - cidr_ranges
+        - claim_key
+        - span_port_enabled
+
+    ErrorTooLargeNetwork:
+      title: Too large network
+      type: object
+      properties:
+        errorinfo:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - too_large_network
+            description:
+              type: string
+            error_id:
+              $ref: '#/components/schemas/UUID'
+
+    CreateNetworkError:
+      description: Bad Request
+      $ref: '#/components/schemas/ErrorTooLargeNetwork'
+
+    UpdateNetworkError:
+      description: Bad Request
+      $ref: '#/components/schemas/ErrorTooLargeNetwork'
+
+    ImportSummary:
+      description: 'Import result summary'
+      type: object
+      properties:
+        included:
+          description: Scope items protected by the request
+          type: array
+          items:
+            $ref: '#/components/schemas/ScopeItem'
+        excluded:
+          description: Scope items unprotected by the request
+          type: array
+          items:
+            $ref: '#/components/schemas/ScopeItem'
+        new_scope:
+          description: The new requested protection scope
+          type: array
+          items:
+            $ref: '#/components/schemas/ScopeItem'
+
+    AssetsProtection:
+      description: 'The list of assets with protection level'
+      type: array
+      items:
+        $ref: '#/components/schemas/AssetProtection'
+
+    AssetProtection:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/AssetType'
+        key:
+          $ref: '#/components/schemas/AssetKey'
+        protection_level:
+          $ref: '#/components/schemas/ProtectionLevel'
+        name:
+          $ref: '#/components/schemas/AssetName'
+        cidr_block:
+          $ref: '#/components/schemas/CidrBlock'
+        region:
+          description: The region asset name containing the asset. Informational only.
+          type: string
+        network:
+          description: The vpc/network asset name containing the asset. Informational only.
+          type: string
+        cidr_ranges:
+          description: The network list of CIDRs
+          type: array
+          items:
+            $ref: '#/components/schemas/CidrBlock'
+      required:
+        - type
+        - key
+        - protection_level
+
+    CidrBlock:
+      type: string
+      description: The subnet cidr_block
+
+    ProtectionLevel:
+      type: string
+      enum:
+        - professional
+        - essentials
+        - enterprise
+        - lm_essentials
+        - lmpro
+        - tmpro
+        - excluded
+        - inherited
+
+    ScopeItem:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/AssetType'
+        key:
+          $ref: '#/components/schemas/AssetKey'
+        policy:
+          description: Protection level policy
+          type: object
+          properties:
+            id:
+              type: string
+              enum:
+                - D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+                - A8E8B104-8F45-411D-A240-A30EA5FE25B0
+                - EC735B49-2517-4D98-BB9D-BEBC1E75D56D
+                - A562D3E4-ECBE-426E-B2CF-78D2336E5D63
+                - 7E184449-FB15-4693-807F-C01A1ECD7E66
+                - D2A589A9-EA56-456C-844E-65843B483D68
+    AssetKey:
+      type: string
+      description: Asset key
+    AssetType:
+      type: string
+      description: Asset type
+    AssetName:
+      type: string
+      description: Asset Name
+
+    ClaimKey:
+      type: string
+
+    SpanPortEnabled:
+      type: boolean
+      default: false
+
+    UUID:
+      type: string
+
+    TooLargeNetworkError:
+      type: object
+      description: Bad Request
+      properties:
+        errorinfo:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - too_large_network
+            description:
+              type: string
+            error_id:
+                  $ref: '#/components/schemas/UUID'
+
+  examples:
+    CreateNetworkJSON:
+      value:
+        network_name: Network
+        cidr_ranges: ['10.0.0.0/16']
+
+    UpdateNetworkJSON:
+      value:
+        cidr_ranges: ['10.0.0.0/16', '10.1.0.0/16']
+
+    NetworkJSON:
+      value:
+        key: /dc/network/2C6B298D-B6C6-4798-B498-2180FC1F4996
+        network_name: Network
+        network_uuid: 88FCC8F6-EEE8-EE07-6AC5-3E88E85AE310
+        cidr_ranges: ['10.0.0.0/16']
+        claim_key: e318c8e213d3accf26aa07fc33e6154b055135862c49b8c5e1
+        span_port_enabled: false
+
+    ScopeJSON:
+      value:
+        - deployment_id: 843BD5F3-583D-48D7-B929-616B100D6B7B
+          vpc: vpc-43f82c3a
+          type: subnet
+          region: us-west-2
+          protection_level: inherited
+          name: subnet-974c78df
+          key: /aws/us-west-2/subnet/subnet-974c78df
+          account_id: 12345678
+          cidr_block: 172.31.32.0/20
+
+    ScopeCSV:
+      value: |
+        type,key,name,protection_level,cidr_block,region,network,subnet,cidr_ranges
+        vpc,/aws/us-west-2/vpc/vpc-43f82c3a,vpc-43f82c3a,inherited,172.31.0.0/16,us-west-2,,,"[""172.31.0.0/16""]"
+        subnet,/aws/us-west-2/subnet/subnet-094f8853,subnet-094f8853,inherited,172.31.0.0/20,us-west-2,,,
+        subnet,/aws/us-west-2/subnet/subnet-78f2e71e,subnet-78f2e71e,inherited,172.31.16.0/20,us-west-2,,,
+        subnet,/aws/us-west-2/subnet/subnet-94ccb0bc,subnet-94ccb0bc,inherited,172.31.48.0/20,us-west-2,,,
+        subnet,/aws/us-west-2/subnet/subnet-974c78df,subnet-974c78df,inherited,172.31.32.0/20,us-west-2,,,
+
+    ImportSummary:
+      value:
+        new_scope:
+          include:
+            - type: vpc
+              policy:
+                id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+              key: "/aws/ca-central-1/vpc/vpc-e0a0a689"
+          exclude:
+            - type: host
+              key: "/aws/ca-central-1/host/i-031b312d8b6472247"
+        included:
+          - type: vpc
+            policy:
+              id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+            key: "/aws/ca-central-1/vpc/vpc-e0a0a689"
+        excluded:
+          - type: region
+            policy:
+              id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+            key: "/aws/us-east-1"
+          - type: host
+            policy:
+              id: D12D5E67-166C-474F-87AA-6F86FC9FB9BC
+            key: "/aws/eu-west-2/host/i-0e36e01a0efd53cbf"
+          - type: host
+            key: "/aws/ca-central-1/host/i-031b312d8b6472247"
+  responses:
+    DeploymentNotFound:
+      description: '`deployment not found`'
+
+    Unauthorized:
+      description: '`Unauthorized`. The provided `x-aims-auth-token` header could not be authenticated.'
+
+    Forbidden:
+      description: '`Forbidden`. Insufficient permissions.'
+
+
