@@ -37,7 +37,22 @@ ParamAssetTypes:
   description: |-
     A query string parameter representing the types of assets to retrieve, as described in
     [Typed queries](#typed-queries). `tag` asset type is handled specially and, if used,
-    may only be the last asset type.]
+    may only be the last asset type.
+ParamRelatedProperties:
+  schema:
+    type: string
+  in: query
+  name: related_properties
+  description: |-
+    A query string parameter allowing the client to define a set of properties on a related
+    asset type to include in the primary asset type, without actually including that related
+    asset as a dedicated column in the query. The parameter has the form:
+    
+    * `type_or_alias,related_type:related_type_property_1,...related_type_property_n`
+    * `type_or_alias:related_properties_name`
+    
+    See [Related properties in queries](#using-the-related_properties-option) for complete
+    information and examples of its use and effect on query results.
 ParamAssessmentSpecsFilter:
   schema:
     type: array

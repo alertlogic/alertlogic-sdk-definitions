@@ -156,6 +156,136 @@ info:
     There is a fake asset type called `any`. The `any` asset type can be used in the `asset_types`
     parameter to allow any type. When combined with filters, a relationship to a set of asset types
     can be matched. Check out the [General Query examples](#operation/query_assets) for a demo.
+    
+    #### Using the `related_properties` option
+
+    Sometimes there is a need to represent the properties of related assets within a top-level asset, particularly in the case where some attribute(s) from an asset related to a particular asset type in the [`asset_types`](#api-_-typed-queries) string are needed, but it is undesirable or impossible to include the related asset in `asset_types`, either because the primary asset type is in the middle of a list of assets (e.g., needing to include the image name for a host from the related `image` asset, but `asset_types` is already `subnet,host,agent`, preventing adding `image` into the query without removing `agent`), or because there is a need to render a compact response (e.g, a single column is required).
+    
+    In this case, the `related_properties` attribute may be used. This has the general form:
+    
+    ```
+    type,related_type:related_type_property_1,...related_type_property_n
+    ```
+    
+    or
+    
+    ```
+    alias,related_type:related_type_property_1,...related_type_property_n
+    ```
+    
+    Where `alias` (if given) or `type` are present in the `asset_types` and `return_types` (if given) parameters, and `related_type_property_1,...related_type_property_n` is a CSV of attribute(s) from the `related_type` asset that should be included in the properties of the asset matched as `type` during the query. If provided, the `type` assets in the query will include an additional property, `related_properties`, like this:
+    
+    ```json
+    {
+      "type": "type",
+      "key": "key",
+      "related_properties": {
+        "related_type": [
+          {
+            "related_type_property_1": "related_value_1",
+            "related_type_property_n": "related_value_n"
+          }
+        ]
+      }
+    }
+    ```
+    
+    For example, suppose the query `?asset_types=h:host&related_properties=h,image:name` were passed. In this case, the response format would look like this:
+    
+    ```json
+    {
+      "type": "host",
+      "key": "/host/my-host-key",
+      "related_properties": {
+        "image": [
+          {
+            "name": "image_name"
+          }
+        ]
+      }
+    }
+    ```
+    
+    Note that the other primary asset (host) properties have been excluded from the example for brevity, but that **only** the specified attributes from the related asset (`image`) are normally included. It is required to enumerate the specific ones to include inside `related_properties`.
+    
+    Finally, for common use cases, there is support for `named` related properties, which allows for assets to pre-define specific names that expand to particular mapping(s) to allow succinct client reference in queries. These `named` `related_properties` queries have the form:
+    
+    ```
+    type:related_properties_name
+    ```
+    
+    or
+    
+    ```
+    alias:related_properties_name
+    ```
+    
+    Where `alias` (if given) or `type` are present in the `asset_types` and `return_types` (if given) parameters, and `related_properties_name` is a valid name from the table below, which lists the supported named related properties
+    
+    | Related Properties Name | Expansion (`related_type:related_type_property_1,...related_type_property_n`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+    |-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+    | `collector_summary`     | `agent:status,status_updated,statistics.bytes_log.last_day,statistics.bytes_log.last_hour,statistics.bytes_ids.last_day,statistics.bytes_ids.last_hour,statistics.messages_log.last_day,statistics.messages_log.last_hour,statistics.packets_ids.last_day,statistics.packets_ids.last_hour`, `appliance:status,status_updated,statistics.bytes_log.last_day,statistics.bytes_log.last_hour,statistics.bytes_ids.last_day,statistics.bytes_ids.last_hour,statistics.messages_log.last_day,statistics.messages_log.last_hour,statistics.packets_ids.last_day,statistics.packets_ids.last_hour` |
+
+    For example, `?asset_types=h:host&related_properties=h:collector_summary` would expand to `?asset_types=h:host&related_properties=h,agent:statusstatus_updated,statistics.bytes_log.last_day,statistics.bytes_log.last_hour,statistics.bytes_ids.last_day,statistics.bytes_ids.last_hour,statistics.messages_log.last_day,statistics.messages_log.last_hour,statistics.packets_ids.last_day,statistics.packets_ids.last_hour&related_properties=h,appliance:status,status_updated,statistics.bytes_log.last_day,statistics.bytes_log.last_hour,statistics.bytes_ids.last_day,statistics.bytes_ids.last_hour,statistics.messages_log.last_day,statistics.messages_log.last_hour,statistics.packets_ids.last_day,statistics.packets_ids.last_hour`. This would result in a response like this:
+    
+    ```json
+    {
+      "type": "host",
+      "key": "/host/my-host-key",
+      "related_properties": {
+        "agent": [
+          {
+            "status": "ok",
+            "status_updated": 1654647608,
+            "statistics": {
+              "bytes_ids": {
+                "last_day": 7393418434,
+                "last_hour": 92345892
+              },
+              "bytes_log": {
+                "last_day": 9421572257,
+                "last_hour": 78623476
+              },
+              "messages_log": {
+                "last_day": 34528922,
+                "last_hour": 456928
+              },
+              "packets_ids": {
+                "last_day": 98076121,
+                "last_hour": 781234
+              }
+            }
+          }
+        ],
+        "appliance": [
+          {
+            "status": "ok",
+            "status_updated": 1654647767,
+            "statistics": {
+              "bytes_ids": {
+                "last_day": 6132920624,
+                "last_hour": 79267433
+              },
+              "bytes_log": {
+                "last_day": 4921736435,
+                "last_hour": 92345786
+              },
+              "messages_log": {
+                "last_day": 89232785,
+                "last_hour": 456928
+              },
+              "packets_ids": {
+                "last_day": 18452912,
+                "last_hour": 872342
+              }
+            }
+          }
+        ]
+      }
+    }
+    ```
+    
+    Note that queries can include as many distinct `related_properties` options as desired; each one will be applied additively. For example, `?asset_types=h:host&related_properties=h,image:name&related_properties=h,image:image_id` would apply the same as `?asset_types=h:host&related_properties=h,image:name,image_id`.
 
     ### Exposures and Remediations
 
@@ -293,6 +423,7 @@ paths:
       - $ref: 'parameters.yaml#/ParamQFields'
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
+      - $ref: 'parameters.yaml#/ParamRelatedProperties'
       - $ref: 'parameters.yaml#/ParamTopoChain'
       - $ref: 'parameters.yaml#/ParamScopeBoolean'
       - $ref: 'parameters.yaml#/ParamIncludeAlertlogicSecurity'
@@ -474,6 +605,7 @@ paths:
       - $ref: 'parameters.yaml#/ParamQFields'
       - $ref: 'parameters.yaml#/ParamFilter'
       - $ref: 'parameters.yaml#/ParamFilterRelationship'
+      - $ref: 'parameters.yaml#/ParamRelatedProperties'
       - $ref: 'parameters.yaml#/ParamTopoChain'
       - $ref: 'parameters.yaml#/ParamScopeBoolean'
       - $ref: 'parameters.yaml#/ParamIncludeAlertlogicSecurity'
