@@ -262,7 +262,6 @@ paths:
                   - $ref: '#/components/schemas/HostState'
                   - $ref: '#/components/schemas/IdsMsgs'
                   - $ref: '#/components/schemas/IdsStats'
-                  - $ref: '#/components/schemas/IngestTypeInfo'
                   - $ref: '#/components/schemas/LmcStats'
                   - $ref: '#/components/schemas/LogMsgs'
                   - $ref: '#/components/schemas/Observation'
