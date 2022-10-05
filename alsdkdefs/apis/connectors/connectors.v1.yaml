@@ -5,7 +5,7 @@ info:
   contact:
     email: support@alertlogic.com
     name: Alert Logic Support
-  description: Integrations Connections Service
+  description: Connectors Service
 servers:
   - url: 'https://connectors.mdr.global.alertlogic.com'
     x-alertlogic-global-endpoint: production
