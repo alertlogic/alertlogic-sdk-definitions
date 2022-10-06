@@ -194,7 +194,7 @@ paths:
                 type: object
                 properties: {}
       operationId: get_global_observation_by_id
-      description: Returns the observation definition indentified by id.
+      description: Returns the observation definition identified by id.
       security:
         - X-AIMS-Auth-Token: []
       parameters:
@@ -383,7 +383,7 @@ paths:
                 type: object
                 properties: {}
       operationId: get_observation_by_id
-      description: Returns the observation definition indentified by id.
+      description: Returns the observation definition identified by id.
       security:
         - X-AIMS-Auth-Token: []
       parameters: []
@@ -507,6 +507,431 @@ paths:
             schema:
               type: object
               properties: {}
+
+  '/aecontent/v1/analytics':
+    get:
+      summary: Get Global Analytics
+      tags:
+        - Analytics Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_analytics
+      description: >-
+        Return all current global analytic definitions either system wide OR
+        system plus customer specific ones. The UUIDs are content identifiers.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the analytic definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the analytic definition
+        - schema:
+            type: integer
+          in: query
+          description: The epoch id to use for this request
+          name: epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: return_parents
+        - schema:
+            type: string
+            enum:
+              - normal
+              - extended
+          in: query
+          name: format
+          description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this analytic became effective for the first time), and expiration_ts.
+    post:
+      summary: Create Global Analytic
+      operationId: create_global_analytic
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stored:
+                    type: string
+          description: Created
+      tags:
+        - Analytics Resources
+      description: >-
+        Create or update (overwrite) a new analytic definition with the given
+        path. This endpoint has system and customer specific variant. System
+        wide should only be used by internal systems/tools and is documented
+        here for testing and troubleshooting purposes. Customer specific
+        endpoints allow create custom content and should be used for creation
+        correlation content.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          required: true
+          description: >-
+            the urlencoded content path for this analytic definition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+  '/aecontent/v1/analytics/ids/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: the UUID identified assigned to a definition
+    get:
+      summary: Get Global Analytic by Id
+      tags:
+        - Analytics Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_analytic_by_id
+      description: Returns the analytic definition identified by id.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - normal
+              - extended
+          in: query
+          name: format
+          description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this analytic became effective for the first time), and expiration_ts.
+  '/aecontent/v1/analytics/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: the urlencoded content path of an analytic definition
+    get:
+      summary: Get Global Analytic by Path
+      tags:
+        - Analytics Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_global_analytic_by_path
+      description: Returns the analytic definition.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the analytic definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the analytic definition
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: The epoch id to use for this request
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+        - schema:
+            type: string
+            enum:
+              - normal
+              - extended
+          in: query
+          name: format
+          description: Specifies what data should be returned. "extended" includes start_ts (unix epoch time at which this specific revision became effective), path_start_ts (unix epoch time at which this analytic became effective for the first time), and expiration_ts.
+    delete:
+      summary: Delete Global Analytic
+      operationId: delete_global_analytic
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Analytics Resources
+      description: Deletes a global analytic
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aecontent/v1/{account_id}/analytics':
+    get:
+      summary: Get Analytics
+      tags:
+        - Analytics Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_analytics
+      description: >-
+        Return all current analytic definitions either system wide OR system
+        plus customer specific ones. The UUIDs are content identifiers.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          description: The epoch id to use for this request
+          name: epoch
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: return_parents
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Create Analytic
+      operationId: create_analytic
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stored:
+                    type: string
+      tags:
+        - Analytics Resources
+      description: >-
+        Create or update (overwrite) a new analytic definition with the given
+        path. This endpoint has system and customer specific variant. System
+        wide should only be used by internal systems/tools and is documented
+        here for testing and troubleshooting purposes. Customer specific
+        endpoints allow create custom content and should be used for creation
+        correlation content.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: path
+          required: true
+          description: >-
+            the urlencoded content path for this analytic definition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+  '/aecontent/v1/{account_id}/analytics/ids/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: the UUID identified assigned to a definition
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get Analytic by Id
+      tags:
+        - Analytics Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_analytic_by_id
+      description: Returns the analytic definition identified by id.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters: []
+  '/aecontent/v1/{account_id}/analytics/paths/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: the urlencoded content path of an analytic definition
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    get:
+      summary: Get Analytic by Path
+      tags:
+        - Analytics Resources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      operationId: get_analytic_by_path
+      description: Returns the analytic definition.
+      security:
+        - X-AIMS-Auth-Token: []
+      parameters:
+        - schema:
+            type: integer
+          in: query
+          name: epoch
+          description: The epoch id to use for this request
+        - schema:
+            type: integer
+          in: query
+          name: ts
+          description: The Unix epoch time to use for this request
+        - schema:
+            type: boolean
+          in: query
+          name: include_metadata
+          description: Include metadata in the analytic definition
+        - schema:
+            type: boolean
+          in: query
+          name: include_internal
+          description: Include internal metadata in the analytic definition
+    delete:
+      summary: Delete Analytic
+      operationId: delete_analytic
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+      tags:
+        - Analytics Resources
+      description: Deletes a global analytic
+      security:
+        - X-AIMS-Auth-Token: []
+  '/aecontent/v1/validations/analytics':
+    post:
+      summary: Validate Global Analytic
+      operationId: validate_global_analytic
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Analytics Resources
+      description: >-
+        Alidates the given analytic template JSON against its internal rules.
+        This endpoint is intended for use to validate content either by
+        automated systems or by humans during their content definition work.
+        system-wide or customer specific endpoint behave identically
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+  '/aecontent/v1/{account_id}/validations/analytics':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Validate Analytic
+      operationId: validate_analytic
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Analytics Resources
+      description: >-
+        Validates the given analytic template JSON against its internal
+        rules. This endpoint is intended for use to validate content either by
+        automated systems or by humans during their content definition work.
+        system-wide or customer specific endpoint behave identically
+      security:
+        - X-AIMS-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
 components:
   schemas: {}
   securitySchemes:
@@ -516,4 +941,4 @@ components:
       in: header
 tags:
   - name: Observations Resources
-    description: Analytics Engine Observations Resources Manupulation
+    description: Analytics Engine Observations Resources Manipulation
