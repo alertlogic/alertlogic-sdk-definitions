@@ -1011,3 +1011,13 @@ AssetGroupDeleteResponse:
             type: string
     dry_run:
       type: boolean
+GetIncidentIdsResponse:
+  title: Get Incident IDs response
+  type: object
+  properties:
+    '{key}':
+      type: array
+      title: The combination of `deployment_id`, `type`, and `key` separated by `:`
+      items:
+        type: string
+        description: The list of Incident IDs for the specified asset
