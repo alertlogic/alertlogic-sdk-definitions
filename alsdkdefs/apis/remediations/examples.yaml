@@ -5101,4 +5101,12 @@ DeleteAssetGroupsResponse:
       - code: 201
         operation: update_asset_group
         name: Parent of PCI Assets
-
+GetIncidentIdsExample:
+  value:
+    D155C4AA-3292-4C6A-8958-DE5CF318BEC9:host:/aws/us-east-1/i-1234abcd1234abcd:
+    - B4E537C1-A639-46A9-B02E-33003977A268
+      EFB2E093-E421-4D03-A70F-451F937ADC69
+      C5E9DE7F-901F-4753-8D29-12ED8C138092
+    D155C4AA-3292-4C6A-8958-DE5CF318BEC9:host:/aws/us-east-1/i-c764bf1fc87783f33:
+    - 96F49CD6-E890-4FBC-96A5-5AB3CA9A9581
+      EEF9863D-0146-4B06-A050-6FF01ECFDD64
