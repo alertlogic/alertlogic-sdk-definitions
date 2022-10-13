@@ -232,9 +232,20 @@ AssetGroupsBadRequest:
             type: string
           message:
             type: string
-        required:
-          - error_type
-          - message
+          errorinfo:
+            type: object
+            properties:
+              error_id:
+                type: string
+              details:
+                type: object
+                properties:
+                  Limit:
+                    type: integer
+          description:
+            type: string
+          code:
+            type: string
       examples:
         Invalid Operation:
           value:
@@ -260,3 +271,11 @@ AssetGroupsBadRequest:
           value:
             error_type: bad_request
             message: "'properties.groups_match' is not one of the following allowed values: 'any', 'all'"
+        Asset Group Limit Exceeded:
+          value:
+            errorinfo:
+              error_id: "BC7AFFFD-A03C-4CEF-98BA-0959242E763B"
+              details:
+                Limit: 40
+            description: "Number of asset groups exceeded."
+            code: "asset_group_limit_exceeded"

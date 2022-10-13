@@ -2996,6 +2996,63 @@ paths:
         name: asset_type
         in: path
         required: true
+  '/assets_query/v1/incident_ids':
+    post:
+      summary: Get Incident IDs
+      tags:
+        - Queries
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: schemas.yaml#/GetIncidentIdsResponse
+              examples:
+                Exposures Summary for Deployment Example:
+                  $ref: examples.yaml#/GetIncidentIdsExample
+        '400':
+          $ref: responses.yaml#/AssetDetailsBadRequest
+        '401':
+          $ref: responses.yaml#/Unauthorized
+        '403':
+          $ref: responses.yaml#/Forbidden
+        '404':
+          $ref: responses.yaml#/NotFound
+        '503':
+          $ref: responses.yaml#/UnavailableError
+      operationId: get_incident_ids
+      description: Get lists of incident_ids for a given set of assets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assets:
+                  type: array
+                  description: |-
+                    The list of request objects, each containing parameters of an
+                    asset for which related Incident IDs are to be returned
+                  items:
+                    type: object
+                    description: The keys of an asset (`deployment_id`, `key`, `type`)
+                    properties:
+                      deployment_id:
+                        type: string
+                        description: |-
+                          The ID of the deployment source as represented in the
+                          deployments service (uppercase UUID)
+                      key:
+                        type: string
+                        description: The ID of the asset
+                      type:
+                        type: string
+                        description: A valid asset type, e.g. `deployment`, `vpc`, `host`
+                    required:
+                      - deployment_id
+                      - key
+                      - type
 components:
   securitySchemes:
     x-aims-auth-token:
