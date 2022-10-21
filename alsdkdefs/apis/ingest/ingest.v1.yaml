@@ -275,7 +275,8 @@ paths:
                   - $ref: '#/components/schemas/SyslogMsgs'
           snort.org/unified2:
             schema:
-              type: array
+              type: string
+              format: binary
               items:
                 oneOf:
                   - $ref: '#/components/schemas/SnortUnified2'
