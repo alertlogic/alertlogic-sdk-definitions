@@ -3,7 +3,9 @@ set -e
 
 export TEMP=$(mktemp -d -t alertlogic-sdk-definitions-validation-XXXX)
 
-if command -v python3.8; then
+if command -v python3.9; then
+  PYTHON=python3.9
+elif command -v python3.8; then
   PYTHON=python3.8
 elif command -v python3.7; then
   PYTHON=python3.7
