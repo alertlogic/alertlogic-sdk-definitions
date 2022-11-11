@@ -99,13 +99,6 @@ ParamQFields:
     Optional comma-separated list of fields to be returned as part of the objects. `key`, `type`
     and `deployment_id` are always returned. Both `&qfields=object.field` and `&qfields=field`
     are acceptable; in the latter case all objects will be filtered.
-ParamSummarizeAssets:
-  schema:
-    type: boolean
-  in: query
-  name: summarize_assets
-  description: |-
-    Callers should pass summarize_assets=true to pass back the asset type's summary properties. Can be used in combination with qfields.
 ParamFilter:
   schema:
     type: object
