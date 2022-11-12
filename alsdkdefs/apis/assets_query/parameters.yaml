@@ -559,5 +559,5 @@ ParamPageSize:
   in: query
   name: page_size
   description: |-
-    The number of results to be returned, default is 50. page_size is only valid
+    The number of results to be returned, maximum is 10000. `page_size` is only valid
     on initial calls to GET assets and will have no effect on subsequent calls.

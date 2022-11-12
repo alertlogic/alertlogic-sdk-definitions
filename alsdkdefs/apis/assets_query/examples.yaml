@@ -314,6 +314,58 @@ QueryAssetsTopoChainFalseExample:
           key: /aws/us-east-1/subnet/subnet-01020304
           account_id: "12345678"
     rows: 7
+QueryAssetsAssetTypesAnyWithPagination:
+  value:
+    assets:
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: host
+          key: /aws/us-east-1/host/i-1234abcd1234abcd
+          account_id: "12345678"
+      - - deployment_id: 9E4B8AAB-5E07-4B46-8E07-AA16D3CA1D03
+          type: subnet
+          key: /aws/us-east-1/subnet/subnet-abcd1234
+          account_id: "12345678"
+      - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+          type: sg
+          key: /aws/us-east-1/sg/sg-1234abcd
+          account_id: "12345678"
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: image
+          key: /aws/us-east-1/image/ami-abcdef01
+          account_id: "12345678"
+      - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+          type: subnet
+          key: /aws/us-east-1/subnet/subnet-01020304
+          account_id: "12345678"
+    rows: 5
+    continue: EEBBD0DF-B927-411B-B771-247D4C96F9AC
+    total_assets: 14
+QueryAssetsAssetTypesAnyWithPaginationContinue:
+  value:
+    assets:
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: host
+          key: /aws/us-east-1/host/i-1234abcd1234abcd
+          account_id: "12345678"
+      - - deployment_id: 9E4B8AAB-5E07-4B46-8E07-AA16D3CA1D03
+          type: subnet
+          key: /aws/us-east-1/subnet/subnet-abcd1234
+          account_id: "12345678"
+      - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+          type: sg
+          key: /aws/us-east-1/sg/sg-1234abcd
+          account_id: "12345678"
+      - - deployment_id: 1C0EFEC8-7DBE-480D-A025-ECC13DE30AD5
+          type: image
+          key: /aws/us-east-1/image/ami-abcdef01
+          account_id: "12345678"
+      - - deployment_id: CD7C26C3-FAA1-4AD1-86CB-9628ED1B3327
+          type: subnet
+          key: /aws/us-east-1/subnet/subnet-01020304
+          account_id: "12345678"
+    rows: 5
+    continue: C446F70F-3E5F-465D-B743-69C28D06EF90
+    total_assets: 14
 FindAssetAgentByUuidExample:
   value:
     type: agent
