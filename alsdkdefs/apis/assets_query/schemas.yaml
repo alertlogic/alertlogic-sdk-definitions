@@ -232,6 +232,16 @@ QueryAssetsResponse:
     rows:
       type: integer
       title: the number of rows in the query response
+    continue:
+      type: string
+      title: |-
+        A UUID to be used for subsequent GET assets calls to get the next set of results. 
+        Only present when there are more rows to paginate through.
+    total_assets:
+      type: integer
+      title: |-
+        The total number of rows in the assets list. 
+        Only present when there are more rows to paginate through.
   required:
     - assets
     - rows
