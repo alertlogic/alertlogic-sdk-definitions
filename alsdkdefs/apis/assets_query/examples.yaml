@@ -405,7 +405,7 @@ FindAssetHostMetadataExample:
       asset_id_type: al:host_uuid
       asset_type: host
       deployment:
-        id: 3EC73C2F-B65D-497A-BB3F-F5FF8120961A
+        deployment_id: 3EC73C2F-B65D-497A-BB3F-F5FF8120961A
         name: Dev
       region:
         name: us-east-1
