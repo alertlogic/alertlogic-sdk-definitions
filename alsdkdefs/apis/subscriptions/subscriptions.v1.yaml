@@ -112,6 +112,7 @@ paths:
               - web_security_managed
               - cloud_defender
               - ids_data_retention
+              - log_data_analysis
               - log_data_retention
               - log_review
           in: query
