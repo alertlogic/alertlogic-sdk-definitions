@@ -84,6 +84,68 @@ paths:
         in: path
         required: true
         description: AIMS Account ID
+  '/v1/{account_id}/analytics2':
+    get:
+      summary: List Analytics for an account
+      tags:
+        - aetuner
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logmsgs:
+                    type: array
+                    description: List of log-based analytics
+                    items:
+                      type: string
+                  telemetry:
+                    type: array
+                    items:
+                      type: string
+                  observations:
+                    type: array
+                    items:
+                      type: string
+      operationId: list_analytics2
+      security:
+        - aims_request_authorizer: []
+      description: List analytics for an account
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerSrvFunction.Arn}/invocations'
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - logsmsgs
+              - observations
+              - telemetry
+          in: query
+          name: datatype
+          description: |-
+            Data type used for analytics generation.
+            If this parameter omitted, analytics for all data types are returned.
+        - schema:
+            type: string
+            enum:
+              - all
+              - correlations
+              - analytics
+            default: all
+          in: query
+          name: output
+          description: What to include in the response
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
   '/v1/{account_id}/tagsets':
     parameters:
       - schema:
@@ -371,6 +433,98 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateAnalyticFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/analytics2/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Analytic Name
+      - schema:
+          type: string
+        in: query
+        name: severity_key
+        description: Severity tagset tuning key. Used for getting tuning tagset value instead of default.
+      - schema:
+          type: string
+        in: query
+        name: visibility_key
+        description: Visiblity tagset tuning key. Used for getting tuning tagset value instead of default.
+      - schema:
+          type: string
+        in: query
+        name: handling_key
+        description: Handling tagset tuning key. Used for getting tuning tagset value instead of default.
+      - schema:
+          type: integer
+        in: query
+        name: audit_events_limit
+        description: Limit the number of audit events to this number
+      - schema:
+          type: boolean
+        in: query
+        name: include_audit_events
+        description: When set to true returns audit events for the tuning tagsets in the analytic
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_path
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_key
+      - schema:
+          type: string
+        in: query
+        name: tuning_tagset_value
+      - schema:
+          type: boolean
+        in: query
+        name: include_stacktrace
+      - schema:
+          type: boolean
+        in: query
+        name: enable_new
+      - schema:
+          type: object
+        in: query
+        name: sql_field_values
+        description: A map of values for SQL fields, example {"bf_protocol":"windows"}
+      - schema:
+          type: string
+        in: query
+        name: key
+        description: Tuning tagset key, defaults to the analytic name
+      - schema:
+          type: boolean
+        in: query
+        name: explain
+        description: Explain how tunings are calculated or updates
+    get:
+      summary: Get Analytic for a specific customer
+      responses:
+        '200':
+          description: Analytic Information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticInfo'
+      operationId: get_analytic2
+      security:
+        - aims_request_authorizer: []
+      description: Returns an analytic for a specific customer. Requests without --enable_new=1 will be DEPRECATED
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalytic2Function.Arn}/invocations'
       tags:
         - aetuner
   '/v1/{account_id}/reset/analytics/{path}':
