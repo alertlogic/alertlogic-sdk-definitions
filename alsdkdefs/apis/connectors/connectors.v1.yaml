@@ -1225,6 +1225,9 @@ components:
         headers:
           type: string
           pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
+        headers_struct:
+          type: object
+          description: Struct created by parsing the 'headers' field. This is a read-only field. Only make changes to 'headers' field. 
         active:
           type: boolean
           description: Active status of the connection
@@ -1254,6 +1257,9 @@ components:
         headers:
           type: string
           pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
+        headers_struct:
+          type: object
+          description: Dict created parsing the 'headers' field. This is a read-only field. Only make changes to 'headers' field. 
         active:
           type: boolean
           description: Active status of the connection
@@ -1283,6 +1289,9 @@ components:
         headers:
           type: string
           pattern: '^[-\w]+:[^\r\n]*((\r?\n)[-\w]+:[^\r\n]*)*$'
+        headers_struct:
+          type: object
+          description: Dict created parsing the 'headers' field. This is a read-only field. Only make changes to 'headers' field. 
         active:
           type: boolean
           description: Active status of the connection
@@ -1602,6 +1611,9 @@ components:
           $ref: '#/components/schemas/ChangeRecord'
         headers:
           type: string
+        headers_struct:
+          type: object
+          description: Struct created by parsing the 'headers' field. This is a read-only field. Only make changes to 'headers' field.
         routing_key:
           type: string
       description: Connection Target schema
