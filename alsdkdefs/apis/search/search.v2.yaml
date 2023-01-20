@@ -127,6 +127,10 @@ paths:
                 properties:
                   type: boolean
                   default: false
+                tokens_metadata:
+                  type: boolean
+                  default: false
+                  description: Optional parameter for requesting tokens metadata in parsing results.
               required:
                 - ids
         description: Read Messages Input Parameters
@@ -178,6 +182,12 @@ paths:
           in: query
           name: properties
           description: Request properties in parsing results.
+        - schema:
+            type: boolean
+            default: false
+          in: query
+          name: tokens_metadata
+          description: Request tokens metadata in parsing results.
   '/search/v2/{account_id}/searches/{search_uuid}':
     parameters:
       - $ref: '#/components/parameters/account_id'
