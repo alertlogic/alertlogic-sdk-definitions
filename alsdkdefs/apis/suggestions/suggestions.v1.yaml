@@ -1,0 +1,366 @@
+openapi: 3.0.0
+info:
+  title: Search suggestion and saved query service
+  version: "1.0"
+  description: |-
+    The suggestions service supports the search user experience by providing
+    interactive suggestions for queries. It also manages saved queries.
+
+    Like the search service, there are two versions of suggestions: 
+    Log Search (v1) and Expert Mode Search (v2).
+
+    API support for v1 is limited to support necessary for conversion to v2.
+  contact:
+    name: Contact your Alert Logic customer service representative
+servers:
+  - url: "https://api.cloudinsight.alertlogic.com"
+    description: us-production
+    x-alertlogic-session-endpoint: true
+  - url: "https://api.cloudinsight.alertlogic.co.uk"
+    description: uk-production
+    x-alertlogic-session-endpoint: true
+  - url: "https://api.product.dev.alertlogic.com"
+    description: integration
+    x-alertlogic-session-endpoint: true
+paths:
+  "/suggestions/v1/{account_id}/queries":
+    parameters:
+      - $ref: "#/components/parameters/account_id"
+    post:
+      summary: Create a Saved Log Search Query
+      operationId: create_saved_log_search
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearchList"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"          
+    get:
+      summary: List Saved Log Searches
+      operationId: list_saved_log_searches
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearchList"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"          
+  "/suggestions/v1/{account_id}/queries/{saved_search_id}":
+    parameters:
+      - $ref: "#/components/parameters/account_id"
+      - $ref: "#/components/parameters/saved_search_id"
+    get:
+      summary: Get Saved Log Search
+      operationId: get_saved_log_search
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearch"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"          
+        "404":
+          description: "No log search exists with this ID"
+          $ref: "#/components/responses/DescriptiveError"
+  "/suggestions/v2/{account_id}/queries":
+    parameters:
+      - $ref: "#/components/parameters/account_id"
+    get:
+      summary: List Search Saved Queries
+      operationId: list_saved_searches
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearchList"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"          
+    post:
+      summary: Create a Saved Search Query
+      operationId: create_saved_search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavedSearch"
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearch"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"          
+  "/suggestions/v2/{account_id}/queries/{saved_search_id}":
+    parameters:
+      - $ref: "#/components/parameters/account_id"
+      - $ref: "#/components/parameters/saved_search_id"
+    get:
+      summary: Get Saved Search Query
+      operationId: get_saved_search
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearch"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"          
+        "404":
+          description: "No search exists with this ID"
+          $ref: "#/components/responses/DescriptiveError"
+    post:
+      summary: Update a Saved Search Query
+      operationId: update_saved_search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                search_request:
+                  type: string
+                migration:
+                  type: object
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearch"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"
+        "404":
+          description: "No search exists with this ID"
+          $ref: "#/components/responses/DescriptiveError"
+  "/suggestions/v1/{account_id}/translate":
+    parameters:
+      - $ref: "#/components/parameters/account_id"
+    post:
+      summary: Translate a Saved Log Search Query
+      operationId: translate_log_search_query
+      responses:
+        "201":
+          $ref: "#/components/responses/SavedLogSearch"          
+        "400":
+          description: "Unable to convert query"
+        "401":
+          $ref: "#/components/responses/AIMSUnauthorized"
+        "403":
+          $ref: "#/components/responses/AIMSForbidden"          
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                options:
+                  type: object
+                search_request:
+                  type: object
+components:
+  schemas:
+    AccountId:
+      description: The AIMS Account ID
+      pattern: "[0-9]+"
+      title: Account ID
+      type: string
+    Created:
+      title: Created
+      type: object
+      readOnly: true
+      properties:
+        at:
+          $ref: "#/components/schemas/Timestamp"
+        by:
+          description: User ID that Created the Object
+          type: string
+    DataType:
+      title: DataType
+      description: The data type being searched, that a particular message belongs to, or detected in a query.
+      type: string
+      example: logmsgs
+    Description:
+      title: Description
+      type: string
+    Error:
+      title: Error
+      type: object
+      properties:
+        attribute:
+          type: string
+        error_text:
+          type: string
+        error_type:
+          type: string
+    ErrorInfo:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        error_id:
+          type: string
+    ErrorList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Error"
+    GroupId:
+      title: Log Search Saved Search Group ID
+      type: string
+      format: integer
+    LogSearchQuery:
+      title: LogSearchQuery
+      description: Log Search (v1) query
+      type: object
+    Migration:
+      title: Saved Search migration metadata
+      description: Opaque record used to store data during query migration
+      type: object
+    Modified:
+      title: Modified
+      properties:
+        at:
+          $ref: "#/components/schemas/Timestamp"
+        by:
+          description: User ID of the Last User that Modified the Object
+          type: string
+      type: object
+    SavedLogSearch:
+      type: object
+      properties:
+        account_id:
+          $ref: "#/components/schemas/AccountId"
+        created:
+          $ref: "#/components/schemas/Created"
+        data_type:
+          $ref: "#/components/schemas/DataType"
+        deleted:
+          type: boolean
+        description:
+          $ref: "#/components/schemas/Description"
+        group_id:
+          $ref: "#/components/schemas/GroupId"
+        id:
+          $ref: "#/components/schemas/SearchUuid"
+        modified:
+          $ref: "#/components/schemas/Modified"
+        name:
+          $ref: "#/components/schemas/SavedSearchName"
+        search_request:
+          $ref: "#/components/schemas/LogSearchQuery"
+    SavedSearch:
+      type: object
+      additionalProperties: false
+      properties:
+        account_id:
+          $ref: "#/components/schemas/AccountId"
+        created:
+          $ref: "#/components/schemas/Created"
+        data_type:
+          $ref: "#/components/schemas/DataType"
+        deleted:
+          type: boolean
+        description:
+          $ref: "#/components/schemas/Description"
+        id:
+          $ref: "#/components/schemas/SearchUuid"
+        migration:
+          $ref: "#/components/schemas/Migration"
+        modified:
+          $ref: "#/components/schemas/Modified"
+        name:
+          $ref: "#/components/schemas/SavedSearchName"
+        search_request:
+          $ref: "#/components/schemas/SearchQuery"
+        tags:
+          $ref: "#/components/schemas/Tags"
+      required:
+        - data_type
+        - description
+        - name
+        - search_request
+    SavedSearchName:
+      title: Saved Search Name
+      type: string
+    SearchQuery:
+      title: SearchQuery
+      description: Log Search (v3) query
+      type: string
+      example: "SELECT time_recv, message FROM logmsgs LIMIT 1"
+    SearchUuid:
+      title: Search UUID
+      description: A unique identifier for a search
+      format: uuid
+      readOnly: true
+      type: string
+    Tags:
+      title: Saved Search tags
+      description: List of textual tags applied to save searches
+      type: array
+      items:
+        type: string
+    Timestamp:
+      description: Epoch & Unix Timestamp (RFC 3339)
+      type: number
+  securitySchemes:
+    X-Aims-Auth-Token:
+      name: X-Aims-Auth-Token
+      type: apiKey
+      in: header
+      description: The AIMS session token received from the AIMS service
+  parameters:
+    account_id:
+      name: account_id
+      in: path
+      schema:
+        type: string
+        pattern: "[0-9]+"
+      required: true
+      description: The AIMS account ID
+    saved_search_id:
+      name: saved_search_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: A saved search UUID
+  responses:
+    AIMSUnauthorized:
+      description: You are not authorized to perform this operation
+    AIMSForbidden:
+      description: You do not have permission to access the specified account
+    DescriptiveError:
+      description: Error response with description
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errorinfo:
+                $ref: "#/components/schemas/ErrorInfo"
+              errors:
+                $ref: "#/components/schemas/ErrorList"
+    SavedLogSearch:
+      description: A saved log search
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SavedLogSearch"
+    SavedLogSearchList:
+      description: List of saved log searches
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SavedLogSearch"
+security:
+  - X-Aims-Auth-Token: []
+tags:
+  - name: general-purpose
+  - name: internal
