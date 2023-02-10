@@ -485,6 +485,7 @@ components:
           type: string
           enum:
             - api_endpoint
+            - internal
           description: Facility for the change
         facility:
           type: object
