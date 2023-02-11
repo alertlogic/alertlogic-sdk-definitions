@@ -490,9 +490,6 @@ components:
         facility:
           type: object
           description: Facility details
-          required:
-            - method
-            - endpoint
           properties:
             method:
               type: string
