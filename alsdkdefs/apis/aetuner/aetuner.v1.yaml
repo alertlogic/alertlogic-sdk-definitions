@@ -527,6 +527,75 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerGetAnalytic2Function.Arn}/invocations'
       tags:
         - aetuner
+    post:
+      summary: Update Analytics
+      operationId: update_analytic2
+      responses:
+        '201':
+          description: Ok
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disable_validation:
+                  type: boolean
+                  description: "Disable the check that tuning referes to a tagset referenced by the analytic. Use if there is a tuning tagset that is not detected to be refernced by an analytic"
+                  default: false
+                tuning:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Tuning'
+                  description: |-
+                    A list of tunings for the analytic.
+
+                    For visiblity, severity, threshold and handling when the default tagsets are not used it is possible
+                    to expliclity provide a tagset path and key in the tagset for tuning. For blacklist and whitelist
+                    tuning a tagset path and key must be provided. Examples explain how to use it.
+
+                    NOTE: Spaces are not allowed between the items of a list.
+
+                    Examples:
+                      Severity
+                       - {"type":"severity","value":"low"}
+                       - {"type":"severity","path":"CustomSeverityMap","key":"windows","value":"low"}
+                      Visibity to incident
+                       - {"type":"visiblity","value":"incident"}
+                       - {"type":"visiblity","path":"CustomVisibilityMap","key":"windows","value":"incident"}
+                      Threshold
+                       - threshold:100
+                      Handling
+                       - {"type":"handling","operation":"add","value":"auto_soc_close"}
+                       - {"type":"handling","operation":"subtract","value":"auto_escalate"}
+                       - {"type":"handling","operation":"add","path":"CustomHandlingMap","key":"windows","value":"auto_soc_close"}
+                      Whitelist
+                       - {"type":"whitelist","operation":"add","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"whitelist","operation":"subtract","path":"tuning/SomeWhitelist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+                      Blacklist
+                       - {"type":"blacklist","operation":add","path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0"]}
+                       - {"type":"blacklist","operation":subtract,"path":"tuning/SomeBlacklist","key":"windows","value":["1.0.0.0","2.0.0.0"]}
+
+                      To specify more than one tuning provide them in list like
+
+                      '[{"type":"severity","value":"incident"},{"type":"visibility","value":"high"},{"type":"threshold","value":"100"}]'
+                dry_run:
+                  type: boolean
+                  description: "DRY RUN only"
+                reason:
+                  type: string
+                  description: Reason for the performing the update. This information is used for auditing purposes.
+              required:
+                - reason
+        required: true
+      description: Update an analytic
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerUpdateAnalyticFunction.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/reset/analytics/{path}':
     parameters:
       - schema:
@@ -579,6 +648,58 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAnalyticFunction.Arn}/invocations'
       tags:
         - aetuner
+  '/v1/{account_id}/reset/analytics2/{path}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: path
+        in: path
+        required: true
+        description: Analytic Fully Qualified Name
+    post:
+      summary: Reset Analytics setting to defaults
+      operationId: reset_analytic2
+      responses:
+        '201':
+          description: Ok
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visibility:
+                  type: boolean
+                severity:
+                  type: boolean
+                reason:
+                  type: string
+                  description: Reason for the performing the reset. This information is used for auditing purposes.
+                tuning:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - threshold
+                    - whitelist
+                  description: List of tuning keys to reset
+              required:
+                - reason
+        required: true
+      description: Reset an analytic
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAnalytic2Function.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/reset/all_analytics/visibility':
     parameters:
       - schema:
@@ -612,6 +733,41 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsVisibilityFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/all_analytics/visibility2':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics visibility fields to default
+      operationId: reset_all_analytics_visibility2
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handling_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics visibility
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsVisibility2Function.Arn}/invocations'
       tags:
         - aetuner
   '/v1/{account_id}/reset/all_analytics/severity':
@@ -649,6 +805,41 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsSeverityFunction.Arn}/invocations'
       tags:
         - aetuner
+  '/v1/{account_id}/reset/all_analytics/severity2':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics severity to defaults
+      operationId: reset_all_analytics_severity2
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  severity_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics severity
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsSeverity2Function.Arn}/invocations'
+      tags:
+        - aetuner
   '/v1/{account_id}/reset/all_analytics/handling':
     parameters:
       - schema:
@@ -682,6 +873,41 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsHandlingFunction.Arn}/invocations'
+      tags:
+        - aetuner
+  '/v1/{account_id}/reset/all_analytics/handling2':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+    post:
+      summary: Reset all Analytics handling to defaults
+      operationId: reset_all_analytics_handling2
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handling_update:
+                    $ref: '#/components/schemas/ResetAllAnalyticsResponseBody'
+      security:
+        - aims_request_authorizer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetAllAnalyticsRequestBody'
+        required: true
+      description: Reset all Analytics handling
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AETunerResetAllAnalyticsHandling2Function.Arn}/invocations'
       tags:
         - aetuner
   '/v1/tunings/report':
