@@ -558,9 +558,9 @@ ParamContinue:
   in: query
   name: continue
   description: |-
-    A UUID returned from a previous call to GET assets. When provided to subsequent
-    GET assets calls, the next set of results and a new `continue` UUID will be
-    returned.
+    A continuation token returned from a previous call to GET assets. 
+    When provided to subsequent GET assets calls, the next set of results and a new 
+    `continue` token will be returned.
 ParamPageSize:
   schema:
     type: integer
