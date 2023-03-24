@@ -481,7 +481,7 @@ paths:
         - lang: Shell
           label: Get all assets for an account ID with pagination (continue)
           source: |-
-            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?continue=EEBBD0DF-B927-411B-B771-247D4C96F9AC" \
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v1/12345678/assets?continue=g2gDZAAXcGFnaW5hdGlvbl9jb250aW51YXRpb25sAAAABGgCbQAAABdsYXN0X2V2YWx1YXRlZF92ZXJ0aWNlc2wAAAABaANtAAAAJDdENUU2NkJFLTk4QzYtNDBBMi04QjA5LTVEQzRDMEZFRTY3N20AAAAEaG9zdG0AAAAnL2F3cy91cy13ZXN0LTIvaG9zdC9pLTA0N2FmMjAzYmZkMDY2ZTI4amgCbQAAAAp0b3BvX2NoYWlubQAAAAVmYWxzZWgCbQAAAAthc3NldF90eXBlc20AAAAEaG9zdGgCbQAAAAlwYWdlX3NpemVtAAAAAzIwMGpsAAAAAWgDbQAAACQ5OTY5RUM5OC1GM0RELTQwNDAtODZDNS02QTkwMTlFMkYwN0VtAAAABGhvc3RtAAAAJy9hd3MvdXMtZWFzdC0xL2hvc3QvaS0wZTNkMzkwYWM4YjYxZGNjYWo" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       responses:
         "200":
@@ -511,7 +511,7 @@ paths:
                   $ref: 'examples.yaml#/QueryAssetsTopoChainFalseExample'
                 asset_types=any & page_size=5:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesAnyWithPagination'
-                asset_types=any & continue=EEBBD0DF-B927-411B-B771-247D4C96F9AC:
+                asset_types=any & continue=g2gDZAAXcGFnaW5hdGlvbl9jb250aW51YXRpb25sAAAABGgCbQAAABdsYXN0X2V2YWx1YXRlZF92ZXJ0aWNlc2wAAAABaANtAAAAJDdENUU2NkJFLTk4QzYtNDBBMi04QjA5LTVEQzRDMEZFRTY3N20AAAAEaG9zdG0AAAAnL2F3cy91cy13ZXN0LTIvaG9zdC9pLTA0N2FmMjAzYmZkMDY2ZTI4amgCbQAAAAp0b3BvX2NoYWlubQAAAAVmYWxzZWgCbQAAAAthc3NldF90eXBlc20AAAAEaG9zdGgCbQAAAAlwYWdlX3NpemVtAAAAAzIwMGpsAAAAAWgDbQAAACQ5OTY5RUM5OC1GM0RELTQwNDAtODZDNS02QTkwMTlFMkYwN0VtAAAABGhvc3RtAAAAJy9hd3MvdXMtZWFzdC0xL2hvc3QvaS0wZTNkMzkwYWM4YjYxZGNjYWo:
                   $ref: 'examples.yaml#/QueryAssetsAssetTypesAnyWithPaginationContinue'
         "400":
           $ref: 'responses.yaml#/QueryAssetsBadRequestError'
