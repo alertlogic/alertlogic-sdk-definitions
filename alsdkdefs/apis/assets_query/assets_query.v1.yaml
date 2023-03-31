@@ -3041,7 +3041,11 @@ paths:
         '503':
           $ref: responses.yaml#/UnavailableError
       operationId: get_incident_ids
-      description: Get lists of incident_ids for a given set of assets
+      description: |-
+        Get lists of incident_ids for a given set of assets.
+        
+        Note: If an asset type that does not have incidents directly is requested, child assets with incidents will
+        be queried instead. Only child assets with incidents will be included in the result.
       requestBody:
         content:
           application/json:
@@ -3072,6 +3076,13 @@ paths:
                       - deployment_id
                       - key
                       - type
+                limit:
+                  type: number
+                  description: |-
+                    The maximum number of incident IDs to return. The top N most severe then most recent incidents 
+                    are returned.
+                  minimum: 1
+
 components:
   securitySchemes:
     x-aims-auth-token:
