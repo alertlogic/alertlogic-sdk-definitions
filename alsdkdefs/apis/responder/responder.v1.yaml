@@ -4,13 +4,13 @@ info:
   version: '1.0'
   description: 'Configure response playbooks '
   contact:
-    name: Usage Services
-    email: usages_services@alertlogic.com
+    name: Platform Service
+    email: platform-services@alertlogic.com
 servers:
-  - url: 'https://api.global-services.global.alertlogic.com'
+  - url: 'https://api.responder.alertlogic.com'
     description: production
     x-alertlogic-session-endpoint: true
-  - url: 'https://api.global-integration.product.dev.alertlogic.com'
+  - url: 'https://responder.mdr.product.dev.alertlogic.com'
     description: integration
     x-alertlogic-session-endpoint: true
 x-amazon-apigateway-gateway-responses:
@@ -43,6 +43,26 @@ x-amazon-apigateway-request-validators:
     validateRequestBody: false
     validateRequestParameters: true
 paths:
+  '/{proxy+}':
+    options:
+      operationId: options_proxy
+      parameters:
+        - name: proxy+
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderCorsFunction.Arn}:responderCors/invocations'
+        passthroughBehavior: when_no_match
   '/v1/{account_id}/playbooks':
     parameters:
       - schema:
@@ -68,6 +88,10 @@ paths:
                       $ref: '#/components/schemas/Playbook'
                   marker:
                     type: string
+                  continuation_id:
+                    type: string
+                  get_marker:
+                    type: boolean
                   summary:
                     $ref: '#/components/schemas/PlaybooksSummary'
         '400':
@@ -138,6 +162,8 @@ paths:
           description: Bad Request
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden
         '409':
           description: Playbook with this name already exists
       description: Creates new playbook and returns created playbook object
@@ -187,20 +213,95 @@ paths:
         type: aws_proxy
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetPlaybooksSummaryFunction.Arn}:responderGetPlaybooksSummary/invocations'
-  /healthcheck:
+  '/v1/{account_id}/limits':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
     get:
-      summary: Health Endpoint
+      summary: Get limits
       tags: []
       responses:
         '200':
           description: OK
-      operationId: get_healthcheck
-      description: Check health status of the service.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionLimits'
+        '401':
+          description: Unauthorized
+      operationId: get_limits
+      description: Get limits
+      security:
+        - aims_request_authorizer: []
       x-amazon-apigateway-integration:
         httpMethod: POST
         type: aws_proxy
         uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetHealthcheckFunction.Arn}/invocations'
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderLimitsFunction.Arn}:responderLimits/invocations'
+    put:
+      summary: Update limits
+      operationId: update_limits
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionLimits'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      description: Update limits
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderLimitsFunction.Arn}:responderLimits/invocations'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionLimitsUpdate'
+  '/v1/{account_id}/limits/recreate/{stats_type}':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+          enum:
+            - mr_configs
+        name: stats_type
+        in: path
+        required: true
+        description: Statistics type
+    post:
+      summary: Recreate statistics for limits
+      tags: []
+      responses:
+        '202':
+          description: OK
+        '401':
+          description: Unauthorized
+      operationId: recreate_limits
+      description: Recreate limits
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderRecreateLimitsFunction.Arn}:responderRecreateLimits/invocations'
   '/v1/{account_id}/definitions/mr_configs':
     parameters:
       - schema:
@@ -322,6 +423,70 @@ paths:
         payloadFormatVersion: '1.0'
         requestParameters:
           - integration.request.path.account_id: method.request.path.account_id
+  /v1/stats/accounts/mr_configs:
+    get:
+      summary: List all accounts with mr_configs
+      operationId: list_accounts_with_mr_configs
+      description: Returns the list of accounts
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_deleted
+          description: "Specify 'true' to include deleted configs"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      type: string
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderListAccountsWithMrConfigsFunction}:responderListAccountsWithMrConfigs/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+  /v1/stats/types/mr_configs:
+    get:
+      summary: A summary of all mr configs by type
+      operationId: configs_by_type
+      description: Returns a count of all mr configs by type
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: include_deleted
+          description: "Specify 'true' to include deleted configs"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      type: string
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderConfigsByTypeFunction}:responderConfigsByType/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
   '/v1/{account_id}/mr_configs':
     parameters:
       - schema:
@@ -367,7 +532,7 @@ paths:
         - schema:
             type: boolean
           in: query
-          name: deleted
+          name: include_deleted
           description: Specify `true` to include deleted configs
       security:
         - aims_request_authorizer: []
@@ -394,6 +559,8 @@ paths:
           description: Bad Request
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden
       description: Creates new ManagedResponse config item
       requestBody:
         content:
@@ -435,12 +602,6 @@ paths:
     get:
       summary: Get MR config item by id
       tags: []
-      parameters:
-        - schema:
-            type: boolean
-          in: query
-          name: deleted
-          description: Specify `true` if config is deleted (`false` by default)
       responses:
         '200':
           description: OK
@@ -452,6 +613,8 @@ paths:
           description: Unauthorized
         '404':
           description: Not Found
+        '410':
+          description: The MR config is deleted but it was here before
       operationId: get_mr_config
       description: Returns MR config object
       security:
@@ -804,6 +967,8 @@ paths:
           description: Unauthorized
         '404':
           description: Not Found
+        '410':
+          description: The playbook is deleted but it was here before
       operationId: get_playbook
       description: Returns playbook object
       security:
@@ -1183,7 +1348,7 @@ paths:
         name: include_parents
         in: query
         required: false
-        description: Whether to include parents' shared templates
+        description: "Whether to include parents' shared templates"
     get:
       summary: List playbook templates
       tags: []
@@ -1337,7 +1502,7 @@ paths:
                   type: string
                 parameters:
                   type: object
-                  description: Playbook's input parameters
+                  description: "Playbook's input parameters"
               required:
                 - input_type
                 - workflow
@@ -1380,6 +1545,10 @@ paths:
                   count:
                     type: number
                   marker:
+                    type: string
+                  get_marker:
+                    type: boolean
+                  continuation_id:
                     type: string
       security:
         - aims_request_authorizer: []
@@ -1691,13 +1860,11 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Trigger'
+                  summary:
+                    $ref: '#/components/schemas/TriggersSummary'
                   count:
                     type: number
                     description: Number of triggers returned
-                  marker:
-                    description: Marker to be used in subsequent calls to retrieve remaining triggers
-                    oneOf:
-                      - type: string
       operationId: list_triggers
       security:
         - aims_request_authorizer: []
@@ -1719,16 +1886,6 @@ paths:
           name: enabled
           description: 'Specify `true` to return enabled triggers, `false` to return disabled  triggers. Returns enabled and disabled playbooks when not specified.'
         - schema:
-            type: number
-          in: query
-          name: limit
-          description: Number of entries to return.
-        - schema:
-            type: string
-          in: query
-          name: marker
-          description: Specifies a point to resume search from.
-        - schema:
             type: string
           in: query
           name: playbooks
@@ -1748,6 +1905,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Trigger'
+        '403':
+          description: Forbidden
       description: Creates trigger
       security:
         - aims_request_authorizer: []
@@ -1913,52 +2072,6 @@ paths:
           in: query
           name: actions
           description: Comma-separated list of actions refs
-  '/v1/{account_id}/resummary/triggers':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-    post:
-      summary: Recalculate triggers summary for account
-      tags: []
-      operationId: resummary_triggers
-      responses:
-        '204':
-          description: Successful
-      security:
-        - aims_request_authorizer: []
-      description: Recalculate triggers summary for account
-      x-amazon-apigateway-integration:
-        httpMethod: POST
-        type: aws_proxy
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderTriggersResummaryFunction.Arn}:responderTriggersResummary/invocations'
-  '/v1/{account_id}/resummary/playbooks':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-    post:
-      summary: Recalculate playbooks summary for account
-      tags: []
-      operationId: resummary_playbooks
-      responses:
-        '204':
-          description: Successful
-      security:
-        - aims_request_authorizer: []
-      description: Recalculate playbooks summary for account
-      x-amazon-apigateway-integration:
-        httpMethod: POST
-        type: aws_proxy
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderPlaybooksResummaryFunction.Arn}/invocations'
   '/v1/{account_id}/schemas':
     parameters:
       - schema:
@@ -2042,7 +2155,7 @@ paths:
       operationId: get_schema
       security:
         - aims_request_authorizer: []
-      description: Returns data type's JSON Schema
+      description: "Returns data type's JSON Schema"
       x-amazon-apigateway-integration:
         httpMethod: POST
         type: aws_proxy
@@ -2261,7 +2374,7 @@ paths:
       - schema:
           type: string
           enum:
-            - "v2"
+            - v2
         in: query
         name: summary_ver
         required: false
@@ -2320,6 +2433,38 @@ paths:
         type: aws_proxy
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderBlocksManageFunction}:responderBlocksManage/invocations'
+  '/v1/{account_id}/blocks/reprocess':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+    post:
+      summary: Reprocess pending blocks
+      operationId: reprocess_blocks
+      responses:
+        '202':
+          description: OK
+          content:
+            application/json:
+              schema: {}
+      security:
+        - aims_request_authorizer: []
+      description: Reprocess pending blocks
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BlocksReprocessBlockKey'
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderBlocksReprocessFunction}:responderBlocksReprocess/invocations'
   '/v1/management/dlq/reenqueue/{queue}':
     parameters:
       - schema:
@@ -2376,7 +2521,7 @@ paths:
         '403':
           description: Forbidden
       operationId: get_authentication_token
-      description: Returns AIMS Token for a playbook's execution
+      description: "Returns AIMS Token for a playbook's execution"
       security:
         - aims_request_authorizer: []
       parameters:
@@ -2415,6 +2560,10 @@ paths:
                   count:
                     type: number
                   marker:
+                    type: string
+                  get_marker:
+                    type: boolean
+                  continuation_id:
                     type: string
       operationId: list_edge_actions
       description: Returns a list of edge actions
@@ -2590,8 +2739,8 @@ paths:
               properties:
                 result:
                   oneOf:
-                   - type: object
-                   - type: string
+                    - type: object
+                    - type: string
                 status:
                   type: string
                   enum:
@@ -2613,18 +2762,44 @@ paths:
         in: path
         required: true
     post:
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: dry_run
+          description: 'Dry run execution, do validation only'
       summary: Execute specific managed response
       operationId: mr_execute
       responses:
+        '200':
+          description: 'In case of dry run, 200 OK will be returned'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - valid_config_ids
+                  - invalid_config_ids
+                properties:
+                  valid_config_ids:
+                    type: array
+                    items:
+                      type: string
+                  invalid_config_ids:
+                    type: array
+                    items:
+                      type: string
         '201':
           description: Created
+        '400':
+          description: Bad Request
         '401':
           description: Unauthorized
         '403':
           description: Forbidden
         '404':
           description: Not Found
-      description: Execute specific managed response for an incident or an observation
+      description: Execute specific managed response for an incident
       security:
         - aims_request_authorizer: []
       requestBody:
@@ -2682,10 +2857,10 @@ components:
         parameters:
           type: object
           additionalProperties: true
-          description: Playbook's input parameters
+          description: "Playbook's input parameters"
         output_schema:
           type: object
-          description: Playbook's output schema
+          description: "Playbook's output schema"
         workflow:
           type: object
           description: Wokrflow defintion
@@ -2798,14 +2973,6 @@ components:
         - type
         - parameters
         - workflow
-    CreateMrConfigItem:
-      title: Create ManagedResponse config item
-      description: Create ManagedResponse config item
-      $ref: '#/components/schemas/MrConfigItem'
-    UpdateMrConfigItem:
-      title: Update ManagedResponse config item
-      description: Update ManagedResponse config item
-      $ref: '#/components/schemas/MrConfigItem'
     MrConfigItem:
       title: ManagedResponse config item
       description: ManagedResponse config item
@@ -2834,13 +3001,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         resource_arn:
           type: string
           title: Resource ARN
@@ -2871,7 +3038,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -2911,7 +3078,7 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
@@ -2950,7 +3117,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -2990,13 +3157,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         topic_arn:
           type: string
           title: Topic Arn
@@ -3027,7 +3194,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3065,13 +3232,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         event_bus_name:
           type: string
           title: Event Bus Name
@@ -3096,7 +3263,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3135,13 +3302,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         tag:
           type: string
           title: Tag
@@ -3149,7 +3316,7 @@ components:
           type: integer
           title: Expiration in Seconds
           description: Response TTL in seconds
-          default: 300
+          default: 604800
           minimum: 0
         exclusion_list:
           type: array
@@ -3166,7 +3333,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3205,30 +3372,21 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
-        policy_name:
-          type: string
-          title: Policy Name
+          description: Connection to use for the response
         group_name:
           type: string
           title: Group Name
-        vdoms:
-          type: array
-          title: Virtual Domains
-          description: Comma separated list of virtual domains
-          items:
-            type: string
         ttl_sec:
           type: integer
           title: Expiration in Seconds
           description: Response TTL in seconds
-          default: 300
+          default: 604800
           minimum: 0
         exclusion_list:
           type: array
@@ -3245,7 +3403,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3269,7 +3427,6 @@ components:
         - type
         - name
         - connection_target_id
-        - policy_name
         - group_name
         - ttl_sec
     MrConfigItemMsDefenderIsolate:
@@ -3285,13 +3442,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         comment:
           type: string
           title: Response Comment
@@ -3318,7 +3475,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3358,13 +3515,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         ttl_sec:
           type: integer
           title: Expiration in Seconds
@@ -3386,7 +3543,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3424,13 +3581,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         ttl_sec:
           type: integer
           title: Expiration in Seconds
@@ -3452,7 +3609,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3490,13 +3647,13 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         ttl_sec:
           type: integer
           title: Expiration in Seconds
@@ -3518,7 +3675,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3556,7 +3713,7 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         exclusion_list:
@@ -3574,7 +3731,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3590,19 +3747,20 @@ components:
           title: Analytics
           items:
             type: string
-        enabled:
-          type: boolean
-          default: true
         connection_target_id:
           type: string
           title: Connection
-          description: Connection target to use for the response
+          description: Connection to use for the response
         ttl_sec:
           type: integer
           title: Expiration in Seconds
           description: Response TTL in seconds
-          default: 300
+          default: 0
           minimum: 0
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
       required:
         - type
         - name
@@ -3621,7 +3779,7 @@ components:
         name:
           type: string
           title: Response Name
-          pattern: '[\w+=,.@-]+'
+          pattern: "[\\w+=,.@-]+"
           minLength: 1
           maxLength: 128
         cluster_id:
@@ -3650,7 +3808,7 @@ components:
         required_approvals:
           type: array
           title: User(s)
-          description: If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.
+          description: 'If you send the request to multiple users, the first to answer determines whether the response is approved or rejected.'
           items:
             type: string
         block_external_attackers:
@@ -3678,7 +3836,7 @@ components:
     MrConfigItemName:
       type: string
       title: Response Name
-      pattern: '[\w+=,.@-]+'
+      pattern: "[\\w+=,.@-]+"
       minLength: 1
       maxLength: 128
     UpdateTimestampRecord:
@@ -3758,13 +3916,15 @@ components:
           description: Execution ID
         mode:
           type: string
-          enum: ["playbook", "simple"]
+          enum:
+            - playbook
+            - simple
         playbook_id:
           type: string
-          description: Playbook's id if the mode is playbook
+          description: "Playbook's id if the mode is playbook"
         simple_mode_id:
           type: string
-          description: Simple Response config's id if the mode is simple
+          description: "Simple Response config's id if the mode is simple"
         status:
           type: string
           description: Status of Inquiry
@@ -3832,7 +3992,7 @@ components:
           items: {}
         elapsed_seconds:
           type: integer
-          description: Execution's elapsed seconds
+          description: "Execution's elapsed seconds"
           format: int32
         children:
           type: array
@@ -4068,6 +4228,8 @@ components:
             - type: array
               items:
                 type: string
+            - type: string
+              nullable: true
     Action:
       title: Action Object
       type: object
@@ -4194,7 +4356,6 @@ components:
           type: string
       required:
         - name
-        - playbooks
         - date
         - type
     CronScheduleTrigger:
@@ -4392,6 +4553,8 @@ components:
           minimum: 0
         marker:
           type: string
+        continuation_id:
+          type: string
         summary:
           type: object
           properties:
@@ -4448,6 +4611,8 @@ components:
           format: int32
           minimum: 0
         marker:
+          type: string
+        continuation_id:
           type: string
         summary:
           type: object
@@ -4514,6 +4679,8 @@ components:
             $ref: '#/components/schemas/BlocksHistoryAggregationItem'
         marker:
           type: string
+        continuation_id:
+          type: string
         filter:
           type: object
           additionalProperties: false
@@ -4552,6 +4719,10 @@ components:
               type: array
               items:
                 type: string
+            human_friendly_id.wildcard:
+              type: string
+            response_name.wildcard:
+              type: string
     BlocksHistoryResult:
       type: object
       additionalProperties: true
@@ -4563,6 +4734,8 @@ components:
         count:
           type: integer
         marker:
+          type: string
+        continuation_id:
           type: string
         summary:
           oneOf:
@@ -4665,6 +4838,14 @@ components:
               - bobj
               - block_key
               - intent
+    BlocksReprocessBlockKey:
+      type: object
+      additionalProperties: false
+      properties:
+        block_key:
+          type: string
+      required:
+        - block_key
     ExecutionLogEntry:
       title: ExecutionLogEntry
       type: object
@@ -4880,6 +5061,10 @@ components:
           maximum: 100
         marker:
           type: string
+        continuation_id:
+          type: string
+        get_marker:
+          type: boolean
         start_timestamp:
           type: integer
           format: int32
@@ -4907,6 +5092,8 @@ components:
           format: int32
           minimum: 0
         marker:
+          type: string
+        continuation_id:
           type: string
         summary:
           type: object
@@ -4994,6 +5181,10 @@ components:
           maximum: 100
         marker:
           type: string
+        continuation_id:
+          type: string
+        get_marker:
+          type: boolean
         start_timestamp:
           type: integer
           format: int32
@@ -5104,6 +5295,10 @@ components:
           maximum: 100
         marker:
           type: string
+        continuation_id:
+          type: string
+        get_marker:
+          type: boolean
         start_timestamp:
           type: integer
           format: int32
@@ -5216,10 +5411,10 @@ components:
             properties:
               tactic:
                 type: string
-                description: The determined MITRE ATT&CK tactics of the enclosing object based on its detection within the customer's environment
+                description: "The determined MITRE ATT&CK tactics of the enclosing object based on its detection within the customer's environment"
               technique:
                 type: string
-                description: The determined MITRE ATT&CK techniques of the enclosing object based on its detection within the customer's environment
+                description: "The determined MITRE ATT&CK techniques of the enclosing object based on its detection within the customer's environment"
             required:
               - tactic
               - technique
@@ -5443,7 +5638,7 @@ components:
           description: Parameter default value
         immutable:
           type: boolean
-          description: Can parameter be modified during playbook's execution
+          description: "Can parameter be modified during playbook's execution"
         secret:
           type: boolean
           description: Hide the value of this parameter in all system logs
@@ -5479,6 +5674,12 @@ components:
         marker:
           type: string
           description: A marker to be used in subsequent calls to get more records.
+        continuation_id:
+          type: string
+          description: The id to be used in subsequent calls to get more records.
+        get_marker:
+          type: boolean
+          description: 'Tells the system if you want a marker returned, if not a continuation_id will be returned if there are additional records.'
         start_timestamp:
           type: integer
           format: int32
@@ -5510,24 +5711,6 @@ components:
                     type: string
                 - type: string
                 - type: object
-            parent_execution_id:
-              oneOf:
-                - type: array
-                  items:
-                    type: string
-                - type: string
-            playbook_id:
-              oneOf:
-                - type: array
-                  items:
-                    type: string
-                - type: string
-            playbook_name:
-              oneOf:
-                - type: array
-                  items:
-                    type: string
-                - type: string
             category:
               oneOf:
                 - type: array
@@ -5615,6 +5798,19 @@ components:
           type: string
           pattern: '^[0-9]+[smhdwMqy]'
           minLength: 2
+        extended_bounds:
+          type: object
+          properties:
+            min:
+              type: integer
+              format: int32
+              minimum: 0
+              description: 'Epoch timestamp - histogram data returned must start here, at the latest'
+            max:
+              type: integer
+              format: int32
+              minimum: 0
+              description: 'Epoch timestamp - histogram data returned must end here, at the earliest'
         size:
           type: number
         aggregations:
@@ -5679,13 +5875,55 @@ components:
         payload:
           oneOf:
             - $ref: '#/components/schemas/IncidentPayload'
-            - $ref: '#/components/schemas/ObservationPayload'
-          description: An Incident or an Observation payload object
+          description: An Incident payload object
         target_account_id:
           type: string
       required:
         - config_ids
         - payload
+    ExecutionLimits:
+      title: Execution Limits
+      type: object
+      properties:
+        limits:
+          type: object
+          additionalProperties: false
+          properties:
+            mr_configs:
+              $ref: '#/components/schemas/ExecutionLimit'
+            playbooks:
+              $ref: '#/components/schemas/ExecutionLimit'
+            triggers:
+              $ref: '#/components/schemas/ExecutionLimit'
+    ExecutionLimitsUpdate:
+      title: Execution Limits
+      type: object
+      additionalProperties: false
+      properties:
+        mr_configs:
+          $ref: '#/components/schemas/ExecutionLimitUpdate'
+        playbooks:
+          $ref: '#/components/schemas/ExecutionLimitUpdate'
+        triggers:
+          $ref: '#/components/schemas/ExecutionLimitUpdate'
+    ExecutionLimit:
+      title: Execution Limit
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        max_count:
+          type: integer
+          minimum: 0
+    ExecutionLimitUpdate:
+      type: object
+      title: Execution Limit
+      additionalProperties: false
+      properties:
+        max_count:
+          type: integer
+          minimum: 0
   securitySchemes:
     aims_request_authorizer:
       type: apiKey
