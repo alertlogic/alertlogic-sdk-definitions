@@ -1,0 +1,424 @@
+CreateNetworkExample:
+  value:
+    key: /dc/network/EDBB4663-12B9-437A-A45D-2461E6569191
+CreateNetworkRequestBodyExample:
+  value:
+    operation: create_network
+    scope: datacenter
+    properties:
+      network_name: MyNetwork
+      cidr_ranges:
+      - 10.0.0.0/16
+      public_cidr_ranges:
+      - 10.0.0.0/16
+DeclareApplicationsRequestBodyExample:
+  value:
+    operation: declare_applications
+    type: host
+    key: "/aws/us-east-1/host/i-11112222"
+    scope: aws
+    destinations:
+    - - nginx
+      - port: 80
+        ip_protocol: tcp
+    - - telnet
+      - port: 992
+        ip_protocol: udp
+DeclareEnvironmentsRequestBodyExample:
+  value:
+    operation: declare_environment
+    environment_id: 9E45B6F4-D8FE-11E7-899D-E382346B56A1
+    environment_type: azure
+    scope: azure
+    properties:
+      environment_type_id: 029faa42-36f9-1005-91c0-6c400890c2a6
+DeclareEnvironmentsExample:
+  value:
+    version: 1
+    type: deployment
+    relationships: []
+    properties:
+      scope_internal_environment_type: azure
+      scope_internal_environment_id: 9E45B6F4-D8FE-11E7-899D-E382346B56A1
+      scope_internal_deployment_type: azure
+      scope_internal_deployment_id: 9E45B6F4-D8FE-11E7-899D-E382346B56A1
+      scope_azure_environment_type_id: 029faa42-36f9-1005-91c0-6c400890c2a6
+    modified_on: 1512403094689
+    key: "/al/01000001/deployment/azure/9E45B6F4-D8FE-11E7-899D-E382346B56A1"
+    deployment_id: 9E45B6F4-D8FE-11E7-899D-E382346B56A1
+    deleted_on: 0
+    declared: true
+    created_on: 1512403094662
+    account_id: '01000001'
+DeclareVulnerabilitiesRequestBodyExample:
+  value:
+    operation: declare_vulnerabilities
+    scope: scan
+    type: host
+    key: "/aws/us-east-1/host/i-11112222"
+    vulnerabilities:
+    - id: a29e9b3a-ec66-441d-8960-b1f3dd3bc558
+      properties:
+        vulnerability_id: f094ed697c59e1059f7e2a2d5e664e46
+        description: "[Spoilers] Voldemort has split his soul into parts and can't be
+          killed."
+        categories:
+        - security
+        finding_type: misconfiguration
+      remediation:
+        id: 45af6dc6-3677-4a4d-822b-9eff57b99ae8
+        properties:
+          description: Find all the pieces of Voldemort's soul and destroy them.
+AccumulateRequestBodyExample:
+  value:
+    operation: accumulate
+    type: agent
+    scope: stats
+    key: "/agent/D298CD7C-CEF2-4931-A422-D12D85362340"
+    strategy: hourly
+    properties:
+      metric_name: 1000
+AccumulateExample:
+  value:
+    account_id: '01000001'
+    deployment_id: aws1
+    key: "/host/host_name"
+    name: host_name
+    relationships:
+    - key: "/aws/us-east-1/vpc/vpc-11223344"
+      type: vpc
+    - key: "/aws/us-east-1/vpc/vpc-22334455"
+      type: vpc
+    type: host
+    properties:
+      statistics:
+        metric_name:
+          hours:
+            hour_2019022100: 100
+            hour_2019022101: 0
+            hour_2019022102: 0
+            hour_2019022103: 0
+            hour_2019022104: 0
+            hour_2019022105: 0
+            hour_2019022106: 0
+            hour_2019022107: 0
+            hour_2019022108: 0
+            hour_2019022109: 0
+            hour_2019022110: 50
+            hour_2019022111: 0
+            hour_2019022112: 0
+            hour_2019022113: 0
+            hour_2019022114: 0
+            hour_2019022115: 0
+            hour_2019022116: 0
+            hour_2019022117: 0
+            hour_2019022118: 0
+            hour_2019022119: 0
+            hour_2019022120: 0
+            hour_2019022121: 0
+            hour_2019022122: 50
+            hour_2019022123: 1000
+          last_day: 200
+          last_hour: 50
+DeclareAccessLevelsRequestBodyExample:
+  value:
+    operation: declare_access_levels
+    scope: test
+    asset:
+      type: role
+      key: "/aws/123412341234/role/Source"
+    access_levels:
+    - destination:
+        type: data-service
+        key: "/aws/123412341234/data-service/Dest1"
+      derives_from:
+      - type: policy
+        key: "/aws/123412341234/policy/managed/DF1"
+      properties:
+        access_type: admin
+DeclareAssetRequestBodyExample:
+  value:
+    operation: declare_asset
+    type: region
+    scope: aws
+    key: "/aws/us-east-1"
+    properties:
+      foo: bar
+    relationships:
+    - key: "/aws/us-east-1/vpc/vpc-11223344"
+      type: vpc
+    - key: "/aws/us-east-1/vpc/vpc-22334455"
+      type: vpc
+DeclareAssetExample:
+  value:
+    account_id: '01000001'
+    deployment_id: aws1
+    key: "/aws/us-east-1"
+    scope_aws_foo: bar
+    relationships:
+    - key: "/aws/us-east-1/vpc/vpc-11223344"
+      type: vpc
+    - key: "/aws/us-east-1/vpc/vpc-22334455"
+      type: vpc
+    type: region
+DeclareBatchRequestBodyExample:
+  value:
+    operation: batch_declare
+    operations:
+    - operation: declare_asset
+      type: region
+      scope: aws
+      key: "/aws/us-east-1"
+      properties:
+        name: us-east-1
+      relationships:
+      - key: "/aws/us-east-1/vpc/vpc-11223344"
+        type: vpc
+      - key: "/aws/us-east-1/vpc/vpc-22334455"
+        type: vpc
+DeclareBatchRequestBodyTransactionExample:
+  value:
+    operation: batch_declare
+    transaction: true
+    operations:
+    - operation: declare_asset
+      type: region
+      scope: aws
+      key: "/aws/us-east-1"
+      properties:
+        name: us-east-1
+      relationships:
+      - key: "/aws/us-east-1/vpc/vpc-11223344"
+        type: vpc
+      - key: "/aws/us-east-1/vpc/vpc-22334455"
+        type: vpc
+    - operation: declare_asset
+      type: region
+      scope: aws
+      key: "/aws/eu-west-1"
+      properties:
+        name: eu-west-1
+      relationships:
+      - key: "/aws/eu-west-1/vpc/vpc-33445566"
+        type: vpc
+      - key: "/aws/eu-west-1/vpc/vpc-44556677"
+        type: vpc
+DeclareBatchExample:
+  value:
+    return_values:
+    - code: 201
+      value:
+        account_id: '01000001'
+        deployment_id: aws1
+        key: "/aws/us-east-1"
+        scope_aws_name: us-east-1
+        relationships:
+        - key: "/aws/us-east-1/vpc/vpc-11223344"
+          type: vpc
+        - key: "/aws/us-east-1/vpc/vpc-22334455"
+          type: vpc
+        type: region
+DeclareBatchTransactionExample:
+  value:
+    return_values:
+    - code: 500
+      value:
+        error: timeout
+    - code: 400
+      value:
+        error: not_executed
+DeclarePropertiesRequestBodyExample:
+  value:
+    operation: declare_properties
+    type: host
+    scope: aws
+    key: "/aws/us-east-1/host/i-55555555"
+    properties:
+      ip-address: 192.168.3.22
+DeclarePropertiesCreateFalseRequestBodyExample:
+  value:
+    operation: declare_properties
+    type: host
+    scope: aws
+    key: "/aws/us-east-1/host/i-55555555"
+    properties:
+      ip-address: 192.168.3.22
+    create: false
+DeclarePropertiesWithConditionsRequestBodyExample:
+  value:
+    operation: declare_properties
+    scope: aws
+    conditions:
+    - property: status_ts
+      type: if-less
+      value: 1535991006
+    type: agent
+    key: "/agent/A85A6ECB-A49A-4CE5-8044-2AB6FF79403B"
+    properties:
+      status: ok
+      status_ts: 1535991006
+DeclarePropertiesExample:
+  value:
+    account_id: '01000001'
+    deployment_id: aws1
+    key: "/aws/us-east-1/host/i-55555555"
+    scope_aws_ip-address: 192.168.3.22
+    type: host
+DeclareRelationshipsRequestBodyExample:
+  value:
+    operation: declare_relationships
+    type: region
+    scope: aws
+    key: "/aws/us-east-1"
+    relationships:
+    - key: "/aws/us-east-1/vpc/vpc-66778899"
+      type: vpc
+DeclareRelationshipsExample:
+  value:
+    account_id: '01000001'
+    deployment_id: aws1
+    key: "/aws/us-east-1"
+    name: us-east-1
+    relationships:
+    - key: "/aws/us-east-1/vpc/vpc-11223344"
+      type: vpc
+    - key: "/aws/us-east-1/vpc/vpc-22334455"
+      type: vpc
+    - key: "/aws/us-east-1/vpc/vpc-66778899"
+      type: vpc
+    type: region
+RemoveAssetRequestBodyExample:
+  value:
+    operation: remove_asset
+    scope: aws
+    type: host
+    key: "/aws/us-east-1/host/i-55555555"
+RemoveAssetsRequestBodyExample:
+  value:
+    operation: remove_assets
+    scope: aws
+    assets:
+    - type: host
+      key: "/aws/us-east-1/host/i-55555555"
+    - type: subnet
+      key: "/aws/us-east-1/subnet/subnet-88887777"
+RemovePropertiesRequestBodyExample:
+  value:
+    operation: remove_properties
+    type: host
+    scope: aws
+    key: "/aws/us-east-1/host/i-55555555"
+    property_names:
+    - ip-address
+RemovePropertiesWithConditionsRequestBodyExample:
+  value:
+    operation: remove_properties
+    type: agent
+    scope: aws
+    conditions:
+    - property: statuses.ffc_Apache_status.timestamp
+      type: if-less
+      value: 1535991006
+    key: "/agent/9836D202-9D2D-402F-80F4-360B802446DD"
+    property_names:
+    - ip-address
+    - - statuses
+      - ffc_Apache_status
+RemovePropertiesExample:
+  value:
+    account_id: '01000001'
+    deployment_id: aws1
+    key: "/aws/us-east-1/host/i-55555555"
+    type: host
+RemoveRelationshipsRequestBodyExample:
+  value:
+    operation: remove_relationships
+    type: region
+    scope: aws
+    key: "/aws/us-east-1"
+    relationships:
+    - key: "/aws/us-east-1/vpc/vpc-22334455"
+      type: vpc
+    - key: "/aws/us-east-1/vpc/vpc-66778899"
+      type: vpc
+RemoveRelationshipsExample:
+  value:
+    account_id: '01000001'
+    deployment_id: aws1
+    key: "/aws/us-east-1"
+    scope_aws_name: us-east-1
+    relationships:
+    - key: "/aws/us-east-1/vpc/vpc-11223344"
+      type: vpc
+    type: region
+CreateAssetGroupRequestBodyExample:
+  value:
+    operation: create_asset_group
+    scope: user
+    name: PCI Assets
+    properties:
+      scopes:
+      - include:
+        - deployment:any
+        exclude: []
+        asset_types:
+        - host
+        - db-instance
+CreateAssetGroupExample:
+  value:
+    account_id: '01000001'
+    created_on: 1590790008356
+    declared: true
+    deleted_on: 0
+    deployment_id: AL-INTERNAL-ASSETS
+    key: PCI Assets
+    modified_on: 1590790008356
+    properties:
+      scopes:
+      - include:
+        - deployment:any
+        exclude: []
+        asset_types:
+        - host
+        - db-instance
+    relationships: []
+    type: asset-group
+    version: 1
+DeleteAssetGroupRequestBodyExample:
+  value:
+    operation: delete_asset_group
+    scope: user
+    name: PCI Assets
+UpdateAssetGroupRequestBodyExample:
+  value:
+    operation: update_asset_group
+    scope: user
+    name: PCI Assets
+    properties:
+      scopes:
+      - include:
+        - deployment:any
+        exclude: []
+        asset_types:
+        - host
+        - db-instance
+UpdateAssetGroupExample:
+  value:
+    account_id: '01000001'
+    created_on: 1590790008356
+    declared: true
+    deleted_on: 0
+    deployment_id: AL-INTERNAL-ASSETS
+    key: PCI Assets
+    modified_on: 1590790008356
+    properties:
+      scopes:
+      - include:
+        - deployment:any
+        exclude: []
+        asset_types:
+        - host
+        - db-instance
+    relationships: []
+    type: asset-group
+    version: 2
