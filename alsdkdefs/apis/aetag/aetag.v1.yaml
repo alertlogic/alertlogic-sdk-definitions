@@ -824,6 +824,11 @@ paths:
         - schema:
             type: string
           in: query
+          name: definition
+          description: Tagset Definition Type      
+        - schema:
+            type: string
+          in: query
           name: path
           description: Tagset Definition Name/Path
           required: true
