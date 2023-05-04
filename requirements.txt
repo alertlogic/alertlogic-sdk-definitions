@@ -2,3 +2,5 @@ jsonschema[format_nongpl]==3.2.0
 pyyaml==5.4.1
 requests>=2.18
 jsonmerge>=1.8.0
+urllib3<2 #Temp fix due to https://github.com/urllib3/urllib3/issues/2168
+# although requests 2.30.0 is meant to fix it, the script is still failing to run
