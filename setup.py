@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = ['jsonschema[format_nongpl]==3.2.0', 'pyyaml>=5.4.1', 'requests>=2.18', 'jsonmerge>=1.8.0']
+requirements = ['jsonschema[format_nongpl]==3.2.0', 'pyyaml>=5.4.1', 'requests>=2.18', 'urllib3<2', 'jsonmerge>=1.8.0']
 
 setup(
     name='alertlogic-sdk-definitions',
