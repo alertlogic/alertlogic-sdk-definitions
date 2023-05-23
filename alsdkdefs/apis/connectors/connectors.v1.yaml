@@ -106,6 +106,79 @@ paths:
               required:
                 - key
       parameters: []
+  '/v1/connections/management/delete_message':
+      delete:
+        summary: Delete messages from a dlq
+        operationId: delete_dlq_message
+        responses:
+          '204':
+            description: No Content
+          '403':
+            description: Forbidden
+        security:
+          - aims_request_authorizer: []
+        x-amazon-apigateway-request-validator: all
+        x-amazon-apigateway-integration:
+          type: aws_proxy
+          httpMethod: POST
+          uri:
+            'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsDeleteDLQMessageFunction.Arn}/invocations'
+        description: Delete messages from a dlq
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    description: The identifier for the dlq to delete the messages from.
+                    enum:
+                      - notifications
+                      - audit_messages
+                  receipt_handles:
+                    type: array
+                    description: List of receipt handles to delete
+                    items:
+                      type: string
+                required:
+                  - key
+                  - receipt_handles
+        parameters: []
+  '/v1/connections/management/dlq_messages/{key}':
+      parameters:
+      - schema:
+          type: string
+          enum:
+            - notifications
+            - audit_messages
+        name: key
+        in: path
+        required: true
+        description: DLQ Key
+      get:
+        summary: List messages in a dlq
+        operationId: list_dlq_messages
+        responses:
+          '200':
+            description: Messages from the DLQ
+          '403':
+            description: Forbidden
+        security:
+          - aims_request_authorizer: []
+        x-amazon-apigateway-request-validator: all
+        x-amazon-apigateway-integration:
+          type: aws_proxy
+          httpMethod: POST
+          uri:
+            'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListDLQMessagesFunction.Arn}/invocations'
+        description: List messages in a dlq
+        parameters:
+          - schema:
+              type: integer
+            in: query
+            name: max
+            description: The max number of messages to return
   '/v1/connections/{id}/notification':
     parameters:
       - schema:
