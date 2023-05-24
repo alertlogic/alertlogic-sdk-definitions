@@ -807,6 +807,73 @@ paths:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetFull.Arn}/invocations'
         httpMethod: POST
         type: aws_proxy
+  '/v1/{account_id}/notifications/{id}':
+      parameters:
+        - schema:
+            type: string
+          name: account_id
+          in: path
+          required: true
+          description: AIMS Account ID
+        - schema:
+            type: string
+            format: uuid
+          name: id
+          in: path
+          required: true
+          description: Notification ID
+      get:
+        summary: Get Notification Information
+        tags: []
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '403':
+            description: Forbidden
+          '404':
+            description: Notification Not Found
+        operationId: get_notification
+        description: Returns notification information
+        security:
+          - aims_request_authorizer: []
+        x-amazon-apigateway-integration:
+          uri:
+            'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetNotificationFunction.Arn}/invocations'
+          httpMethod: POST
+          type: aws_proxy
+  '/v1/{account_id}/notifications':
+      parameters:
+        - schema:
+            type: string
+          name: account_id
+          in: path
+          required: true
+          description: AIMS Account ID
+      get:
+        summary: List Notifications Information
+        tags: []
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '403':
+            description: Forbidden
+        operationId: list_notifications
+        description: Returns information for all of the account's notifications
+        security:
+          - aims_request_authorizer: []
+        x-amazon-apigateway-integration:
+          uri:
+            'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListNotificationsFunction.Arn}/invocations'
+          httpMethod: POST
+          type: aws_proxy
   '/v1/integration_types/{name}':
     parameters:
       - schema:
