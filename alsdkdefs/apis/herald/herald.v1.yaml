@@ -652,6 +652,8 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/Basic-Error-Response'
                   - $ref: '#/components/schemas/Validation-Error-Response'
+        '403':
+          description: Forbidden
         '413':
           description: Request Entity Too Large
       operationId: create_subscription
@@ -829,6 +831,8 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/Basic-Error-Response'
                   - $ref: '#/components/schemas/Validation-Error-Response'
+        '403':
+          description: Forbidden
         '404':
           description: Not Found
         '409':
