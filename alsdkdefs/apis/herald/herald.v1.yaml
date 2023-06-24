@@ -643,7 +643,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subscription-Extra'
+                $ref: '#/components/schemas/Subscription'
         '400':
           description: Bad Request
           content:
@@ -652,8 +652,20 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/Basic-Error-Response'
                   - $ref: '#/components/schemas/Validation-Error-Response'
+        '400':
+          description: Bad Subscribers in Request
+          content:
+            application/json:
+              schema:
+                $ref: '#components/schemas/Failed-Subscribers'
         '403':
           description: Forbidden
+        '403':
+          description: No Permission to Create Subscribers
+          content:
+            application/json:
+              schema:
+                $ref: '#components/schemas/Failed-Subscribers'
         '413':
           description: Request Entity Too Large
       operationId: create_subscription
@@ -1219,16 +1231,6 @@ components:
         subscriber_count:
           type: number
           description: Available in List subscriptions for an account by subscription id
-    Subscription-Extra:
-      allOf:
-        - $ref: '#/components/schemas/Subscription'
-        - $ref: '#/components/schemas/Failed-Subscribers'
-      x-examples:
-        Subscriber Request Extra:
-          subscriber: 82FB03F2-3FEC-411B-82A2-904F68BFCC74
-          subscriber_type: connection
-          account_id: 134047511
-          subscription_id: 2306AD6F-EC8F-40B4-AC86-7C5D4FFC1597
     Failed-Subscribers:
       type: object
       properties:
