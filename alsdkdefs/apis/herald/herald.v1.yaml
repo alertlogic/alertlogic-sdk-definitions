@@ -699,10 +699,6 @@ paths:
                   additionalProperties: true
                 template:
                   $ref: '#/components/schemas/Subscription-Request-Field-Template-Key'
-                system:
-                  type: string
-                  enum:
-                    - responder
                 suppression_interval:
                   $ref: '#/components/schemas/Subscription-Request-Field-Suppression-Interval'
               required:
@@ -732,7 +728,6 @@ paths:
                       - source: notification.schedule_id
                       - F6103D82-A358-1005-8001-0242AC110020
                   template: scheduled_report_template
-                  system: responder
                   suppression_interval: 2400
     parameters:
       - schema:
@@ -1289,7 +1284,6 @@ components:
       enum:
         - user
         - connection
-        - response.playbook
       x-examples:
         User:
           user
