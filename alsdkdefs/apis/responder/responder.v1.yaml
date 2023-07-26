@@ -3629,6 +3629,11 @@ components:
           type: boolean
           title: Response is active
           default: true
+        disable_mfa:
+          type: boolean
+          title: Remove authorized MFA devices
+          description: If checked, also remove all multi-factor authentication devices set up for the user being disabled
+          default: false
       required:
         - type
         - name
