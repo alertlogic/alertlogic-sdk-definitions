@@ -85,7 +85,6 @@ paths:
                           by: CB3D4506-5595-47A6-8851-DF55D2525743
                     legacy_features:
                       - azure_enabled
-                      - customer_facing_incidents
                       - pci_scan
                 Empty Response Example:
                   value:
