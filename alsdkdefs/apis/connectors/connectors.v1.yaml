@@ -874,37 +874,6 @@ paths:
             'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListNotificationsFunction.Arn}/invocations'
           httpMethod: POST
           type: aws_proxy
-  '/v1/integration_types/{name}':
-    parameters:
-      - schema:
-          type: string
-        name: name
-        in: path
-        required: true
-    get:
-      summary: Get Integration Type Configuration Information
-      tags: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IntegrationType'
-              examples: {}
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
-      operationId: get_integration_type
-      description: Returns JSON Schema of parameters required to create a connection
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetIntegrationTypeFunction.Arn}/invocations'
-        httpMethod: POST
-        type: aws_proxy
   /v1/integration_types:
     get:
       summary: Get a list of supported integration types
@@ -993,61 +962,6 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetAccountIntegrationTypeFunction.Arn}/invocations'
-        httpMethod: POST
-        type: aws_proxy
-
-  /v1/connection_targets:
-    get:
-      summary: Get a list of supported connection targets
-      tags: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                description: List of ConnectionTarget objects
-                items:
-                  $ref: '#/components/schemas/ConnectionTargetDef'
-        '403':
-          description: Forbidden
-      operationId: list_connection_targets_definitions
-      description: Returns definitions of supported connection targets
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsListConnectionTargetDefinitionsFunction.Arn}/invocations'
-        httpMethod: POST
-        type: aws_proxy
-
-  '/v1/connection_targets/{name}':
-    parameters:
-      - schema:
-          type: string
-        name: name
-        in: path
-        required: true
-    get:
-      summary: Get a connection target definition by its name
-      tags: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConnectionTargetDef'
-        '403':
-          description: Forbidden
-      operationId: get_connection_target_definition
-      description: Returns connection target definition
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsGetConnectionTargetDefinitionFunction.Arn}/invocations'
         httpMethod: POST
         type: aws_proxy
 
@@ -1160,40 +1074,6 @@ paths:
         httpMethod: POST
         type: aws_proxy
       parameters: []
-  '/v1/{account_id}/migrate/connection_targets':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-    post:
-      summary: ''
-      operationId: migrate_to_connection_target
-      responses:
-        '201':
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ConnectionTarget'
-        '409':
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MigrationError'
-      description: Migrates accounts connections to connection targets
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${connectorsMigrateToConnectionTarget.Arn}/invocations'
-        httpMethod: POST
-        type: aws_proxy
 components:
   schemas:
     EmailConnection:
