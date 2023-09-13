@@ -123,6 +123,7 @@ info:
       * [ids_security_resource_tags](#ids_security_resource_tags)
       * [max_vulnerability_scan_jobs](#max_vulnerability_scan_jobs)
       * [max_discovery_scan_jobs](#max_discovery_scan_jobs)
+      * [no_stats_interval_hours](#no_stats_interval_hours)
       * [predefined_security_subnet](#predefined_security_subnet)
       * [scan_appliance_instance_type](#scan_appliance_instance_type)
       * [scan_appliances_scaling](#scan_appliances_scaling)
@@ -492,6 +493,27 @@ info:
           "value": 10
       }
       ```
+      <a name="no_start_interval_hours"/>
+
+      ### no_stats_interval_hours
+
+      This option specifies for how long the statistics (log or IDS) should be 0 before joey declares a corresponding vulnerability.
+
+      The value is integer and specifies the time interval, in hours. Default (also the maximum) value is 24 hours. 
+
+      For for example:
+
+      ```
+      {
+          "name": "no_start_interval_min",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": 24
+      }
+      ```
+
 
       <a name="predefined_security_subnet"/>
 
