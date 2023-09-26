@@ -3629,10 +3629,25 @@ components:
           type: boolean
           title: Response is active
           default: true
+        reset_session:
+          type: boolean
+          title: Reset user session (force re-login)
+          description: Reset the session and force a re-login for the user who triggered the response.
+          default: false
+        reset_password:
+          type: boolean
+          title: Force password change
+          description: Force the user who triggered the response to change their password the next time they log in.
+          default: false
+        disable_user:
+          type: boolean
+          title: Disable user
+          description: Fully disable the user who triggered the response.
+          default: true
         disable_mfa:
           type: boolean
           title: Remove authorized MFA devices
-          description: If checked, also remove all multi-factor authentication devices set up for the user being disabled
+          description: Remove all multi-factor authentication devices set up for the user who triggered the response.
           default: false
       required:
         - type
