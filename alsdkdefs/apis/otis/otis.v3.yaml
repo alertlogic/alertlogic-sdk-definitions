@@ -114,6 +114,7 @@ info:
       A client is allowed to specify the following options:
 
       * [abs_follow_internal_scan_schedules](#abs_follow_internal_scan_schedules)
+      * [agent_assisted_decryption](#agent_assisted_decryption)
       * [cross_network_protection](#cross_network_protection)
       * [discovery_scan_frequency](#discovery_scan_frequency)
       * [external_scan_frequency](#external_scan_frequency)
@@ -156,7 +157,25 @@ info:
 
       By default, agent configurations are generated out of agent-based scanning
       schedules, and the assumed value is `false` if the option is undefined.
-
+      
+      <a name="agent_assisted_decryption"/>
+      
+      This option allows IDS agent to capture TLS session keys for supported libraries, 
+      enabling decryption of captured TLS traffic for threat analysis.
+      Warning: May expose otherwise hidden sensitive data to Fortra back end.
+      
+      For example:
+      
+      ```
+      {
+        "name": "agent_assisted_decryption",
+        "scope": {
+        "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+        },
+        "value": true
+      }
+      ```
+      
       <a name="cross_network_protection"/>
 
       ### cross_network_protection
