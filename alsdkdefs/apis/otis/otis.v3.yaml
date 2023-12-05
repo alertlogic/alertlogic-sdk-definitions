@@ -126,6 +126,7 @@ info:
       * [max_discovery_scan_jobs](#max_discovery_scan_jobs)
       * [no_stats_interval_hours](#no_stats_interval_hours)
       * [predefined_security_subnet](#predefined_security_subnet)
+      * [prohibit_cross_az_connection](#prohibit_cross_az_connection)
       * [scan_appliance_instance_type](#scan_appliance_instance_type)
       * [scan_appliances_scaling](#scan_appliances_scaling)
       * [scan_security_resource_tags](#scan_security_resource_tags)
@@ -553,6 +554,26 @@ info:
               "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
           },
           "value": "/aws/us-east-1/subnet/subnet-00000001"
+      }
+      ```
+      
+      <a name="prohibit_cross_az_connection"/>
+    
+      This option (when set to true) will prevent an agent from communicating with appliances
+      that are not in the same availability zone as the agent.
+  
+      This option is only available for AWS deployments
+
+      The value is boolean, for example:
+  
+      ```
+      {
+        "name": "prohibit_cross_az_connection",
+        "scope": {
+          "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+          "host_key": "/aws/us-east-1/host/i-00000000000000001"
+        },
+        "value": true
       }
       ```
 
