@@ -257,6 +257,7 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/AuditMsgs'
                   - $ref: '#/components/schemas/BdrMsgs'
+                  - $ref: '#/components/schemas/EpMsgs'
                   - $ref: '#/components/schemas/FimData'
                   - $ref: '#/components/schemas/HostMeta'
                   - $ref: '#/components/schemas/HostState'
@@ -730,6 +731,21 @@ components:
       required:
         - date_created
         - state_data
+    EpMsgs:
+      title: EpMsgs
+      type: object
+      description: |-
+        Endpoint Alert and Alarm data created by Fortra's Digital Guardian agent. Contains
+        details about activity occurring on an endpoint where the agent is installed.
+      x-examples:
+        Epmsgs event example:
+          dg_time: 1693934301367
+      properties:
+        dg_time:
+          type: integer
+          format: int64
+      required:
+        - dg_time
     IngestTypeInfo:
       title: IngestTypeInfo
       type: object
