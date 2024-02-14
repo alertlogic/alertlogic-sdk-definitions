@@ -209,7 +209,10 @@ paths:
                     properties:
                       message_id:
                         type: string
-                        description: The id of message being enqueued
+                        description: SQS id of message being enqueued
+                      notification_id:
+                        type: string
+                        description: Notification id
                   - $ref: '#/components/schemas/ActualRequest'
                 description: Returns either request result (if `sync` query parameter is equal to `true`) or `message_id` of enqueued notification
         '403':
