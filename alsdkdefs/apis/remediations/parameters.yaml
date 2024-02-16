@@ -425,6 +425,15 @@ IncludeRemediationItems:
   type: boolean
   default: false
   description: Controls whether `remediation_items` are returned in the response body.
+ParamIncludeSummary:
+  schema:
+    $ref: '#/IncludeSummary'
+  in: query
+  name: include_summary
+IncludeSummary:
+  type: boolean
+  default: true
+  description: Controls whether `summary` is returned in the response body.
 ParamIncludeExposures:
   schema:
     $ref: '#/IncludeExposures'
