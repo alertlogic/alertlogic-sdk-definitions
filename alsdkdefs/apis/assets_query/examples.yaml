@@ -2652,15 +2652,9 @@ QueryExposuresExample:
     filters: []
     exposures:
       assets: []
-      rows: 1
+      rows: 0
     exposures_count: 0
-    summary:
-      severities:
-        all: 1
-        high: 1
-        info: 0
-        low: 0
-        medium: 0
+    summary: {}
 QueryExposuresWholeAccountExample:
   value:
     filters:
@@ -3365,6 +3359,20 @@ QueryExposuresMostVulnerableAssetsExample:
         info: 0
         low: 0
         medium: 0
+QueryExposureFiltersExample:
+  value:
+    filters:
+      - key: security
+        type: category
+      - deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+        deployment_name: Test Deployment 1
+        key: 814C2911-09BB-1005-9916-7831C1BAC182
+        name: Test Deployment 1
+        type: deployment_id
+      - key: aws
+        type: deployment_type
+      - key: high
+        type: severity
 QueryTopologyExample:
   value:
     topology:
