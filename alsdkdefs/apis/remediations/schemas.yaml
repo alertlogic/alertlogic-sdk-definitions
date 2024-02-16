@@ -381,6 +381,15 @@ QueryExposuresResponse:
               type: integer
             medium:
               type: integer
+QueryExposureFiltersResponse:
+  title: Query exposure filters response
+  type: object
+  properties:
+    filters:
+      type: array
+      items:
+        type: object
+        description: Filter item.
 QueryRemediationItemsResponse:
   title: Query remediation-items response
   type: object

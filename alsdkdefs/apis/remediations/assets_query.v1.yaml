@@ -1656,6 +1656,7 @@ paths:
         - $ref: 'parameters.yaml#/ParamIncludeFilters'
         - $ref: 'parameters.yaml#/ParamIncludeRemediations'
         - $ref: 'parameters.yaml#/ParamIncludeRemediationItems'
+        - $ref: 'parameters.yaml#/ParamIncludeSummary'
         - $ref: 'parameters.yaml#/ParamLimit'
         - $ref: 'parameters.yaml#/ParamScopeTrue'
         - $ref: 'parameters.yaml#/ParamSort'
@@ -1792,6 +1793,8 @@ paths:
                   $ref: parameters.yaml#/IncludeRemediations
                 include_remediation_items:
                   $ref: parameters.yaml#/IncludeRemediationItems
+                include_summary:
+                  $ref: parameters.yaml#/IncludeSummary
                 limit:
                   $ref: parameters.yaml#/ExposuresLimit
                 scope:
@@ -1921,7 +1924,7 @@ paths:
               schema:
                 $ref: schemas.yaml#/QueryExposuresResponse
               examples:
-                'Exposures (include_filters=false, include_exposures=false)':
+                'Exposures (include_filters=false, include_exposures=false, include_summary=false)':
                   $ref: examples.yaml#/QueryExposuresExample
                 'Exposures for whole account (details=true, include_filters=true)':
                   $ref: examples.yaml#/QueryExposuresWholeAccountExample
@@ -1951,6 +1954,61 @@ paths:
           $ref: responses.yaml#/NotFound
         '503':
           $ref: responses.yaml#/UnavailableError
+
+  /assets_query/v2/{account_id}/exposure-filters:
+    parameters:
+      - $ref: 'parameters.yaml#/UrlParamAccountId'
+    get:
+      operationId: query_exposure_filters
+      summary: Query Exposure Filters
+      description: |-
+        Groups vulnerabilities for an account by exposure or remediation, then returns filters. 
+        Only returns five filter properties if available: `deployment_id`, `deployment_name`, `key`, `name` and `type`.
+        
+        Exposure Filters can be reduced using the `filter` parameter in the query string. The `filter` param
+        can be used multiple times and filters supplied will limit the returned filters to those related to vulnerabilities
+        that match all supplied filters. The [remediation filters](#section/Remediation-filters) documented in the Usage 
+        section are allowed.
+      tags:
+        - Exposures and Remediations
+      parameters:
+        - $ref: 'parameters.yaml#/ParamQueryExposuresFilter'
+      x-codeSamples:
+        - lang: Shell
+          label: Basic exposure-filters query
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposure-filters" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Exposure Filters with include_filter false
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposure-filters?include_filters=false" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/QueryExposureFiltersResponse'
+              examples:
+                Exposure filters:
+                  $ref: 'examples.yaml#/QueryExposureFiltersExample'
+                Exposures for whole account (include_filters=false):
+                  $ref: 'examples.yaml#/QueryExposureFiltersExample'
+        "400":
+          $ref: 'responses.yaml#/InvalidValueError'
+        "401":
+          $ref: 'responses.yaml#/Unauthorized'
+        "403":
+          $ref: 'responses.yaml#/Forbidden'
+        "404":
+          $ref: 'responses.yaml#/NotFound'
+        "503":
+          $ref: 'responses.yaml#/UnavailableError'
+      security:
+        - x-aims-auth-token: [ ]
+
   /assets_query/v2/{account_id}/remediation-items:
     parameters:
       - $ref: 'parameters.yaml#/UrlParamAccountId'
