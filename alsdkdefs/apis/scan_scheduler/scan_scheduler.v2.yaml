@@ -484,6 +484,39 @@ paths:
           by the API. If no `return_fields` parameter is specified the entire `ScheduleSummary` 
           object will be returned.
         required: false
+        
+  '/scheduler/v2/{account_id}/{deployment_id}/scan_intervals':
+    get:
+      summary: Returns a list of schedules along with respective scan intervals
+      tags: [Scan Intervals]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentScanScheduleIntervals'
+        '404':
+          description: Deployment or account not found
+      operationId: get_scan_intervals
+      description: Returns a list of scan intervals for all schedules in the deployment.
+      security:
+        - X-AIMS-Auth-Token: []
+    parameters:
+      - name: account_id
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: deployment_id
+        schema:
+          type: string
+          format: uuid
+        in: path
+        required: true
+      
+        
+
 
 components:
   schemas:
@@ -531,6 +564,11 @@ components:
           description: |-
             Timestamp describing the next planned scan execution within the scope of 
             the schedule.
+        scan_speed_avg:
+          type: number
+          format: float
+          description: |-
+            Average scan speed measured in [number of assets per hour]
         status:
           type: string
           enum:
@@ -1441,7 +1479,86 @@ components:
             - typically_vulnerable
             - all
           example: typically_vulnerable
-        
+    
+    DeploymentScanScheduleIntervals:
+      title: DeploymentScanScheduleIntervals
+      description: Containes a list of scan schedules in the deployment along
+        with their respective scan intervals
+      type: array
+      items:
+        allOf:
+          - $ref: '#/components/schemas/DeploymentScanScheduleInterval'
+    
+    DeploymentScanScheduleInterval:
+      title: DeploymentScanScheduleInterval
+      description: Contains a list of scan intervals for the given schedule id
+      type: object
+      readOnly: true
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          example: My Advanced Internal Scan Schedule 01
+        scan_intervals:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ScanScheduleInterval'
+    
+    ScanScheduleInterval:
+      title: ScanScheduleInterval
+      description: Provides information regarding Scan Schedule's interval during which 
+        the particular scan occurred. Grouping scans by schedule id and scan interval
+        id allows to associate all vulnerability scans which occurred during
+        a particular interval. The object contains information whether the interval
+        is open (active) or closed (no loger active).
+      type: object
+      readOnly: true
+      properties:
+        id:
+          description: |-
+            Identifier of scan interval. It is only unique in the scope of a schedule.
+            To group consecutive scans belonging to the same schedule and interval,
+            the tuple: {schedule_id, scan_interval_id} should be used.
+          type: string
+          example: "v1-2024-w1"
+        description:
+          description: |-
+            Human readable description of the interval. Can be used to name individual
+            reports in each of the intervals.
+          type: string
+          example: 
+            "2024-01-22 08:00"
+           
+        open:
+          description: |-
+            Allows to determine whether the scan interval is active or not.
+            When open is `false` it means there should be no more scans during this
+            scanning window.
+          type: boolean
+        timezone:
+          description: |-
+            Describes time zone to which `starts_on` and `ends_on` timestamps
+            are relative.
+          type: string
+          example: "Europe/Belfast"
+        starts_on:
+          description: |-
+            ISO timestamp describing when the scan interval starts.
+          type: string
+          example: "2024.01.22T08:00:00"
+        ends_on:
+          description: |-
+            ISO timestamp describing when the scan interval stops. 
+            After that date/time scans will not be started upon the current interval.
+            Note, scans started in the interval may end later than `ends_on`
+            timestamp specifies, the system starts scans UNTIL the last scan window
+            of the current interval is open.
+          type: string
+          example: "2024.01.26T16:00:00"
               
   securitySchemes:
     X-AIMS-Auth-Token:
@@ -1449,3 +1566,4 @@ components:
       type: apiKey
       in: header
       description: AIMS Authentication Token
+
