@@ -1633,7 +1633,8 @@ paths:
       operationId: query_exposures
       summary: Query Exposures
       description: |-
-        Groups vulnerabilities for an account by exposure (by default), remediation, or vulnerable asset.
+        Groups vulnerabilities for an account by remediation (by default), exposure, or vulnerable asset and returns
+        paginated items if `page_size` is provided.
         In combination with filtering, it's easy to view vulnerabilities across your account in the manner
         most appropriate.
 
@@ -1647,6 +1648,7 @@ paths:
         - Exposures and Remediations
       parameters:
         - $ref: 'parameters.yaml#/ParamConcluded'
+        - $ref: 'parameters.yaml#/ParamContinue'
         - $ref: 'parameters.yaml#/ParamQueryExposuresBasicDetails'
         - $ref: 'parameters.yaml#/ParamQueryExposuresDetails'
         - $ref: 'parameters.yaml#/ParamDisposed'
@@ -1658,13 +1660,25 @@ paths:
         - $ref: 'parameters.yaml#/ParamIncludeRemediationItems'
         - $ref: 'parameters.yaml#/ParamIncludeSummary'
         - $ref: 'parameters.yaml#/ParamLimit'
+        - $ref: 'parameters.yaml#/ParamPageSize'
         - $ref: 'parameters.yaml#/ParamScopeTrue'
         - $ref: 'parameters.yaml#/ParamSort'
+        - $ref: 'parameters.yaml#/ParamSearch'
       x-codeSamples:
         - lang: Shell
           label: Basic exposures query
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Exposures with page_size 1
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?page_size=1" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Exposures with continue
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?continue=g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGEBaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamEC" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
           label: Exposures with filter by deployment ID
@@ -1711,6 +1725,16 @@ paths:
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?group=asset&filter=asset_type:host" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Exposures filtered via search string
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?search=CVE-2016-5387" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
+          label: Remediations sorted by Name ascending
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?sort=name:asc" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
       responses:
         "200":
           description: OK
@@ -1725,6 +1749,10 @@ paths:
                   $ref: 'examples.yaml#/QueryExposuresWholeAccountExample'
                 Exposures for specific deployment ID (details=false, include_filters=true):
                   $ref: 'examples.yaml#/QueryExposuresSpecificDeploymentExample'
+                Exposures with page_size (page_size=1):
+                  $ref: 'examples.yaml#/QueryExposuresWithPagination'
+                Exposures with continue (continue=g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGEBaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamEC):
+                  $ref: 'examples.yaml#/QueryExposuresWithPaginationContinue'
                 Remediations (include_filters=false, include_remediations=false):
                   $ref: 'examples.yaml#/QueryExposuresRemediationsExample'
                 Remediations for whole account (details=true, include_filters=true, include_remediation_items=true):
@@ -1739,6 +1767,10 @@ paths:
                   $ref: 'examples.yaml#/QueryExposuresVulnerableAssetsSpecificDeploymentExample'
                 Most vulnerable assets by type (group=asset, filter=asset_type:host, limit=2):
                   $ref: 'examples.yaml#/QueryExposuresMostVulnerableAssetsExample'
+                Exposures filtered via search string:
+                  $ref: 'examples.yaml#/QueryExposuresSearch'
+                Remediations sorted by Name ascending:
+                  $ref: 'examples.yaml#/QueryExposuresSortedByNameExample'
         "400":
           $ref: 'responses.yaml#/InvalidValueError'
         "401":
@@ -1755,7 +1787,8 @@ paths:
       summary: Query Exposures
       operationId: query_exposures_post
       description: |-
-        Groups vulnerabilities for an account by exposure (by default), remediation, or vulnerable asset.
+        Groups vulnerabilities for an account by remediation (by default), exposure, or vulnerable asset and returns
+        paginated items if `page_size` is provided.
         In combination with filtering, it's easy to view vulnerabilities across your account in the manner
         most appropriate.
 
@@ -1775,6 +1808,8 @@ paths:
               properties:
                 concluded:
                   $ref: parameters.yaml#/ExposuresConcluded
+                continue:
+                  $ref: parameters.yaml#/ExposuresContinue
                 basic_details:
                     $ref: parameters.yaml#/ExposuresBasicDetails
                 details:
@@ -1797,10 +1832,14 @@ paths:
                   $ref: parameters.yaml#/IncludeSummary
                 limit:
                   $ref: parameters.yaml#/ExposuresLimit
+                page_size:
+                  $ref: parameters.yaml#/ExposuresPageSize
                 scope:
                   $ref: parameters.yaml#/ScopeTrue
                 sort:
                   $ref: parameters.yaml#/ExposuresSort
+                search:
+                  $ref: parameters.yaml#/ExposuresSearch
       security:
         - x-aims-auth-token: []
       x-codeSamples:
@@ -1810,6 +1849,24 @@ paths:
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
                  -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
                  {}
+                 EOF
+        - lang: Shell
+          label: Exposures with page_size 1
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "page_size": "1"
+                 }
+                 EOF
+        - lang: Shell
+          label: Exposures with continue
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "continue": "g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGEBaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamEC"
+                 }
                  EOF
         - lang: Shell
           label: Exposures with filter by deployment ID
@@ -1916,6 +1973,24 @@ paths:
                    "group": "asset"
                  }
                  EOF
+        - lang: Shell
+          label: Exposures filtered via search string
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "search": "CVE-2016-5387"
+                 }
+                 EOF
+        - lang: Shell
+          label: Remediations sorted by Name ascending
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures" \
+                 -X POST -H "x-aims-auth-token: $TOKEN" -H "accept: application/json" -d@- << EOF
+                 {
+                   "sort": "name:asc"
+                 }
+                 EOF
       responses:
         '200':
           description: OK
@@ -1930,6 +2005,10 @@ paths:
                   $ref: examples.yaml#/QueryExposuresWholeAccountExample
                 'Exposures for specific deployment ID (details=false, include_filters=true)':
                   $ref: examples.yaml#/QueryExposuresSpecificDeploymentExample
+                'Exposures with page_size (page_size=1)':
+                  $ref: examples.yaml#/QueryExposuresWithPagination
+                'Exposures with continue (continue=g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGEBaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamEC)':
+                  $ref: examples.yaml#/QueryExposuresWithPaginationContinue
                 'Remediations (include_filters=false, include_remediations=false)':
                   $ref: examples.yaml#/QueryExposuresRemediationsExample
                 'Remediations for whole account (details=true, include_filters=true, include_remediation_items=true)':
@@ -1944,6 +2023,10 @@ paths:
                   $ref: examples.yaml#/QueryExposuresVulnerableAssetsSpecificDeploymentExample
                 'Most vulnerable assets by type (group=asset, filter=asset_type:host, limit=2)':
                   $ref: examples.yaml#/QueryExposuresMostVulnerableAssetsExample
+                'Exposures filtered via search string':
+                  $ref: examples.yaml#/QueryExposuresSearch
+                'Remediations sorted by Name ascending':
+                  $ref: examples.yaml#/QueryExposuresSortedByNameExample
         '400':
           $ref: responses.yaml#/InvalidValueError
         '401':
