@@ -2818,6 +2818,124 @@ QueryExposuresSpecificDeploymentExample:
         info: 0
         low: 0
         medium: 0
+QueryExposuresWithPagination:
+  value:
+    exposures:
+      assets:
+        - categories:
+            - security
+          asset_count: 1
+          deployment_ids:
+            - 814C2911-09BB-1005-9916-7831C1BAC182
+          name: ELB Listener Security (1 of 4)
+          remediation_items: {}
+          remediations:
+            - account_id: '12345678'
+              asset_count: 2
+              categories:
+                - security
+              name: It is recommended that users use the most current predefined security
+                policy.
+              remediation_id: 7d4d31c20d895bfb79581fde5814eb8d
+              tags: {}
+              target_asset_type: load-balancer
+              threat_level: 2
+              threatiness: 24
+              type: remediation
+          remediation_count: 1
+          severity: high
+          threat_score: 10
+          threatiness: 24
+          vinstances:
+            - categories:
+                - security
+              details: '{"evidence":{"type":"elb_with_insecure_protocol","key":"/aws/us-east-1/load-balancer/my-test-elb","affected-listeners":[{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/80","port":80,"protocol":"tcp"}},{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/443","port":443,"protocol":"tcp"}}]}}'
+              concluded: false
+              disposed: false
+              key: "/aws/us-east-1/load-balancer/my-test-elb/vulnerability/eca86a6ac47cb34a554ab76a714d847f"
+              modified_on: 1560954506756
+              target:
+                account_id: '12345678'
+                deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+                dns_name: my-test-elb-1864329672.us-east-1.elb.amazonaws.com
+                key: "/aws/us-east-1/load-balancer/my-test-elb"
+                name: my-test-elb
+                scheme: internet-facing
+                tags: {}
+                threat_level: 3
+                threatiness: 12.0347
+                type: load-balancer
+              threatiness: 8
+          vinstances_count: 1
+          vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
+      rows: 1
+    summary:
+      severities:
+        all: 1
+        high: 1
+        info: 0
+        low: 0
+        medium: 0
+    continue: g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGEBaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamEC
+QueryExposuresWithPaginationContinue:
+  value:
+    exposures:
+      assets:
+        - categories:
+            - security
+          asset_count: 1
+          deployment_ids:
+            - 814C2911-09BB-1005-9916-7831C1BAC182
+          name: ELB Listener Security (1 of 4)
+          remediation_items: {}
+          remediations:
+            - account_id: '12345678'
+              asset_count: 2
+              categories:
+                - security
+              name: It is recommended that users use the most current predefined security
+                policy.
+              remediation_id: 7d4d31c20d895bfb79581fde5814eb8d
+              tags: {}
+              target_asset_type: load-balancer
+              threat_level: 2
+              threatiness: 24
+              type: remediation
+          remediation_count: 1
+          severity: high
+          threat_score: 10
+          threatiness: 24
+          vinstances:
+            - categories:
+                - security
+              details: '{"evidence":{"type":"elb_with_insecure_protocol","key":"/aws/us-east-1/load-balancer/my-test-elb","affected-listeners":[{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/80","port":80,"protocol":"tcp"}},{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/443","port":443,"protocol":"tcp"}}]}}'
+              concluded: false
+              disposed: false
+              key: "/aws/us-east-1/load-balancer/my-test-elb/vulnerability/eca86a6ac47cb34a554ab76a714d847f"
+              modified_on: 1560954506756
+              target:
+                account_id: '12345678'
+                deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+                dns_name: my-test-elb-1864329672.us-east-1.elb.amazonaws.com
+                key: "/aws/us-east-1/load-balancer/my-test-elb"
+                name: my-test-elb
+                scheme: internet-facing
+                tags: {}
+                threat_level: 3
+                threatiness: 12.0347
+                type: load-balancer
+              threatiness: 8
+          vinstances_count: 1
+          vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
+      rows: 1
+    summary:
+      severities:
+        all: 1
+        high: 1
+        info: 0
+        low: 0
+        medium: 0
+    continue: g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGECaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamED
 QueryExposuresRemediationsExample:
   value:
     filters: []
@@ -3359,6 +3477,96 @@ QueryExposuresMostVulnerableAssetsExample:
         info: 0
         low: 0
         medium: 0
+QueryExposuresSearch:
+  value:
+    filters:
+    - key: security
+      threat_level: 2
+      threatiness: 66.3
+      type: category
+      vinstances_count: 1
+    - key: host
+      threat_level: 3
+      threatiness: 73.1
+      type: asset_type
+      vinstances_count: 1
+    - account_id: '12345678'
+      deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+      deployment_name: Test Deployment 1
+      key: 814C2911-09BB-1005-9916-7831C1BAC182
+      name: Test Deployment 1
+      threat_level: 3
+      threatiness: 73.1
+      type: deployment_id
+      vinstances_count: 1
+    - key: aws
+      threat_level: 3
+      threatiness: 73.1
+      type: deployment_type
+      vinstances_count: 1
+    - key: high
+      threat_level: 2
+      threatiness: 38.7
+      type: severity
+      vinstances_count: 1
+    remediations:
+      assets:
+      - account_id: '12345678'
+        asset_count: 1
+        created_on: 1676027060918
+        deployment_ids:
+        - 814C2911-09BB-1005-9916-7831C1BAC182
+        exposures:
+        - account_id: '12345678'
+          asset_count: 1
+          categories:
+          - security
+          concluded: false
+          created_on: 1708489019938
+          cvss_score: 6.5
+          cvss_vector: 'AV:N/AC:L/Au:S/C:P/I:P/A:P/PL:R/EM:A'
+          cvss_version: 'CCSS v2.0'
+          disposed: false
+          external: false
+          modified_on: 1508432528546
+          name: 'CVE-2016-5387 - Apache - HTTP Server - httpoxy Issue'
+          remediation_id: '7a20aaf8182deb0bd8e4c5e7a1b2374c'
+          severity: 'high'
+          tags: {}
+          threat_level: 2
+          threat_score: 5.1
+          threat_vector: 'AV:N/AC:L/Au:S/C:P/I:P/A:P/PL:R/EM:A'
+          threatiness: 1
+          type: 'vulnerability'
+          vinstance_count: 1
+          vulnerability_id: 'be3b6be1afe854736f8a09d114fcf043'
+          vulnerability_span_id: 'C1634CB1-8D8C-E6BE-91B9-3484993E71C8'
+        exposures_count: 1
+        modified_on: 1676027060918
+        name: 'Resolve CVE-2016-5387'
+        remediation_id: '7a20aaf8182deb0bd8e4c5e7a1b2374c'
+        severities:
+          all: 1
+          critical: 0
+          high: 1
+          medium: 0
+          low: 0
+          info: 0
+        tags: {}
+        target_asset_type: 'host'
+        threat_level: 2
+        threat_pct: 24.07
+        threatiness: 1
+        type: 'remediation'
+        vinstances_count: 1
+      rows: 1
+    summary:
+      severities:
+        all: 1
+        high: 1
+        info: 0
+        low: 0
+        medium: 0
 QueryExposureFiltersExample:
   value:
     filters:
@@ -3373,6 +3581,145 @@ QueryExposureFiltersExample:
         type: deployment_type
       - key: high
         type: severity
+QueryExposuresSortedByNameExample:
+  value:
+    filters:
+    - key: security
+      threat_level: 3
+      threatiness: 93.3
+      type: category
+      vinstances_count: 1
+    - account_id: '12345678'
+      deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+      deployment_name: Test Deployment 1
+      key: 814C2911-09BB-1005-9916-7831C1BAC182
+      name: Test Deployment 1
+      threat_level: 3
+      threatiness: 93.3
+      type: deployment_id
+      vinstances_count: 1
+    - key: aws
+      threat_level: 3
+      threatiness: 93.3
+      type: deployment_type
+      vinstances_count: 1
+    - key: high
+      threat_level: 3
+      threatiness: 93.3
+      type: severity
+      vinstances_count: 1
+    remediations:
+      assets:
+      - account_id: '12345678'
+        asset_count: 1
+        categories:
+        - security
+        deployment_ids:
+        - 814C2911-09BB-1005-9916-7831C1BAC182
+        name: It is recommended that users use the most current predefined security policy.
+        remediation_id: 7d4d31c20d895bfb79581fde5814eb8d
+        remediation_items: {}
+        severities:
+          all: 1
+          high: 1
+          info: 0
+          low: 0
+          medium: 0
+        tags: {}
+        target_asset_type: load-balancer
+        threat_level: 2
+        threatiness: 24
+        type: remediation
+        exposures:
+        - categories:
+          - security
+          asset_count: 1
+          name: ELB Listener Security (1 of 4)
+          severity: high
+          threat_score: 10
+          threatiness: 24
+          vinstances:
+          - categories:
+            - security
+            details: '{"evidence":{"type":"elb_with_insecure_protocol","key":"/aws/us-east-1/load-balancer/my-test-elb","affected-listeners":[{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/80","port":80,"protocol":"tcp"}},{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/443","port":443,"protocol":"tcp"}}]}}'
+            concluded: false
+            disposed: false
+            key: "/aws/us-east-1/load-balancer/my-test-elb/vulnerability/eca86a6ac47cb34a554ab76a714d847f"
+            modified_on: 1560954506756
+            target:
+              account_id: '12345678'
+              deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+              dns_name: my-test-elb-1864329672.us-east-1.elb.amazonaws.com
+              key: "/aws/us-east-1/load-balancer/my-test-elb"
+              name: my-test-elb
+              scheme: internet-facing
+              tags: {}
+              threat_level: 3
+              threatiness: 12.0347
+              type: load-balancer
+            threatiness: 8
+          vulnerability_id: cda9dc8fdf5fcb8775b6217f9ad62f04
+        vinstances_count: 1
+        exposures_count: 1
+      - account_id: '12345678'
+        asset_count: 1
+        categories:
+        - security
+        deployment_ids:
+        - 814C2911-09BB-1005-9916-7831C1BAC182
+        name: Update security policies to prevent cross-account access.
+        remediation_id: 8e5e42d31e995cfc89692fef6824fc9e
+        remediation_items: {}
+        severities:
+          all: 1
+          high: 0
+          info: 0
+          low: 0
+          medium: 1
+        tags: {}
+        target_asset_type: load-balancer
+        threat_level: 1
+        threatiness: 14
+        type: remediation
+        exposures:
+        - categories:
+          - security
+          asset_count: 1
+          name: ELB Listener Security (2 of 4)
+          severity: high
+          threat_score: 10
+          threatiness: 24
+          vinstances:
+          - categories:
+            - security
+            details: '{"evidence":{"type":"elb_with_insecure_protocol","key":"/aws/us-east-1/load-balancer/my-test-elb","affected-listeners":[{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/80","port":80,"protocol":"tcp"}},{"listener":{"key":"/aws/us-east-1/listener/my-test-elb/443","port":443,"protocol":"tcp"}}]}}'
+            concluded: false
+            disposed: false
+            key: "/aws/us-east-1/load-balancer/my-test-elb/vulnerability/adf97b7bd58ac23b444ab76a714d847f"
+            modified_on: 1560954506756
+            target:
+              account_id: '12345678'
+              deployment_id: 814C2911-09BB-1005-9916-7831C1BAC182
+              dns_name: my-test-elb-1864329672.us-east-1.elb.amazonaws.com
+              key: "/aws/us-east-1/load-balancer/my-test-elb"
+              name: my-test-elb
+              scheme: internet-facing
+              tags: {}
+              threat_level: 3
+              threatiness: 12.0347
+              type: load-balancer
+            threatiness: 8
+          vulnerability_id: adf97b7bd58ac23b444ab76a714d847f
+        vinstances_count: 1
+        exposures_count: 1
+      rows: 2
+    summary:
+      severities:
+        all: 2
+        high: 1
+        info: 0
+        low: 0
+        medium: 1
 QueryTopologyExample:
   value:
     topology:

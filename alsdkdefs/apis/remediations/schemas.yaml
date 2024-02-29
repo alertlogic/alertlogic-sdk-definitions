@@ -381,6 +381,9 @@ QueryExposuresResponse:
               type: integer
             medium:
               type: integer
+    continue:
+      type: string
+      description: Pagination continue token for the next request
 QueryExposureFiltersResponse:
   title: Query exposure filters response
   type: object
