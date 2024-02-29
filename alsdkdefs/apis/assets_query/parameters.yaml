@@ -343,6 +343,17 @@ ExposuresBasicDetails:
     Modifies the `vinstance` `target` asset properties to include a minimal subset of
     properties. **Note: `vinstances` are only returned if the `details` parameter is
     `true`.**
+ParamContinue:
+  schema:
+    $ref: '#/ExposuresContinue'
+  in: query
+  name: continue
+ExposuresContinue:
+  type: string
+  description: |-
+    A continuation token returned from a previous call to GET assets. 
+    When provided to subsequent GET assets calls, the next set of results and a new 
+    `continue` token will be returned.
 ParamQueryExposuresDetails:
   schema:
     $ref: '#/ExposuresDetails'
@@ -490,6 +501,16 @@ ExposuresLimit:
     returned, will be computed exclusively from the limited results (not the full result
     set). Note that it limits the number of exposures/remediations returned, but that the
     summary counts are generated based on the full data set before applying the limit.
+ParamPageSize:
+  schema:
+    $ref: '#/ExposuresPageSize'
+  in: query
+  name: page_size
+ExposuresPageSize:
+  type: integer
+  description: |-
+    The number of results to be returned, maximum is 10000. `page_size` is only valid
+    on initial calls to GET assets and will have no effect on subsequent calls.
 ParamSort:
   schema:
     $ref: '#/ExposuresSort'
@@ -501,12 +522,25 @@ ExposuresSort:
   enum:
     - asset_count
     - exposures_count
+    - name
     - severity
+    - threat_score
     - threatiness
     - vinstances_count
   description: |-
     Controls how to order the exposures/remediations. Must be a CSV of at least one of the
-    allowed values. Note that `asset_count` will not work with `group=asset`.
+    allowed values. Sort precedence is controlled by the order of values in the CSV so properties
+    appearing later in the CSV will be used to determine the sort order of entities with identical property
+    values appearing eralier in the CSV.
+
+    Sort direction is also configurable by appending a sort direction of `:asc` or `:desc` to the property
+    being sorted by. e.g. `name:asc` will sort by name in the ascending direction.
+
+    There are some additional caveats that should be taken into consideration while utilizing the sort option:
+    - `asset_count`, `severity`, `threat_score`, and `vinstances_count` will not work with `group=asset`
+    - `exposures_count` will not work with `group=exposure`
+    - `severity`, `threat_score` will not work with `group=remediation` (default group)
+    - When a sort property does not exist on an entity being sorted, a default lowest possible sort value will be utilized
 ParamTopoChain:
   schema:
     type: boolean
@@ -561,20 +595,14 @@ ParamReturnAllProperties:
   description: |-
     When true, causes the inclusion of all asset properties in the response.
     By default, the assets in the response only includes summary properties.
-ParamContinue:
+ParamSearch:
   schema:
-    type: string
+    $ref: '#/ExposuresSearch'
   in: query
-  name: continue
+  name: search
+ExposuresSearch:
+  type: string
   description: |-
-    A continuation token returned from a previous call to GET assets. 
-    When provided to subsequent GET assets calls, the next set of results and a new 
-    `continue` token will be returned.
-ParamPageSize:
-  schema:
-    type: integer
-  in: query
-  name: page_size
-  description: |-
-    The number of results to be returned, maximum is 10000. `page_size` is only valid
-    on initial calls to GET assets and will have no effect on subsequent calls.
+    A string which can be optionally passed to limit the set of returned items to those whose
+    name property contains the string passed. Search parameter is case insensitive and will attempt
+    to match any part of the name property.
