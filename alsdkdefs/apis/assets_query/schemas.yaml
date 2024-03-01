@@ -384,6 +384,9 @@ QueryExposuresResponse:
     continue:
       type: string
       description: Pagination continue token for the next request
+    total_rows:
+      type: integer
+      description: The total number of rows in the exposures/remediations list
 QueryExposureFiltersResponse:
   title: Query exposure filters response
   type: object
