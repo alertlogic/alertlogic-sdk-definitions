@@ -2877,6 +2877,7 @@ QueryExposuresWithPagination:
         low: 0
         medium: 0
     continue: g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGEBaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamEC
+    total_rows: 14
 QueryExposuresWithPaginationContinue:
   value:
     exposures:
@@ -2936,6 +2937,7 @@ QueryExposuresWithPaginationContinue:
         low: 0
         medium: 0
     continue: g2gDZAATb2Zmc2V0X2NvbnRpbnVhdGlvbmwAAAADaAJtAAAABm9mZnNldGECaAJtAAAAD2luY2x1ZGVfZmlsdGVyc20AAAAFZmFsc2VoAm0AAAAJcGFnZV9zaXplbQAAAAExamED
+    total_rows: 14
 QueryExposuresRemediationsExample:
   value:
     filters: []
