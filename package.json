@@ -1,0 +1,23 @@
+{
+  "name": "alertlogic-sdk-definitions",
+  "version": "1.0.0",
+  "description": "A collection of SDK Definitions",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alertlogic/alertlogic-sdk-definitions.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alertlogic/alertlogic-sdk-definitions/issues"
+  },
+  "homepage": "https://github.com/alertlogic/alertlogic-sdk-definitions#readme"
+}
