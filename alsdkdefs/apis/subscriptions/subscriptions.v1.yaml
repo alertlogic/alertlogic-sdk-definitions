@@ -103,6 +103,7 @@ paths:
               - assess
               - detect
               - respond
+              - fortra_xdr
               - cloud_insight
               - threat_manager
               - log_manager
@@ -197,6 +198,7 @@ paths:
             - assess
             - detect
             - respond
+            - fortra_xdr
             - cloud_insight
             - threat_manager
             - log_manager
