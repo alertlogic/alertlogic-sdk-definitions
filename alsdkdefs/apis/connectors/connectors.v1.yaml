@@ -214,7 +214,15 @@ paths:
                         type: string
                         description: Notification id
                   - $ref: '#/components/schemas/ActualRequest'
-                description: Returns either request result (if `sync` query parameter is equal to `true`) or `message_id` of enqueued notification
+                  - type: object
+                    description: Response for async request that fell back to sync send
+                    properties:
+                      notification_id:
+                        type: string
+                        description: Notifications id
+                      send_result:
+                        $ref: '#/components/schemas/ActualRequest'
+                description: Returns either request result (if `sync` query parameter is equal to `true`) or `notification_id` of enqueued notification
         '403':
           description: Forbidden
         '404':
