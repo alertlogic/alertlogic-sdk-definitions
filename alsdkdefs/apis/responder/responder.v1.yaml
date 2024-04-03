@@ -2988,6 +2988,7 @@ components:
         - $ref: '#/components/schemas/MrConfigItemAwsUserDisable'
         - $ref: '#/components/schemas/MrConfigItemADUserDisable'
         - $ref: '#/components/schemas/MrConfigItemWSMBlock'
+        - $ref: '#/components/schemas/MrConfigItemFortraAgent'
     MrConfigItemAwsWaf:
       title: ManagedResponse config item for AWS WAF
       description: ManagedResponse config item for AWS WAF
@@ -3846,6 +3847,47 @@ components:
         - name
         - cluster_id
         - ttl_sec
+    MrConfigItemFortraAgent:
+      title: ManagedResponse config item for Fortra XDR agent action
+      description: ManagedResponse config item for Fortra XDR agent action
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - fortra_agent
+        name:
+          type: string
+          title: Response Name
+          pattern: "[\\w+=,.@-]+"
+          minLength: 1
+          maxLength: 128
+        exclusion_list:
+          type: array
+          title: Exclusion List(s)
+          items:
+            type: string
+        block_external_attackers:
+          type: string
+          title: Block external IP addresses detected in incidents
+          description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
+          default: auto
+          enum:
+            - auto
+            - analytics
+        analytics:
+          type: array
+          title: Analytics
+          items:
+            type: string
+        enabled:
+          type: boolean
+          title: Response is active
+          default: true
+      required:
+        - type
+        - name
     MrConfigItemName:
       type: string
       title: Response Name
