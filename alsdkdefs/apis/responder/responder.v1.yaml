@@ -777,6 +777,61 @@ paths:
         requestParameters:
           - integration.request.path.account_id: method.request.path.account_id
           - integration.request.path.id: method.request.path.id
+  '/v1/{account_id}/incidents/{incident_id}/responses':
+    parameters:
+      - schema:
+          type: string
+        name: account_id
+        in: path
+        required: true
+        description: AIMS Account ID
+      - schema:
+          type: string
+        name: incident_id
+        in: path
+        required: true
+        description: incident id
+    get:
+      summary: Get list of MR items configured for an incident
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mr_config_ids:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      operationId: get_responses_for_incident
+      description: Returns list of MR config objects
+      security:
+        - aims_request_authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderManagedResponse.Outputs.ResponderGetResponsesForIncidentFunction}:responderGetResponsesForIncident/invocations'
+        passthroughBehavior: when_no_match
+        payloadFormatVersion: '1.0'
+        requestParameters:
+          - integration.request.path.account_id: method.request.path.account_id
+          - integration.request.path.incident_id: method.request.path.incident_id
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - xdr
+          in: query
+          name: product_type
+          description: return only MR configs for a specific product type
   '/v1/{account_id}/actions':
     parameters:
       - schema:
