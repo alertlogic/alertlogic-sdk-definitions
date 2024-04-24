@@ -1532,12 +1532,31 @@ components:
           type: string
           example: 
             "2024-01-22 08:00"
-           
+        current:
+          description: |-
+            Allows to determine whether the scan interval is currently active or not.
+            When `current` is `true` it means the interval is still active.
+            When `current` is `false` it means it is a previous interval.
+            Let's consider the following examples
+              - For daily schedules `current` will be `true` until 23:59:59 on that day.
+                All previous intervals will have `current` property set to `false`.  
+              - For weekly schedules `current` will be `true` from Monday 00:00:00
+                until Sunday 23:59:59 on that week.
+              - For monthly schedules `current` will be `true` from 1st of the month 00:00:00
+                until last day of the month (e.g. 30th of April) until 23:59:59 
+          type: boolean
         open:
           description: |-
-            Allows to determine whether the scan interval is active or not.
-            When open is `false` it means there should be no more scans during this
-            scanning window.
+            Allows to determine whether scans are still allowed to run
+            within the scan interval.
+            When open is `true` it means there are still active scanning windows
+            in the current interval. When it's `false` it means there are no more
+            scan windows in the interval for the schedule.
+            Note it is NOT guaranteed the flag will remain `false` until the end
+            of the interval. It may flip back to `true` after user has added
+            new scan windows to the schedule which permit scanning within the interval.
+            The `open` property will always be `false` for previous scan intervals
+            (i.e. where `current` is `false`)
           type: boolean
         timezone:
           description: |-
