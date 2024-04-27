@@ -2796,7 +2796,7 @@ paths:
         "404":
           $ref: 'responses.yaml#/NotFound'
         "503":
-          $ref: 'responses.yaml#/UnavailableError'
+          $ref: 'responses.yaml#/RemediationsUnavailableError'
       x-codeSamples:
         - lang: Shell
           label: Dispose a single remediation (all deployments)
@@ -3093,7 +3093,7 @@ paths:
         "404":
           $ref: 'responses.yaml#/NotFound'
         "503":
-          $ref: 'responses.yaml#/UnavailableError'
+          $ref: 'responses.yaml#/RemediationsUnavailableError'
       security:
         - x-aims-auth-token: []
   /assets_query/v1/asset_types:
