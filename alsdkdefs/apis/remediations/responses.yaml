@@ -12,6 +12,25 @@ RequestEntityTooLarge:
     limit, which is 1MB.
 UnavailableError:
   description: '`Unavailable`. The specified account is unavailable at the moment.'
+RemediationsUnavailableError:
+  description: '`Unavailable`. Remediations API for the specified account is unavailable.'
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error_type:
+            type: string
+          message:
+            type: string
+        required:
+          - error_type
+          - message
+      examples:
+        example:
+          value:
+            error_type: error
+            message: Disposals temporarily unavailable
 InvalidValueError:
   description: '`400 Bad Request`: Returned when an invalid value is provided for a known parameter. The parameter and value are specified in the response.'
   content:
