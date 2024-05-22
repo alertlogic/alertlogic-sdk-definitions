@@ -399,6 +399,7 @@ info:
     | `s3-bucket`         | `key`             | A, I          | `"s3-bucket:any"`, `"s3-bucket:/an/s3-bucket/key"` | |
     | `severity`          | `severity`        | !, R          | `"severity:high"` | Applies to the `"severity"` property of the related vulnerability. |
     | `sg`                | `key`             | I, R          | `"sg:/aws/us-east-1/sg/s-12345678"` | |
+    | `tag`               | `key`             | I             | `"tag:/aws/us-east-1/tag/key/OS/value/Linux"` | |
     | `user`              | `key`             | A, I          | `"user:any"`, `"user:/aws/123456789012/user/jdoe"` | |
     | `volume`            | `key`             | I             | `"volume:/aws/us-east-1/volume/vol-12345678"` | |
     | `vulnerability`     | `vulnerability_id`| !, R          | `"vulnerability:09876543210fedcba0987654321fedcba"` | |
