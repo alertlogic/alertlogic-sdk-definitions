@@ -612,8 +612,10 @@ components:
         parameter is set to `"scope"`, it will replace all relationships of the specified scope
         with those provided. When it's set to `"type"`, it will replace all relationships of the
         specified type(s) and scope with those provided. When it's set to `"complete"`, it will
-        replace all relationships with those provided. If the exclusive parameter is omitted,
-        all relationships provided will be added to the asset.
+        replace all relationships with those provided. When it's set to `"type_and_scope"`, it will
+        replace all relationships matching any combination of type and scope declared in `exclusive_types`
+        and `exclusive_scopes`. If the exclusive parameter is omitted, all relationships provided will be
+        added to the asset.
       enum:
         - scope
         - type
@@ -621,11 +623,24 @@ components:
     ExclusiveTypesParam:
       type: array
       description: |-
-        An array of asset types. This parameter can be used with the `exclusive=type` parameter.
-        When using `exclusive=type`, these asset types will be considered for exclusion within
+        An array of asset types. This parameter can be used with the `exclusive=type` and `exclusive=type_and_scope`
+        parameter. When using `exclusive=type`, these asset types will be considered for exclusion within
         the given `"scope"` in addition to the asset types of the `"relationships"` in the
-        request. This allows clients to effectively declare **empty** relationships for
+        request. When using `exclusive=type_and_scope`, these asset types will be considered for exclusion in
+        combination with the given `exclusive_scopes`. Any relationships matching some combination of
+        type and scope will be removed.
+        This allows clients to effectively declare **empty** relationships for
         specific asset type(s).
+    ExclusiveScopesParam:
+      type: array
+      description: |-
+        An array of scopes. This parameter can be used with the `exclusive=type_and_scope` parameter.
+        These scopes will be considered for exclusion with the types provided in the `exclusive_types` parameter.
+        Any relationship matching some combination of scope declared in `exclusive_scopes` and type declared in
+        `exclusive_types` will be considered for exclusion. This parameter allows a client to override
+        relationships declared in scopes beyond the scope provided in the body.
+        A client must include the calling scope in this list when utilizing this parameter to replace relationships
+        matching the calling scope.
     GroupNameParam:
       type: string
       description: |-
@@ -995,6 +1010,8 @@ components:
           $ref: '#/components/schemas/ExclusiveParam'
         exclusive_types:
           $ref: '#/components/schemas/ExclusiveTypesParam'
+        exclusive_scopes:
+          $ref: '#/components/schemas/ExclusiveScopesParam'
       required:
         - operation
         - type
