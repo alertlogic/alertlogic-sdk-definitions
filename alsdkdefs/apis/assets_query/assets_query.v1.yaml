@@ -1732,6 +1732,11 @@ paths:
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?search=CVE-2016-5387" \
                  -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
         - lang: Shell
+          label: Exposures filtered via custom search string
+          source: |-
+            curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?search=cve:CVE-2016-5387" \
+                 -H "x-aims-auth-token: $TOKEN" -H "accept: application/json"
+        - lang: Shell
           label: Remediations sorted by Name ascending
           source: |-
             curl "https://api.cloudinsight.alertlogic.com/assets_query/v2/12345678/exposures?sort=name:asc" \

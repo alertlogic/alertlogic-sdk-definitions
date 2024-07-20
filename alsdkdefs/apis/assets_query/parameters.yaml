@@ -605,4 +605,6 @@ ExposuresSearch:
   description: |-
     A string which can be optionally passed to limit the set of returned items to those whose
     name property contains the string passed. Search parameter is case insensitive and will attempt
-    to match any part of the name property.
+    to match any part of the target property. The default property to search is the name property, but
+    any property may be searched by including the property to be searched and a colon in the search string.
+    e.g. cve:CVE-2023 would search the CVE property for the string 'CVE-2023'
