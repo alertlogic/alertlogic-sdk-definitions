@@ -519,6 +519,14 @@ components:
                 type: string
                 nullable: true
                 example: "Remediation definitions"
+              published_date:
+                type: string
+                nullable: true
+                example: "2024-08-05"
+              cisa_known_exploited:
+                type: boolean
+                nullable: true
+                example: false
 
 
   securitySchemes:
