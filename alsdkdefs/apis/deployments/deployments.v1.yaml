@@ -235,7 +235,8 @@ components:
                   - deployment
                   - region
                   - vpc
-                description: 'Asset type. Allowed asset types: deployment, region, vpc.'
+                  - host
+                description: 'Asset type. Allowed asset types: deployment, region, vpc, host.'
               key:
                 type: string
                 description: Asset Key
@@ -254,11 +255,12 @@ components:
             properties:
               type:
                 type: string
-                description: 'Asset type. Allowed asset types: region, vpc, subnet.'
+                description: 'Asset type. Allowed asset types: region, vpc, subnet, host.'
                 enum:
                   - region
                   - vpc
                   - subnet
+                  - host
               key:
                 type: string
                 description: Asset Key
