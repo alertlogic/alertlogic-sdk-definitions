@@ -3925,7 +3925,7 @@ components:
             type: string
         block_external_attackers:
           type: string
-          title: Block external IP addresses detected in incidents
+          title: Isolate hosts detected in incidents
           description: You can respond to incidents generated from all analytics that Alert Logic recommends as triggers or choose the analytics to use.
           default: auto
           enum:
