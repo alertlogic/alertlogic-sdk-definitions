@@ -20,7 +20,7 @@ try:
 except ImportError:
     DEV_SDK_DEFS = False
 
-OPENAPI_SCHEMA_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v3.0/schema.json'
+OPENAPI_SCHEMA_URL = 'https://spec.openapis.org/oas/3.0/schema/2021-09-28'
 OPENAPI_SCHEMA_FILE = 'openapi_schema.json'
 URI_SCHEMES = ['file', 'http', 'https']
 
