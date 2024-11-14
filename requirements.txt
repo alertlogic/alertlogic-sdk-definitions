@@ -3,3 +3,7 @@ pyyaml==5.4.1
 requests>=2.18
 urllib3<2
 jsonmerge>=1.8.0
+
+# Pin to maintain 3.7 support
+zipp==3.15.0
+importlib_metadata==6.7.0
