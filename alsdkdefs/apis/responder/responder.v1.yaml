@@ -2344,51 +2344,6 @@ paths:
         type: aws_proxy
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderExecutionsHistoryFunction.Arn}:responderQueryExecutionsHistory/invocations'
-  '/v1/{account_id}/executions/history/{type}/{id}':
-    parameters:
-      - schema:
-          type: string
-        name: account_id
-        in: path
-        required: true
-        description: AIMS Account ID
-      - schema:
-          type: string
-          enum:
-            - playbook
-            - task
-            - action
-        name: type
-        in: path
-        required: true
-        description: Execution Type
-      - schema:
-          type: string
-        name: id
-        in: path
-        required: true
-        description: Execution ID
-    get:
-      summary: Get Execution Record
-      tags: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/TaskExecutionRecord'
-                  - $ref: '#/components/schemas/PlaybookExecutionRecord'
-      operationId: get_execution_record
-      description: Get Execution Record for a specific Execution Type
-      security:
-        - aims_request_authorizer: []
-      x-amazon-apigateway-integration:
-        httpMethod: POST
-        type: aws_proxy
-        uri:
-          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderGetExecutionRecordFunction.Arn}:responderGetExecutionRecord/invocations'
   '/v1/{account_id}/inquiries/history':
     parameters:
       - schema:
