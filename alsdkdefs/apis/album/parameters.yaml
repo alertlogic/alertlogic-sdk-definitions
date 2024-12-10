@@ -1,0 +1,51 @@
+
+query_product_type:
+  name: product_type
+  required: false
+  description: Product Type
+  in: query
+  schema:
+    $ref: 'schemas.yaml#/product_type'
+
+query_platform_type:
+  name: platform_type
+  required: false
+  description: Platform Type
+  in: query
+  schema:
+    $ref: 'schemas.yaml#/platform_type'
+
+path_image_id:
+  name: image_id
+  required: true
+  in: path
+  schema:
+    $ref: 'schemas.yaml#/image_id'
+
+path_platform_id:
+  name: platform_id
+  required: true
+  in: path
+  schema:
+    $ref: 'schemas.yaml#/platform_id'
+
+path_product_type:
+  name: product_type
+  required: true
+  in: path
+  schema:
+    $ref: 'schemas.yaml#/product_type'
+
+path_platform_type:
+  name: platform_type
+  required: true
+  in: path
+  schema:
+    $ref: 'schemas.yaml#/platform_type'
+
+path_version:
+  name: version
+  required: true
+  in: path
+  schema:
+    $ref: 'schemas.yaml#/version'
