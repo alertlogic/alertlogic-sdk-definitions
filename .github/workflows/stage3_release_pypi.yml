@@ -12,7 +12,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
@@ -33,7 +33,7 @@ jobs:
         python3 scripts/validate_my_definition.py -d alsdkdefs/apis/assets_query/
   deploy:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
