@@ -119,6 +119,7 @@ info:
       * [discovery_scan_frequency](#discovery_scan_frequency)
       * [external_scan_frequency](#external_scan_frequency)
       * [ids_appliance_instance_type](#ids_appliance_instance_type)
+      * [ids_appliance_instance_type_test](#ids_appliance_instance_type_test)
       * [ids_appliances_placement (BETA)](#ids_appliances_placement)
       * [ids_appliances_scaling (BETA)](#ids_appliances_scaling)
       * [ids_security_resource_tags](#ids_security_resource_tags)
@@ -310,6 +311,32 @@ info:
 
       The following instance types are used as defaults: `c5.xlarge`, `m5.xlarge`, `c4.xlarge`
       depending on availability, if the option is not defined.
+
+      <a name="ids_appliance_instance_type_test"/>
+
+      ### ids_appliance_instance_type_test
+
+      This option specifies an instance type that the installation services shall use
+      to launch IDS appliances inside the defined scope. The option affects deployments
+      in **automatic** mode only. This is a test option that overrides `ids_appliance_instance_type`. 
+      It allows setting any instance type available in AWS and is not guarateed to work.
+      Instances are required to have at least two cores, have a minumum of 4GB of memory
+      per core and only x86_64 instaces are supported.
+
+      The value is an arbitrary string.
+
+      for example:
+
+      ```
+      {
+          "name": "ids_appliance_instance_type_test",
+          "scope": {
+              "deployment_id": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+              "vpc_key": "/aws/us-east-1/vpc/vpc-00000000000000001"
+          },
+          "value": "c6a.xlarge"
+      }
+      ```
 
       <a name="ids_appliances_placement"/>
 
@@ -1200,6 +1227,24 @@ components:
                 - c5.4xlarge
                 - c5.9xlarge
                 - c5.18xlarge
+            scope:
+              $ref: '#/components/schemas/Scope'
+        - type: object
+          description: >
+            This option specifies an instance type that the installation services shall use
+            to launch IDS appliances inside the defined scope. The option affects deployments
+            in **automatic** mode only. This is a test option that overrides `ids_appliance_instance_type`.
+            It allows setting any instance type available in AWS and is not guarateed to work. 
+            Instances are required to have at least two cores, have a minumum of 4GB of memory
+            per core and only x86_64 instaces are supported.
+          title: ids_appliance_instance_type_test
+          properties:
+            name:
+              type: string
+              enum:
+                - ids_appliance_instance_type_test
+            value:
+              type: string
             scope:
               $ref: '#/components/schemas/Scope'
         - type: object
