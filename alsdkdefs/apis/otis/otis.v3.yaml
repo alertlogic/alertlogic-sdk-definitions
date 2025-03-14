@@ -635,6 +635,10 @@ info:
           <td style="background-color:#f5f5f5">c5</td>
           <td style="font-style:italic">c5.large,c5.xlarge</td>
         </tr>
+        <tr>
+          <td style="background-color:#f5f5f5">c5</td>
+          <td style="font-style:italic">c6a.large,c6i.large,c6i.xlarge</td>
+        </tr>
       </table>
 
       for example:
