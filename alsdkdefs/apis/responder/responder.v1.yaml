@@ -2500,6 +2500,23 @@ paths:
         type: aws_proxy
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDLQReenqueueFunction.Arn}/invocations'
+  '/v1/management/ddb/purge':
+    post:
+      summary: Purge ddb tables
+      operationId: ddb_purge
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+      security:
+        - aims_request_authorizer: []
+      description: Deletes all items from ddb table without expdate attribute
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDdbPurgeFunction.Arn}:responderDdbPurgeFunction/invocations'
   '/v1/{account_id}/authentication_token':
     parameters:
       - schema:
