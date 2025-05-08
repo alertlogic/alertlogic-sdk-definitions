@@ -1351,6 +1351,14 @@ components:
                   type: integer
                   minimum: 1
                   maximum: 8
+                scale_up_threshold:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                scale_down_offset:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
               required:
                 - policy
                 - num_instances
