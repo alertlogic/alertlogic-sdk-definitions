@@ -1,0 +1,48 @@
+
+get_current_images:
+  description: 'OK'
+  content:
+    application/json:
+      schema:
+        $ref: 'schemas.yaml#/current_images'
+
+get_all_images:
+  description: 'OK'
+  content:
+    application/json:
+      schema:
+        $ref: 'schemas.yaml#/all_images'
+
+get_image:
+  description: 'OK'
+  content:
+    application/json:
+      schema:
+        properties:
+          $ref: 'schemas.yaml#/image'
+
+get_image_product_type:
+  description: 'OK'
+  content:
+    application/json:
+      schema:
+        $ref: 'schemas.yaml#/product_type'
+
+add_new_images_and_create_version_set:
+  description: 'OK'
+  content:
+    application/json:
+      schema:
+        $ref: 'schemas.yaml#/version'
+
+no_content:
+  description: 'Successful No Content'
+
+not_found:
+  description: 'Not Found'
+
+accepted:
+  description: 'Post Successful'
+
+bad_request:
+  description: 'Bad Request'
