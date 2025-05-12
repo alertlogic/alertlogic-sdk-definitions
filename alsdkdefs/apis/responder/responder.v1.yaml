@@ -2500,6 +2500,25 @@ paths:
         type: aws_proxy
         uri:
           'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderDLQReenqueueFunction.Arn}/invocations'
+  '/v1/management/playbooks_janitor':
+    post:
+      summary: Run playbooks janitor
+      operationId: playbooks_janitor
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+      security:
+        - aims_request_authorizer: []
+      description: Run playbooks janitor
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          'Fn::Sub': 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResponderJanitorPlaybooksFunction.Arn}/invocations'
   '/v1/{account_id}/authentication_token':
     parameters:
       - schema:
