@@ -175,6 +175,13 @@ components:
             $ref: '#/components/schemas/DeploymentCredentialInfo'
         version:
           type: number
+        is_control_tower:
+          type: boolean
+          default: false
+          example: false
+          description: Control Tower field to set is enabled or not. Default is false if not specified.
+        control_tower:
+          $ref: '#/components/schemas/ControlTowerInfo'  
     AWSMonitorInfo:
       title: MonitorInfo
       type: object
@@ -288,6 +295,25 @@ components:
                 key:
                   type: string
                   description: Asset Key
+    ControlTowerInfo:
+      title: Control Tower Info
+      type: object
+      properties:
+            org:
+              type: object
+              properties:
+                org_id:
+                  type: string
+                  example: "orgid-example"
+                residency:
+                  type: string
+                  example: "region example us-east-2"
+                master_account:
+                  type: string
+                  example: "123456781234"
+            is_master_account:
+              type: boolean
+      description: Information about the Control Tower
     AzureDeploymentPlatformInfo:
       title: AzureDeploymentPlatformInfo
       type: object
@@ -412,6 +438,13 @@ components:
               format: uuid
         version:
           type: number
+        is_control_tower:
+          type: boolean
+          default: false
+          example: false
+          description: Control Tower field to set is enabled or not. Default is false if not specified.
+        control_tower:
+          $ref: '#/components/schemas/ControlTowerInfo'
       description: Deployment Object
   securitySchemes:
     X-AIMS-Auth-Token:
