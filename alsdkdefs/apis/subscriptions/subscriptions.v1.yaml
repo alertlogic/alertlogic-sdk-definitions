@@ -49,6 +49,7 @@ paths:
                         product_family: log_manager
                         status: active
                         end_date: 1498867200
+                        start_date: 1458867200
                         created:
                           at: 1547731629
                           by: CB3D4506-5595-47A6-8851-DF55D2525743
@@ -63,12 +64,14 @@ paths:
                         value_type: months
                         usage_based: false
                         end_date: 1523440800
+                        start_date: 1458867200
                       - id: CB1345F3-50B9-4637-9D37-11FAE0893CD4
                         subscription_id: AAB2A94F-2A2F-474E-BEFD-C387E595F153
                         product_family: threat_manager
                         status: active
                         usage_based: false
                         end_date: 1523440800
+                        start_date: 1458867200
                       - id: CB1345F3-50B9-4637-9D37-11FAE0893CD4
                         subscription_id: AAB2A94F-2A2F-474E-BEFD-C387E595F153
                         product_family: ids_data_retention
@@ -77,6 +80,7 @@ paths:
                         value_type: months
                         usage_based: false
                         end_date: 1523440800
+                        start_date: 1458867200
                         created:
                           at: 1547731629
                           by: CB3D4506-5595-47A6-8851-DF55D2525743
@@ -256,6 +260,7 @@ paths:
                         product_family: threat_manager
                         status: active
                         end_date: 1523440800
+                        start_date: 1458867200
                         created:
                           at: 1547731629
                           by: CB3D4506-5595-47A6-8851-DF55D2525743
@@ -269,6 +274,7 @@ paths:
                         value: 12
                         value_type: months
                         end_date: 1523440800
+                        start_date: 1458867200
         '401':
           description: Unauthorized
         '403':
@@ -352,6 +358,7 @@ components:
           product_family: log_manager
           status: active
           end_date: 1498867200
+          start_date: 1458867200
           created:
             at: 1547731629
             by: CB3D4506-5595-47A6-8851-DF55D2525743
@@ -401,6 +408,8 @@ components:
           type: string
           description: Subscription identifier of the entitlement
         end_date:
+          type: number
+        start_date:
           type: number
     Subscription:
       title: Subscription
