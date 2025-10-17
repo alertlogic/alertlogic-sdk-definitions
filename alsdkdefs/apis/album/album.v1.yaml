@@ -1,0 +1,212 @@
+openapi: 3.0.2
+info:
+  title: Album API
+  contact:
+    email: support@alertlogic.com
+    name: Alert Logic Support
+    url: https://support.alertlogic.com
+  x-alertlogic-iws-service:
+    type: public
+  description: |-
+    AMI sharing service
+  version: 1.0.0
+servers:
+  - url: https://api.global.alertlogic.com
+    x-alertlogic-session-endpoint: true
+    description: production (US)
+  - url: https://api.global.alertlogic.com
+    description: production (UK)
+    x-alertlogic-session-endpoint: true
+  - url: https://api.global-integration.product.dev.alertlogic.com
+    description: integration
+paths:
+  /album/v1/images:
+    get:
+      operationId: get_current_images
+      tags:
+        - GET
+      summary: Get current images
+      description: |-
+        Returns a list of current images.
+      parameters:
+        - $ref: 'parameters.yaml#/query_product_type'
+        - $ref: 'parameters.yaml#/query_platform_type'
+      responses:
+        '200':
+          $ref: 'responses.yaml#/get_current_images'
+
+  /album/v1/all/images:
+    get:
+      operationId: get_all_images
+      tags:
+        - GET
+      summary: Get all images
+      description: |-
+        Returns a list of all image records, including their ami name and description.
+      responses:
+        '200':
+          $ref: 'responses.yaml#/get_all_images'
+
+  /album/v1/all/images/{image_id}:
+    get:
+      operationId: get_image
+      tags:
+        - GET
+      summary: Get specified image
+      description: |-
+        Returns single image record, including their ami name and description.
+      parameters:
+        - $ref: 'parameters.yaml#/path_image_id'
+      responses:
+        '200':
+          $ref: 'responses.yaml#/get_image'
+        '404':
+          $ref: 'responses.yaml#/not_found'
+
+  /album/v1/all/images/{image_id}/product_type:
+    get:
+      operationId: get_image_product_type
+      tags:
+        - GET
+      summary: Get specified images' product type
+      description: |-
+        Returns product type for specified image id.
+      parameters:
+        - $ref: 'parameters.yaml#/path_image_id'
+      responses:
+        '200':
+          $ref: 'responses.yaml#/get_image_product_type'
+        '404':
+          $ref: 'responses.yaml#/not_found'
+
+  /album/v1/shares/{platform_type}/{platform_id}:
+    put:
+      operationId: add_launch_permission
+      tags:
+        - PUT
+      summary: Add launch permission
+      description: |-
+        Adds launch permission for the current images the the specified platform account.
+      parameters:
+        - $ref: 'parameters.yaml#/path_platform_type'
+        - $ref: 'parameters.yaml#/path_platform_id'
+      responses:
+        '204':
+          $ref: 'responses.yaml#/no_content'
+        '404':
+          $ref: 'responses.yaml#/not_found'
+
+  /album/v2/images/{product_type}/{platform_type}/{version}:
+    get:
+      operationId: get_version_image_set
+      tags:
+        - GET
+      summary: Get a specific version set of images
+      description: |-
+        Get a specific version set of images.
+      parameters:
+        - $ref: 'parameters.yaml#/path_platform_type'
+        - $ref: 'parameters.yaml#/path_product_type'
+        - $ref: 'parameters.yaml#/path_version'
+      responses:
+        '200':
+          $ref: 'responses.yaml#/get_version_image_set'
+        '404':
+          $ref: 'responses.yaml#/not_found'
+    post:
+      operationId: add_new_images_and_create_version_set
+      tags:
+        - POST
+      summary: Add new images
+      description: |-
+        Add a new version of images.
+      parameters:
+        - $ref: 'parameters.yaml#/path_platform_type'
+        - $ref: 'parameters.yaml#/path_product_type'
+        - $ref: 'parameters.yaml#/path_version'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/ami_record_ref'
+            examples:
+              ami_record:
+                summary: Request for adding ami records
+                description: |-
+                  An array of records that will be added to the db,
+                  this will also put all ami in the request under a single version.
+                value:
+                  {
+                    "ami_name": "Example-AMI-Name",
+                    "description": "Example-AMI-Description",
+                    "image_array": [
+                      {
+                        "image_id": "ami-11111111111111111",
+                        "region": "us-east-1"
+                      },
+                      {
+                        "image_id": "ami-22222222222222222",
+                        "region": "us-east-2"
+                      },
+                      {
+                        "image_id": "ami-33333333333333333",
+                        "region": "us-west-1"
+                      },
+                      {
+                        "image_id": "ami-44444444444444444",
+                        "region": "us-west-2"
+                      }
+                    ]
+                  }
+      responses:
+        '202':
+          $ref: 'responses.yaml#/accepted'
+        '400':
+          $ref: 'responses.yaml#/bad_request'
+
+  /album/v2/images/enabled:
+    get:
+      operationId: get_enabled_image_set
+      tags:
+        - GET
+      summary: Get enabled sets of images
+      description: |-
+        Get enabled sets of images per product type.
+      responses:
+        '200':
+          $ref: 'responses.yaml#/accepted'
+        '404':
+          $ref: 'responses.yaml#/not_found'
+
+  /album/v2/images/all:
+    get:
+      operationId: get_all_image_set
+      tags:
+        - GET
+      summary: Get all sets of images
+      description: |-
+        Get all sets of images.
+      responses:
+        '200':
+          $ref: 'responses.yaml#/accepted'
+        '404':
+          $ref: 'responses.yaml#/not_found'
+
+  /album/v2/images/{product_type}/{platform_type}/{version}/enable:
+    put:
+      operationId: enable_image_records_version_set
+      tags:
+        - PUT
+      summary: Enable a specific version set of images
+      description: |-
+        Enable a specific version set of images.
+      parameters:
+        - $ref: 'parameters.yaml#/path_platform_type'
+        - $ref: 'parameters.yaml#/path_product_type'
+        - $ref: 'parameters.yaml#/path_version'
+      responses:
+        '200':
+          $ref: 'responses.yaml#/accepted'
+        '404':
+          $ref: 'responses.yaml#/not_found'
+
