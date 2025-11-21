@@ -43,7 +43,6 @@ paths:
                     description: A description of the error that occured
       parameters:
         - $ref: '#/components/parameters/search_type'
-        - $ref: '#/components/parameters/execution_mode'
         - schema:
             type: array
             items:
@@ -633,18 +632,6 @@ components:
         - stats
         - submit_ts
         - update_ts
-    ExecutionMode:
-      type: string
-      title: ExecutionMode
-      enum:
-        - shared
-        - ecs
-      description: |-
-        The `execution_mode` describes how the user would like the search to execute (using Lambda and/or ECS).
-
-        - `shared` will force a search to execute using both Lambda and ECS resources.
-        - `ecs` will force a search to execute using only ECS resources.
-      default: shared
     ExternalDetailsAttribute:
       title: ExternalDetailsAttribute
       type: string
@@ -1134,11 +1121,6 @@ components:
         maxLength: 9
       required: true
       description: The AIMS account ID
-    execution_mode:
-      name: execution_mode
-      in: query
-      schema:
-        $ref: '#/components/schemas/ExecutionMode'
     search_type:
       name: search_type
       in: query
