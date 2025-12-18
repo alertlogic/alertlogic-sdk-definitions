@@ -1,0 +1,97 @@
+
+
+ami_record_ref:
+  $ref: '../../priv/schemas/api.json#/definitions/image_set'
+
+v1_current_images:
+  type: array
+  items:
+    type: object
+    properties:
+      type:
+        type: string
+        example: aws
+      product:
+        type: string
+        example: ids
+      images:
+        type: array
+        items:
+          description: 'v1_image object'
+          type: object
+          example: {
+            'us-east-1' : 'ami-11111111111111111',
+            'us-west-1' : 'ami-22222222222222222'
+          }
+
+v2_current_images:
+  type: array
+  items:
+    type: object
+    properties:
+      type:
+        type: string
+        example: aws
+      product:
+        type: string
+        example: ids
+      images:
+        type: array
+        items:
+          $ref: '#/image'
+
+v1_all_images:
+  type: array
+  items:
+    type: object
+    description: 'v1_all_image object'
+    example: {
+      'product_type': 'ids',
+      'platform_type': 'aws',
+      'id': 'ami-11111111111111111',
+      'details': {
+        'region': 'us-east-1',
+        'ami_name': 'example name'
+      },
+      'description': 'example description'
+    }
+
+image:
+  description: 'v2_image object'
+  type: object
+  properties:
+    image_id:
+      type: string
+    region:
+      type: string
+
+image_id:
+  type: string
+  example: ami-11111111111111111
+
+region:
+  type: string
+  example: us-east-1
+
+version:
+  type: string
+  example: v1.0.0
+
+product_type:
+  type: string
+  description: product type
+  enum:
+    - ids
+    - scan
+    - wsm
+
+platform_type:
+  type: string
+  description: platform type
+  enum:
+    - aws
+
+platform_id:
+  type: string
+  example: 0000-0000-0000
+
