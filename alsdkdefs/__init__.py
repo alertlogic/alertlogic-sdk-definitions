@@ -25,6 +25,9 @@ OPENAPI_SCHEMA_FILE = 'openapi_schema.json'
 URI_SCHEMES = ['file', 'http', 'https']
 
 
+class AlertLogicOpenApiValidationWarning(Exception):
+    pass
+
 class ServiceDefinition:
     def __init__(self, name, filespath):
         self.service_name = name
@@ -50,7 +53,6 @@ class ServiceDefinition:
 
     def get_files_path(self):
         return self.filespath
-
 
 class AlertLogicOpenApiValidationException(Exception):
     pass
@@ -236,6 +238,9 @@ def validate(spec, uri=None, schema=get_openapi_schema()):
         return filter(lambda op: op in
                                  ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'], path_obj)
 
+    def _get_params_of_type(params_obj, tp):
+        return map(lambda p: p['name'], filter(lambda p: p['in'] == tp, params_obj))
+
     def validate_operation_ids(spec):
         for path, path_obj in spec[OpenAPIKeyWord.PATHS].items():
             methods = _get_path_methods(path_obj)
@@ -250,22 +255,48 @@ def validate(spec, uri=None, schema=get_openapi_schema()):
 
     def validate_path_parameters(spec):
         for path, path_obj in spec[OpenAPIKeyWord.PATHS].items():
-            def get_params_of_type(params_obj, tp):
-                return map(lambda p: p['name'], filter(lambda p: p['in'] == tp, params_obj))
-
             methods = _get_path_methods(path_obj)
             path_param_vars = re.findall('{(.*?)}', path)
             path_methods_parameters = __list_flatten(
-                map(lambda m: get_params_of_type(path_obj[m].get(OpenAPIKeyWord.PARAMETERS, []), 'path'), methods))
+                map(lambda m: _get_params_of_type(path_obj[m].get(OpenAPIKeyWord.PARAMETERS, []), 'path'), methods))
             for path_param_var in path_param_vars:
                 base_msg = f"Path {path} parameter {path_param_var}"
                 if path_param_var not in path_methods_parameters:
                     raise AlertLogicOpenApiValidationException(f"{base_msg}: Parameter defined in the path is missing"
                                                                f" from parameters section")
 
+    def validate_compound_schemas_type(spec):
+        """
+        alcli only related check.
+        alcli may fail to infere the proper type if
+        it is not explicitly specified which might
+        be the case with compound schemas.
+        """
+        for k, v in spec.items():
+            if k in [OpenAPIKeyWord.ONE_OF, OpenAPIKeyWord.ANY_OF, OpenAPIKeyWord.ALL_OF]:
+                find_type = [t.get('type') for t in v if t.get('type')]
+                if not find_type:
+                    raise AlertLogicOpenApiValidationWarning(f"Compound schema of a parameter is missing type "
+                                                             f"{json.dumps(v, indent=4)}")
+
+                if len(sorted(set(find_type))) > 1:
+                    raise AlertLogicOpenApiValidationWarning(f"Compound schema types are different {find_type} " 
+                                                             f"{json.dumps(v, indent=4)}")
+
+            if isinstance(v, dict):
+                if k == 'responses':
+                    return
+                else:
+                    validate_compound_schemas_type(v)
+
+
     def al_specific_validations(spec):
-        checks = [validate_operation_ids(spec), validate_path_parameters(spec)]
-        all(checks)
+        checks = [
+            validate_operation_ids(spec),
+            validate_path_parameters(spec),
+            validate_compound_schemas_type(spec)
+        ]
+        return all(checks)
 
     obj = normalize_spec(uri, spec)
     jsonschema.validate(obj, schema)
