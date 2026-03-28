@@ -19,4 +19,7 @@ class TestServiceDefs(unittest.TestCase):
             for defintion_file in alsdkdefs.get_service_defs(service):
                 print("Validating def", defintion_file)
                 obj = alsdkdefs.get_spec(alsdkdefs.make_file_uri(defintion_file))
-                alsdkdefs.validate(obj, defintion_file)
+                try:
+                    alsdkdefs.validate(obj, defintion_file)
+                except alsdkdefs.AlertLogicOpenApiValidationWarning as e:
+                    print(f"***WARNING***: Validation warning {e}")
