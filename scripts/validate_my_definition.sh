@@ -5,16 +5,16 @@ export TEMP=$(mktemp -d -t alertlogic-sdk-definitions-validation-XXXX)
 
 if [ -n "$AL_SDK_VALIDATE_PYTHON" ]; then
   PYTHON="$AL_SDK_VALIDATE_PYTHON"
-elif command -v python3.10; then
-  PYTHON=python3.10
-elif command -v python3.9; then
-  PYTHON=python3.9
-elif command -v python3.8; then
-  PYTHON=python3.8
-elif command -v python3.7; then
-  PYTHON=python3.7
-elif command -v python3.6; then
-  PYTHON=python3.6
+elif command -v python3.15; then
+  PYTHON=python3.15
+elif command -v python3.14; then
+  PYTHON=python3.14
+elif command -v python3.13; then
+  PYTHON=python3.13
+elif command -v python3.12; then
+  PYTHON=python3.12
+elif command -v python3.11; then
+  PYTHON=python3.11
 elif command -v python3; then
   PYTHON=python3
 else
