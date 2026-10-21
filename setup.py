@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = ['jsonschema[format_nongpl]==3.2.0', 'pyyaml>=5.4.1', 'requests>=2.18', 'urllib3<2', 'jsonmerge>=1.8.0']
+requirements = ['jsonschema[format_nongpl]==3.2.0', 'pyyaml>=6.0.1', 'requests>=2.33.0', 'urllib3>=2.8.0', 'jsonmerge>=1.8.0']
 
 setup(
     name='alertlogic-sdk-definitions',
@@ -13,15 +13,17 @@ setup(
     license='MIT license',
     author='Alert Logic Inc.',
     author_email='devsupport@alertlogic.com',
-    python_requires='>=3.6',
+    python_requires='>=3.11',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
+        'Programming Language :: Python :: 3.15'
     ],
     description='The Alert Logic API definitions.',
     long_description=readme,
